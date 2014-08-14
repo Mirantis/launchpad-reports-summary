@@ -1,0 +1,106 @@
+=====================
+NEWS for launchpadlib
+=====================
+
+1.6.0 (2010-04-07)
+==================
+
+- Fixed a test to work against the latest version of Launchpad.
+
+1.5.8 (2010-03-25)
+==================
+
+- Use version 1.0 of the Launchpad web service by default.
+
+1.5.7 (2010-03-16)
+==================
+
+- Send a Referer header whenever making requests to the Launchpad
+  website (as opposed to the web service) to avoid falling afoul of
+  new cross-site-request-forgery countermeasures.
+
+1.5.6 (2010-03-04)
+==================
+
+- Fixed a minor bug when using login_with() to access a version of the
+  Launchpad web service other than the default.
+
+- Added a check to catch old client code that would cause newer
+  versions of launchpadlib to make nonsensical requests to
+  https://api.launchpad.dev/beta/beta/, and raise a helpful exception
+  telling the developer how to fix it.
+
+1.5.5
+=====
+
+- Added the ability to access different versions of the Launchpad web
+  service.
+
+1.5.4 (2009-12-17)
+==================
+
+- Made it easy to get anonymous access to a Launchpad instance.
+
+- Made it easy to plug in different clients that take the user's
+  Launchpad login and password for purposes of authorizing a request
+  token. The most secure technique is still the default: to open the
+  user's web browser to the appropriate Launchpad page.
+
+- Introduced a command-line script bin/launchpad-credentials-console,
+  which takes the user's Launchpad login and password, and authorizes
+  a request token on their behalf.
+
+- Introduced a command-line script bin/launchpad-request-token, which
+  creates a request token on any Launchpad installation and dumps the
+  JSON description of that token to standard output.
+
+- Shorthand service names like 'edge' should now be respected
+  everywhere in launchpadlib.
+
+1.5.3 (2009-10-22)
+==================
+
+- Moved some more code from launchpadlib into the more generic
+  lazr.restfulclient.
+
+1.5.2 (2009-10-01)
+==================
+
+- Added a number of new sample scripts from elsewhere.
+
+- Added a reference to the production Launchpad instance.
+
+- Made it easier to specify a Launchpad instance to run against.
+
+1.5.1 (2009-07-16)
+==================
+
+- Added a sample script for uploading a release tarball to Launchpad.
+
+1.5.0 (2009-07-09)
+==================
+
+- Most of launchpadlib's code has been moved to the generic
+  lazr.restfulclient library. launchpadlib now contains only code
+  specific to Launchpad. There should be no changes in functionality.
+
+- Moved bootstrap.py into the top-level directory. Having it in a
+  subdirectory with a top-level symlink was breaking installation on
+  Windows.
+
+- The notice to the end-user (that we're opening their web
+  browser) is now better formatted.
+
+1.0.1 (2009-05-30)
+==================
+
+- Correct tests for new launchpad cache behavior in librarian
+
+- Remove build dependency on setuptools_bzr because it was causing bzr to be
+  downloaded during installation of the package, which was unnecessary and
+  annoying.
+
+1.0 (2009-03-24)
+================
+
+- Initial release on PyPI

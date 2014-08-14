@@ -1,0 +1,151 @@
+*******************************
+The simulated Launchpad browser
+*******************************
+
+The SimulatedLaunchpadBrowser class is a scriptable browser-like class
+that can be trusted with the end-user's username and password. It
+fulfils the same function as the user's web browser, but because it's
+scriptable can be used to create non-browser trusted clients.
+
+    >>> username = 'salgado@ubuntu.com'
+    >>> password = 'zeca'
+    >>> web_root = 'http://launchpad.dev:8085/'
+
+Before showing how SimulatedLaunchpadBrowser can authorize a request
+token, let's create a request token to authorize.
+
+    >>> from launchpadlib.credentials import Credentials
+    >>> credentials = Credentials("doctest consumer")
+    >>> context="firefox"
+    >>> validate_url = credentials.get_request_token(
+    ...     web_root=web_root, context=context)
+    >>> request_token = credentials._request_token.key
+
+get_token_info()
+================
+
+If you have the end-user's username and password, you can use
+get_token_info() to get information about one of the user's request
+tokens. It's useful for confirming that the end-user gave the correct
+username and password, and for reconciling the list of access levels a
+client will accept with Launchpad's master list.
+
+    >>> from launchpadlib.credentials import SimulatedLaunchpadBrowser
+    >>> from launchpadlib.testing.helpers import TestableLaunchpad
+
+    >>> browser = SimulatedLaunchpadBrowser(web_root)
+
+If you make an unauthorized request, you'll get a 401 error.
+(Launchpad returns 200, but SimulatedLaunchpadBrowser sniffs it and
+changes it to a 401.)
+
+    >>> response, content = browser.get_token_info(
+    ...     "baduser", "badpasword", request_token)
+    >>> print response.status
+    401
+
+If you provide the right authorization, you'll get back information
+about your request token.
+
+    >>> response, content = browser.get_token_info(
+    ...     username, password, request_token)
+    >>> print response['content-type']
+    application/json
+
+    # XXX leonardr 2009-10-28 bug=462773 These two URLs should be
+    # exactly the same, but the Content-Location is missing the
+    # lp.context.
+    >>> validate_url.startswith(response['content-location'])
+    True
+
+    >>> import simplejson
+    >>> json = simplejson.loads(content)
+    >>> json['oauth_token'] == request_token
+    True
+
+    >>> print json['oauth_token_consumer']
+    doctest consumer
+
+You'll also get information about the available access
+levels.
+
+    >>> print sorted([level['value'] for level in json['access_levels']])
+    ['READ_PRIVATE', ... 'UNAUTHORIZED', ...]
+
+If you provide a list of possible access levels, you'll
+get back a list that reconciles the list you gave with
+Launchpad's access levels.
+
+    >>> response, content = browser.get_token_info(
+    ...     username, password, request_token,
+    ...     ["READ_PUBLIC", "READ_PRIVATE", "NO_SUCH_ACCESS_LEVEL"])
+
+    >>> print response['content-type']
+    application/json
+
+    >>> json = simplejson.loads(content)
+    >>> print sorted(
+    ...     [level['value'] for level in json['access_levels']])
+    ['READ_PRIVATE', 'READ_PUBLIC', 'UNAUTHORIZED']
+
+Note that the nonexistent access level has been removed from the
+reconciled list, and the "Unauthorized" access level (which must
+always be an option) has been added.
+
+grant_access()
+==============
+
+If you have the end-user's username and password, you can use
+grant_access() to authorize a request token.
+
+If you make an unauthorized request, you'll get a 401 error.  (As with
+get_token_info(), Launchpad returns 200, but SimulatedLaunchpadBrowser
+sniffs it and changes it to a 401.)
+
+    >>> access_level = "READ_PRIVATE"
+
+    >>> response, content = browser.grant_access(
+    ...     "baduser", "badpasword", request_token, access_level, context)
+    >>> print response.status
+    401
+
+If you try to grant an invalid level of access, you'll get a
+400 error.
+
+    >>> response, content = browser.grant_access(
+    ...     username, password, request_token,
+    ...     "NO_SUCH_ACCESS_LEVEL")
+    >>> print response.status
+    400
+
+If you provide all the necessary information, you'll get a 200
+response code and the request token will be authorized.
+
+    >>> response, content = browser.grant_access(
+    ...     username, password, request_token, access_level)
+    >>> print response.status
+    200
+
+If you try to grant access to a request token that's already
+been authorized, you'll get a 409 error.
+
+    >>> response, content = browser.grant_access(
+    ...     username, password, request_token, access_level)
+    >>> print response.status
+    409
+
+Now that the request token is authorized, we can exchange it for an
+access token.
+
+    >>> credentials.exchange_request_token_for_access_token(
+    ...     web_root=web_root)
+    >>> credentials.access_token.key is None
+    False
+
+If you try to grant access to a request token that's already been
+exchanged for an access token, you'll get a 400 error.
+
+    >>> response, content = browser.grant_access(
+    ...     username, password, request_token, access_level)
+    >>> print response.status
+    400

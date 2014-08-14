@@ -1,0 +1,205 @@
+********************
+Command-line scripts
+********************
+
+Launchpad includes some command-line scripts to make Launchpad
+integration easier for third-party libraries that aren't written in
+Python or that can't do token authorization by opening a user's web
+browser.
+
+This file tests the workflow underlying the command-line scripts as
+best it can.
+
+RequestTokenApp
+===============
+
+This class is called by the command-line script
+launchpad-request-token. It creates a request token on a given
+Launchpad installation, and returns a JSON description of the request
+token and the available access levels.
+
+    >>> import simplejson
+    >>> from launchpadlib.apps import RequestTokenApp
+
+    >>> web_root = "http://launchpad.dev:8085/"
+    >>> consumer_name = "consumer"
+    >>> token_app = RequestTokenApp(web_root, consumer_name, "context")
+    >>> json = simplejson.loads(token_app.run())
+
+    >>> sorted(json.keys())
+    ['access_levels', 'lp.context', 'oauth_token',
+     'oauth_token_consumer', 'oauth_token_secret']
+
+    >>> print json['lp.context']
+    context
+
+    >>> print json['oauth_token_consumer']
+    consumer
+
+TrustedTokenAuthorizationConsoleApp
+===================================
+
+This class is called by the command-line script
+launchpad-credentials-console. It asks for the user's Launchpad
+username and password, and authorizes a request token on their
+behalf.
+
+    >>> from launchpadlib.apps import TrustedTokenAuthorizationConsoleApp
+    >>> from launchpadlib.testing.helpers import UserInput
+
+This class does not create the request token, or exchange it for the
+access token--that's the job of the program that calls
+launchpad-credentials-console. So we'll use the request token created
+earlier by RequestTokenApp.
+
+    >>> request_token = json['oauth_token']
+
+Since this is a test, we don't want the application to call sys.exit()
+or try to open up pages in a web browser. This subclass of
+TrustedTokenAuthorizationConsoleApp will print messages instead of
+performing such un-doctest-like actions.
+
+    >>> class ConsoleApp(TrustedTokenAuthorizationConsoleApp):
+    ...     def open_page_in_user_browser(self, url):
+    ...         """Print a status message."""
+    ...         self.output("[If this were a real application, the "
+    ...                     "end-user's web browser would be opened "
+    ...                     "to %s]" % url)
+    ...
+    ...     def exit_with(self, code):
+    ...         print "Application exited with code %d" % code
+
+We'll use a UserInput object to simulate a user typing things in at
+the prompt and hitting enter. This UserInput runs the program
+correctly, entering the Launchpad username and password, choosing an
+access level, and hitting Enter to exit.
+
+    >>> username = "salgado@ubuntu.com"
+    >>> password = "zeca"
+    >>> fake_input = UserInput([username, password, "1", ""])
+
+Here's a successful run of the application. When the request token is
+authorized, the script's response code is 0.
+
+    >>> app = ConsoleApp(
+    ...     web_root, consumer_name, request_token,
+    ...     'READ_PRIVATE, READ_PUBLIC', input_method=fake_input)
+    >>> app.run()
+    Launchpad credential client (console)
+    -------------------------------------
+    An application identified as "consumer" wants to access Launchpad...
+    What email address do you use on Launchpad?
+    (No Launchpad account? Just hit enter.) [User input: salgado@ubuntu.com]
+    What's your Launchpad password? [User input: zeca]
+    Now it's time for you to decide how much power to give "consumer"...
+    1: Read Non-Private Data
+    2: Read Anything
+    What should "consumer" be allowed to do...? [1-2 or Q] [User input: 1]
+    Okay, I'm telling Launchpad to grant "consumer" access to your account.
+    You're all done!...
+    Press enter to go back to "consumer". [User input: ]
+    Application exited with code 0
+
+Now that the request token has been authorized, we'll need to create
+another one to continue the test.
+
+    >>> json = simplejson.loads(token_app.run())
+    >>> request_token = json['oauth_token']
+    >>> app.request_token = request_token
+
+Invalid input is ignored. The user may enter 'Q' instead of a number
+to refuse to authorize the request token. When the user denies access,
+the exit code is -2.
+
+    >>> fake_input = UserInput([username, password, "A", "99", "Q", ""])
+    >>> app.input_method = fake_input
+    >>> app.run()
+    Launchpad credential client (console)
+    -------------------------------------
+    An application identified as "consumer"...
+    What should "consumer" be allowed to do...? [1-2 or Q] [User input: A]
+    What should "consumer" be allowed to do...? [1-2 or Q] [User input: 99]
+    What should "consumer" be allowed to do...? [1-2 or Q] [User input: Q]
+    Okay, I'm going to cancel the request...
+    You're all done! "consumer" still doesn't have access...
+    <BLANKLINE>
+    Press enter to go back to "consumer". [User input: ]
+    Application exited with code -2
+
+When the third-party application will allow only one level of access,
+the end-user is presented with a yes-or-no choice instead of a list to
+choose from. Again, invalid input is ignored.
+
+    >>> json = simplejson.loads(token_app.run())
+    >>> request_token = json['oauth_token']
+    >>> fake_input = UserInput([username, password, "1", "Q", "Y", ""])
+
+    >>> app = ConsoleApp(
+    ...     web_root, consumer_name, request_token,
+    ...     'READ_PRIVATE', input_method=fake_input)
+
+    >>> app.run()
+    Launchpad credential client (console)
+    -------------------------------------
+    An application identified as "consumer"...
+    Do you want to give "consumer" this level of access? [YN] [User input: 1]
+    Do you want to give "consumer" this level of access? [YN] [User input: Q]
+    Do you want to give "consumer" this level of access? [YN] [User input: Y]
+    ...
+    Application exited with code 0
+
+
+Error handling
+--------------
+
+When the end-user refuses to authorize the request token, the app
+exits with a return code of -2, as seen above. When any other error
+gets in the way of the authorization of the request token, the app's
+return code is -1.
+
+If the user hits enter when asked for their email address, indicating
+that they don't have a Launchpad account, the app opens their browser
+to the Launchpad login page.
+
+    >>> json = simplejson.loads(token_app.run())
+    >>> app.request_token = json['oauth_token']
+
+    >>> input_nothing = UserInput(["", ""])
+    >>> app.input_method = input_nothing
+
+    >>> app.run()
+    Launchpad credential client (console)
+    -------------------------------------
+    An application identified as "consumer"...
+    [If this were a real application, the end-user's web browser...]
+    OK, you'll need to get yourself a Launchpad account before...
+    <BLANKLINE>
+    I'm opening the Launchpad registration page in your web browser...
+    Press enter to go back to "consumer". [User input: ]
+    Application exited with code -1
+
+If the user keeps entering bad passwords, the app eventually gives up.
+
+    >>> input_bad_password = UserInput(
+    ...     [username, "badpw", "", "badpw", "", "badpw", ""])
+    >>> json = simplejson.loads(token_app.run())
+    >>> request_token = json['oauth_token']
+    >>> app.request_token = request_token
+    >>> app.input_method = input_bad_password
+    >>> app.run()
+    Launchpad credential client (console)
+    -------------------------------------
+    An application identified as "consumer"...
+    What email address do you use on Launchpad?
+    (No Launchpad account? Just hit enter.)  [User input: salgado@ubuntu.com]
+    What's your Launchpad password? [User input: badpw]
+    I can't log in with the credentials you gave me. Let's try again.
+    What email address do you use on Launchpad? [salgado@ubuntu.com] [User input: ]
+    What's your Launchpad password? [User input: badpw]
+    I can't log in with the credentials you gave me. Let's try again.
+    What email address do you use on Launchpad? [salgado@ubuntu.com] [User input: ]
+    What's your Launchpad password? [User input: badpw]
+    You've failed the password entry too many times...
+    Press enter to go back to "consumer". [User input: ]
+    Application exited with code -1
+

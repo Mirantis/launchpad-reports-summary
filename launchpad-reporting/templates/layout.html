@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Roman Alekseenkov">
+
+    <title>Launchpad Bugs Summary Reports</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Dashboard CSS -->
+    <link href="{{ url_for('static', filename='dashboard.css') }}" rel="stylesheet">
+
+    <!-- D3 & NVD3  CSS -->
+    <link href="{{ url_for('static', filename='nvd3/nv.d3.css') }}" rel="stylesheet">
+  </head>
+
+  <body>
+
+      <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+          <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" width="5%" align="left" alt="Mirantis Logo">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <a class="navbar-brand" href="/">Launchpad Bugs Summary Reports</a>
+          <a class="navbar-brand" href="/"></a>
+          <a class="navbar-brand" href="/project/fuelplusmos">FUEL+MOS</a>
+          {% for p in prs %}
+             <a class="navbar-brand" href="/project/{{ p }}">{{ p }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+
+    <div class="container-fluid">
+      <div class="row">
+
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <!-- It looks like it must be placed before body block, as otherwise
+             child pages won't be able to use bootstrap -->
+        <script src="{{ url_for('static', filename='jquery/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            {% block body %}{% endblock %}
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

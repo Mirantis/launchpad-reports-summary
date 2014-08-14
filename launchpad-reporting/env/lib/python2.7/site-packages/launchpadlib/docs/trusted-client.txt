@@ -1,0 +1,224 @@
+***********************
+Making a trusted client
+***********************
+
+To authorize a request token, the end-user must type in their
+Launchpad username and password. Obviously, typing your password into
+a random program is a bad idea. The best case is to use a program you
+already trust with your Launchpad password: your web browser.
+
+But if you're writing an application that can't open the end-user's
+web browser, or you just really want a token authorization client that
+has the same UI as the rest of your application, you should use one of
+the trusted clients packaged with launchpadlib, rather than writing
+your own client.
+
+All the trusted clients are based on the same core code and implement
+the same workflow. This test implements a scriptable trusted client
+and uses it to test the behavior of the standard workflow.
+
+    >>> from launchpadlib.testing.helpers import (
+    ...     ScriptableRequestTokenAuthorization)
+
+Here we see the normal workflow, in which the user inputs all the
+correct data to authorize a request token.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", "salgado@ubuntu.com", "zeca",
+    ...     "WRITE_PRIVATE",
+    ...     allow_access_levels = ["WRITE_PUBLIC", "WRITE_PRIVATE"])
+    >>> access_token = auth()
+    An application identified as "consumer" wants to access Launchpad...
+    <BLANKLINE>
+    I'll use your Launchpad password to give "consumer" limited access...
+    What email address do you use on Launchpad?
+    What's your Launchpad password?
+    Now it's time for you to decide how much power to give "consumer" ...
+    ['UNAUTHORIZED', 'WRITE_PUBLIC', 'WRITE_PRIVATE']
+    Okay, I'm telling Launchpad to grant "consumer" access to your account.
+    You're all done! You should now be able to use Launchpad ...
+
+Ordinarily, the third-party program will create a request token and
+pass it into the trusted client. The test class is a little unusual:
+it takes care of creating the request token and, after the end-user
+has authorized it, exchanges the request token for an access
+token. This way we can verify that the entire end-to-end process
+works.
+
+    >>> access_token.key is not None
+    True
+
+Denying access
+==============
+
+It's always possible for the end-user to deny access to the
+application. This will make it impossible to convert the request token
+into an access token.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", "salgado@ubuntu.com", "zeca", "UNAUTHORIZED")
+    >>> access_token = auth()
+    An application identified as "consumer" wants to access Launchpad...
+    What email address do you use on Launchpad?
+    ...
+    Okay, I'm going to cancel the request that "consumer" made...
+    You're all done! "consumer" still doesn't have access...
+
+    >>> access_token is None
+    True
+
+Only one allowable access level
+===============================
+
+When the application being authenticated only allows one access level,
+the authorizer creates a special message for display to the end-user.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", "salgado@ubuntu.com", "zeca",
+    ...     "WRITE_PRIVATE", allow_access_levels=["WRITE_PRIVATE"])
+
+    >>> auth()
+    An application identified as "consumer" wants to access Launchpad ...
+    ...
+    "consumer" says it needs the following level of access to your Launchpad
+    account: "Change Anything". It can't work with any other level of access,
+    so denying this level of access means prohibiting "consumer" from
+    using your Launchpad account at all.
+    ...
+
+Error handling
+==============
+
+Things can go wrong in many ways, most of which we can test with our
+scriptable authorizer. Here's a utility method to run the
+authorization process with a badly-scripted authorizer and print the
+resulting exception.
+
+    >>> from launchpadlib.credentials import TokenAuthorizationException
+    >>> def print_error(auth):
+    ...     try:
+    ...         auth()
+    ...     except TokenAuthorizationException, e:
+    ...         print str(e)
+
+Authentication failures
+-----------------------
+
+If the user doesn't have a Launchpad account, or refuses to type in
+their email address, the authorizer will open their web browser to the
+login page, and raise an exception.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", None, "zeca", "WRITE_PRIVATE")
+    >>> print_error(auth)
+    An application identified as "consumer" wants to access Launchpad ...
+    [If this were a real application, ... opened to http://launchpad.dev:8085/+login]
+    OK, you'll need to get yourself a Launchpad account before you can ...
+    <BLANKLINE>
+    I'm opening the Launchpad registration page in your web browser ...
+
+If the user enters the wrong username/password combination too many
+times, the authorizer will give up and raise an exception.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", "salgado@ubuntu.com", "baddpassword",
+    ...     "WRITE_PRIVATE")
+    >>> print_error(auth)
+    An application identified as "consumer" wants to access Launchpad...
+    ...
+    What email address do you use on Launchpad?
+    What's your Launchpad password?
+    I can't log in with the credentials you gave me. Let's try again.
+    What email address do you use on Launchpad?
+    Cached email address: salgado@ubuntu.com
+    What's your Launchpad password?
+    You've failed the password entry too many times...
+
+The max_failed_attempts argument controls how many attempts the user
+is given to enter their username and password.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", "bad username", "zeca",
+    ...     "WRITE_PRIVATE", max_failed_attempts=1)
+    >>> print_error(auth)
+    An application identified as "consumer" wants to access Launchpad ...
+    What email address do you use on Launchpad?
+    What's your Launchpad password?
+    You've failed the password entry too many times...
+
+Approving a token that was already approved
+-------------------------------------------
+
+To set this up, let's approve a request token but not exchange it for
+an access token.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", "salgado@ubuntu.com", "zeca",
+    ...     "WRITE_PRIVATE")
+    >>> auth(exchange_for_access_token=False)
+    An application identified as "consumer" wants to access Launchpad ...
+    ...
+
+Now let's try to approve the request token again:
+
+    >>> print_error(auth)
+    An application identified as "consumer" wants to access Launchpad ...
+    ...
+    It looks like you already approved this request...
+
+Once the request token is exchanged for an access token, it's
+deleted. An attempt to approve a request token that's already been
+exchanged for an access token gives an error message.
+
+    >>> auth.credentials.exchange_request_token_for_access_token(
+    ...     web_root=auth.web_root)
+
+    >>> print_error(auth)
+    An application identified as "consumer" wants to access Launchpad ...
+    ...
+    Launchpad couldn't find an outstanding request for integration...
+
+An attempt to approve a nonexistent request token gives the same error
+message.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer", "salgado@ubuntu.com", "zeca",
+    ...     "WRITE_PRIVATE")
+    >>> auth.request_token = "nosuchrequesttoken"
+    >>> print_error(auth)
+    An application identified as "consumer" wants to access Launchpad ...
+    ...
+    Launchpad couldn't find an outstanding request for integration...
+
+Miscellaneous error
+-------------------
+
+Random errors on the server side or (occasionally) the client side
+will result in a generic error message.
+
+    >>> auth.request_token = "this token will confuse launchpad badly"
+    >>> print_error(auth)
+    An application identified as "consumer" wants to access Launchpad ...
+    ...
+    There seems to be something wrong on the Launchpad server side...
+
+Client duplicity
+----------------
+
+If the third-party client gives one consumer name to Launchpad, and a
+different consumer name to the authorizer, the authorizer will detect
+this possible duplicity and print a warning.
+
+    >>> auth = ScriptableRequestTokenAuthorization(
+    ...     "consumer1", "salgado@ubuntu.com", "zeca",
+    ...     "WRITE_PRIVATE")
+
+We'll simulate this by changing the authorizer's .consumer_name after
+it obtained a request token from Launchpad.
+
+    >>> auth.consumer_name = "consumer2"
+    >>> auth()
+    An application identified as "consumer2" wants to access Launchpad ...
+    ...
+    WARNING: The application you're using told me its name was "consumer2", but it told Launchpad its name was "consumer1"...
+    ...

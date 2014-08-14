@@ -1,0 +1,140 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h1 class="page-header"><br>Project "{{ project.display_name }}" : Bugs Status</h1>
+<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar">
+        <li {% if selected_bug_table and bug_type == 'New' %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='New', milestone_name='None') }}">New bugs
+            </a>
+        </li>
+    </ul>
+
+    {% for m in project.active_milestones|sort %}
+    <ul class="nav nav-sidebar">
+        <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
+            </a>
+        </li>
+        <li {% if selected_bug_table and bug_type == 'Open' and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">{{ m }}: Open Bugs
+            </a>
+        </li>
+        <li {% if selected_bug_table and bug_type == 'Closed' and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">{{ m }}: Closed Bugs
+            </a>
+        </li>
+    </ul>
+
+    {% endfor %}
+
+</div>
+
+<style>
+   #container {
+    width: 1200px;
+   }
+   #leftcol {
+    width: 1000px;
+    float: left;
+    display: inline-block;
+   }
+   #rightcol {
+    width: 175px;
+    display: inline-block;
+    top: -20px;
+   }
+   ul li{
+      list-style-image: url(https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678121-cloud-sync-20.png)
+   }
+</style>
+
+<div id="container">
+    <p><b>Name</b>: {{ project.display_name }}</p>
+    <p><b>Summary</b>: {{ project.summary }}</p>
+    <p><b>URL</b>: <a href="https://launchpad.net/{{ project.name }}">https://launchpad.net/{{ project.name }}</a></p>
+
+
+
+<div id="leftcol">
+    <table class="bug_statistic">
+        <thead>
+          <tr class='table_caption'>
+            <th class='table_header' colspan='9'>
+              {% if tag  %}
+              <b> {{ project.display_name }}  "{{ tag }}" bugs statistic:</b>
+              {% else %}
+              <b> {{ project.display_name }} bugs statistic:</b>
+              {% endif %}
+            </th>
+          </tr>
+          <tr>
+              <th>Items</th>
+              <th>Count</th>
+              <th>Links on Launchpad</th>
+          </tr>
+        </thead>
+        <tr>
+            <td>New Bugs For The Last Week</td>
+            <td>{{ new_for_week }}</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Fixed Bugs For The Last Week</td>
+            <td>{{ fixed_for_week }}</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>New Bugs For The Last Month</td>
+            <td>{{ new_for_month }}</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>Fixed Bugs For The Last Month</td>
+            <td>{{ fixed_for_month }}</td>
+            <td></td>
+        </tr>
+        <tr {%if critical != "0" %}class="critical-bugs"{% endif %}>
+            <td> Total Critical Bugs</td>
+            <td>{{ critical }}</td>
+            {% if tag  %}
+              <td><a href="https://bugs.launchpad.net/{{ project.name }}/?field.searchtext=&orderby=-importance&search=Search&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL&field.tag={{ tag }}"><i>link</i></a></p></td>
+              {% else %}
+              <td><a href="https://bugs.launchpad.net/{{ project.name }}/?field.searchtext=&orderby=-importance&search=Search&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL"><i>link</i></a></p></td>
+            {% endif %}
+             </tr>
+        {% if display_subprojects == False %}
+        <tr>
+            <td>Total Unresolved Bugs</td>
+            <td>{{ total_unresolved }}</td>
+            <td><a href="https://bugs.launchpad.net/{{ project.name }}/+bugs?field.searchtext=&orderby=-importance&search=Search&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE"><i>link</i></a></td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td>Total Bugs</td>
+            <td>{{ total }}</td>
+            {% if tag  %}
+              <td><a href="https://bugs.launchpad.net/{{ project.name }}/+bugs?field.tag={{ tag }}"><i>link</i></a></td>
+              {% else %}
+              <td><a href="https://bugs.launchpad.net/{{ project.name }}"><i>link</i></a></td>
+            {% endif %}
+
+        </tr>
+    </table>
+</div>
+
+
+
+{% if display_subprojects or project.name in ("mos", "fuel") %}
+<div id="rightcol" >
+    <ul>
+        {% for s in subprs %}
+             <li><p><a href="/project/{{ project.name }}/{{ s }}">{{ s }}</a></p></li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endif %}
+
+</div>
+{% endblock %}

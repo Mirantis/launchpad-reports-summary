@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h2 class="page-header">{{ milestone_name }} Release Bug Trends</h2>
+
+        <div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar">
+        <li {% if selected_bug_table and bug_type == 'New' %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='New', milestone_name='None') }}">New bugs
+            </a>
+        </li>
+    </ul>
+
+    {% for m in project.active_milestones|sort %}
+    <ul class="nav nav-sidebar">
+        <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
+            </a>
+        </li>
+        <li {% if selected_bug_table and bug_type == 'Open' and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">{{ m }}: Open Bugs
+            </a>
+        </li>
+        <li {% if selected_bug_table and bug_type == 'Closed' and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">{{ m }}: Closed Bugs
+            </a>
+        </li>
+    </ul>
+
+    {% endfor %}
+
+</div>
+
+<div class="row placeholders">
+  <div id="bug-report-chart">
+    <img src="{{ url_for('static', filename='loader.gif') }}" />
+    <svg></svg>
+  </div>
+</div>
+
+<h2 class="page-header">{{ milestone_name }} Incoming/Outgoing Bugs (Weekly)</h2>
+<div class="row placeholders">
+  <div id="bug-incoming-outgoing-chart">
+    <img src="{{ url_for('static', filename='loader.gif') }}" />
+    <svg></svg>
+  </div>
+</div>
+
+
+<script src="{{ url_for('static', filename='d3/d3.v3.js') }}"></script>
+<script src="{{ url_for('static', filename='nvd3/nv.d3.js') }}"></script>
+
+<script>
+
+  <!-- Release bug trend chart -->
+  d3.json('/project/{{ project.name }}/api/release_chart_trends/{{ milestone_name }}/get_data', function(data) {
+    nv.addGraph(function() {
+      var chart = nv.models.stackedAreaChart()
+                    .x(function(d) { return d[0] })
+                    .y(function(d) { return d[1] })
+                    .color(function(d) {
+                      colors = {
+                        "Open": "#FEA455", // dark orange
+                        "Incomplete": "#E16767", // dark red
+                        "Resolved": "#B6E7AC", // light green
+                        "Verified": "#6ABB6A", // dark green
+                        "In Progress": "#619FC9" // dark blue
+                      };
+                      return colors[d["key"]];
+                    })
+                    .clipEdge(true)
+                    .margin({left: 75})
+                    .useInteractiveGuideline(true)
+
+      chart.xAxis
+          .showMaxMin(true)
+          .axisLabel('Date')
+          .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
+
+      chart.yAxis
+          .showMaxMin(true)
+          .axisLabel('# of bugs')
+          .tickFormat(d3.format(',.0f'));
+
+      d3.select('#bug-report-chart svg')
+          .datum(data)
+          .transition().duration(500).call(chart);
+
+      nv.utils.windowResize(chart.update);
+
+      $('#bug-report-chart img').hide();
+
+      return chart;
+    });
+  })
+
+  <!-- Release incoming/outgoing bug chart -->
+  d3.json('/project/{{ project.name }}/api/release_chart_incoming_outgoing/{{ milestone_name }}/get_data', function(data) {
+    nv.addGraph(function() {
+        var chart = nv.models.multiBarChart()
+          .x(function(d) { return d[0] })
+          .y(function(d) { return d[1] })
+          .color(function(d) {
+            colors = {
+              "Incoming": "#E16767", // dark red
+              "Outgoing": "#B6E7AC"  // light green
+            };
+            return colors[d["key"]];
+          })
+          .showControls(true)   //Allow user to switch between 'Grouped' and 'Stacked' mode.
+          .groupSpacing(0.1)    //Distance between each group of bars.
+        ;
+     
+        chart.xAxis
+          .showMaxMin(true)
+          .axisLabel('Date')
+          .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
+     
+        chart.yAxis
+          .showMaxMin(true)
+          .axisLabel('# of bugs')
+          .tickFormat(d3.format(',.0f'));
+
+       d3.select('#bug-incoming-outgoing-chart svg')
+          .datum(data)
+          .transition().duration(500).call(chart);
+     
+      nv.utils.windowResize(chart.update);
+     
+      $('#bug-incoming-outgoing-chart img').hide();
+
+      return chart;
+    });
+  })
+
+</script>
+
+{% endblock %}

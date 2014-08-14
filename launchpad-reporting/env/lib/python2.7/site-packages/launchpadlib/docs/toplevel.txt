@@ -1,0 +1,31 @@
+The launchpad web service's top-level collections provide access to
+Launchpad-wide objects like projects and people.
+
+    >>> from launchpadlib.testing.helpers import salgado_with_full_permissions
+    >>> launchpad = salgado_with_full_permissions.login()
+
+It's possible to do key-based lookups on the top-level
+collections. The bug collection does lookups by bug ID.
+
+    >>> launchpad.bugs[1].id
+    1
+
+The person collection does lookups by a person's Launchpad name.
+
+    >>> launchpad.people['salgado'].name
+    u'salgado'
+
+The project collection does lookups by project name.
+
+    >>> launchpad.projects['firefox'].name
+    u'firefox'
+
+The project group collection does lookups by project group name.
+
+    >>> launchpad.project_groups['firefox'].name
+    u'firefox'
+
+The distribution collection does lookups by distribution name.
+
+    >>> launchpad.distributions['ubuntu'].name
+    u'ubuntu'

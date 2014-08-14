@@ -1,0 +1,65 @@
+{% block body %}
+<h2 class="sub-header">{{ bug_type }} Bugs: {{ bugs|length }} total</h2>
+
+<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar">
+        <li {% if selected_bug_table and bug_type == 'New' %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='New', milestone_name='None') }}">New bugs
+            </a>
+        </li>
+    </ul>
+
+    {% for m in project.active_milestones|sort %}
+    <ul class="nav nav-sidebar">
+        <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
+            </a>
+        </li>
+        <li {% if selected_bug_table and bug_type == 'Open' and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">{{ m }}: Open Bugs
+            </a>
+        </li>
+        <li {% if selected_bug_table and bug_type == 'Closed' and milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">{{ m }}: Closed Bugs
+            </a>
+        </li>
+    </ul>
+
+    {% endfor %}
+
+</div>
+<div class="table-responsive">
+
+{% if breakdown_by_status %}
+
+... ... ...
+
+{% else %}
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Bug #</th>
+      <th>Importance</th>
+      <th>Title</th>
+      <th>Assignee</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in bugs %}
+    <tr class="bug_row" id="{{ b.id }}">
+        <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
+        <td>{{ b.importance }}</td>
+        <td>{{ b.title }}</td>
+        <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+        <td>{{ b.status }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endif %}
+{% endblock %}
+

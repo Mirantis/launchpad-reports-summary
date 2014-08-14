@@ -1,0 +1,7 @@
+httplib2
+lazr.restfulclient>=0.9.11
+lazr.uri
+oauth
+setuptools
+simplejson
+wadllib
