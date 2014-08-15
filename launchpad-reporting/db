@@ -1,3 +1,5 @@
+from dateutil import relativedelta, parser
+from datetime import date
 import pymongo
 from launchpad.lpdata import LaunchpadData
 
@@ -24,7 +26,7 @@ mos = lpdata.get_project("mos")
 fuel = lpdata.get_project("fuel")
 
 milestones_list = lpdata.common_milestone(mos.active_milestones,
-                                         fuel.active_milestones)
+                                          fuel.active_milestones)
 db.milestones.insert({"Milestone": milestones_list})
 
 # Projects and subprojects
@@ -38,6 +40,36 @@ subprojects_list = ["murano", "sahara", "nova", "neutron", "keystone", "heat",
 db.projects.insert({"Project": projects_list})
 db.subprojects.insert({"Subproject": subprojects_list})
 
+for pr in db.projects.find_one()["Project"]:
+    db.drop_collection(pr)
+
+for pr in db.projects.find_one()["Project"]:
+    db.create_collection("{0}".format(pr))
+    proj = lpdata._get_project("{0}".format(pr))
+    bugs = lpdata.get_all_bugs(proj)
+
+    for bug in bugs:
+        db['{0}'.format(pr)].insert({
+        'id': bug.bug.id,
+        'milestone': bug.milestone.name,
+        'status': bug.status,
+        'tags': bug.bug.tags,
+        'name': bug.bug.title,
+        'importance': bug.importance,
+        'created less than week': parser.parse(
+            bug.date_created.ctime()) > parser.parse(
+            (date.today() - relativedelta.relativedelta(weeks=1)).ctime()),
+        'created less than month': parser.parse(
+            bug.date_created.ctime()) > parser.parse(
+            (date.today() - relativedelta.relativedelta(months=1)).ctime()),
+        'fixed less than week': parser.parse(
+            bug.date_fix_committed.ctime()) > parser.parse(
+            (date.today() - relativedelta.relativedelta(weeks=1)).ctime())
+        if bug.date_fix_committed is not None else None,
+        'fixed less than month': parser.parse(
+            bug.date_fix_committed.ctime()) > parser.parse(
+            (date.today() - relativedelta.relativedelta(months=1)).ctime())
+        if bug.date_fix_committed is not None else None})
 
 # Collect Main page statistic
 main_project_statistic = dict.fromkeys(projects_list)
@@ -167,6 +199,8 @@ for m in milestones_list:
              "high": summary_number_of_bugs["{0}".format(pr)]["{0}".format(str(m))]["high"]})
 
 db = connection["bugs"]
+for pr in db.projects.find_one()["Project"]:
+    db.drop_collection(pr)
 db.drop_collection('milestones')
 db.drop_collection('projects')
 db.drop_collection('subprojects')

@@ -58,6 +58,10 @@ class LaunchpadData():
 
         return [Bug(r) for r in project.searchTasks(importance=importance, status=statuses, milestone=milestone, tags=tags)]
 
+    @ttl_cache(minutes=5)
+    def get_all_bugs(self, project):
+        return project.searchTasks()
+
     @staticmethod
     def dump_object(object):
         for name in dir(object):
