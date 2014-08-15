@@ -51,7 +51,7 @@ for pr in db.projects.find_one()["Project"]:
     for bug in bugs:
         db['{0}'.format(pr)].insert({
         'id': bug.bug.id,
-        'milestone': bug.milestone.name,
+        'milestone': bug.milestone.name if bug.milestone else bug.milestone,
         'status': bug.status,
         'tags': bug.bug.tags,
         'name': bug.bug.title,
