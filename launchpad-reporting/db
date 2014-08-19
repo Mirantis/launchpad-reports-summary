@@ -51,11 +51,17 @@ for pr in db.projects.find_one()["Project"]:
     for bug in bugs:
         db['{0}'.format(pr)].insert({
         'id': bug.bug.id,
+        'web_link': bug..web_link,
         'milestone': bug.milestone.name if bug.milestone else bug.milestone,
+        'milestone_link': bug.milestone.web_link if bug.milestone else bug.milestone,
         'status': bug.status,
         'tags': bug.bug.tags,
-        'name': bug.bug.title,
+        'title': bug.bug.title,
         'importance': bug.importance,
+        'owner': bug.owner.name,
+        'owner_link': bug.web_link,
+        'assignee': bug.assignee.name,
+        'assignee_link': bug.assignee.web_link,
         'date_assigned': bug.date_assigned,
         'date_closed': bug.date_closed,
         'date_confirmed': bug.date_confirmed,
