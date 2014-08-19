@@ -34,29 +34,35 @@ class LaunchpadData():
     def _get_project(self, project_name):
         return self.launchpad.projects[project_name]
 
-    def _get_milestone(self, project_name, milestone_name):
-        project = self._get_project(project_name)
-        return self.launchpad.load(
-            "%s/+milestone/%s" % (project.self_link, milestone_name))
-
     @ttl_cache(minutes=5)
     def get_project(self, project_name):
         return Project(self._get_project(project_name))
 
     @ttl_cache(minutes=5)
-    def get_bugs(self, project_name, statuses, milestone_name = None, tags = None, importance = None):
-        project = self._get_project(project_name)
+    def get_bugs(self, project_name, statuses, milestone_name = None,
+                 tags = None, importance = None):
+        project = db[project_name]
         if (milestone_name is None) or (milestone_name == 'None'):
-            return [Bug(r) for r in project.searchTasks(status=statuses)]
+            return [Bug(r) for r in project.find({
+                "status": {"$in": statuses}
+            })]
 
-        milestone = self._get_milestone(project_name, milestone_name)
         if (tags is None) or (tags == 'None'):
-            return [Bug(r) for r in project.searchTasks(status=statuses, milestone=milestone)]
+            return [Bug(r) for r in project.find(
+                {"$and": [{"status": {"$in": statuses}},
+                          {'milestone': milestone_name}]})]
 
         if (importance is None) or (importance == 'None'):
-            return [Bug(r) for r in project.searchTasks(status=statuses, milestone=milestone, tags=tags)]
+            return [Bug(r) for r in project.find(
+                {"$and": [{"status": {"$in": statuses}},
+                          {'milestone': milestone_name}]})
+                    if list(set(r['tags']).intersection(tags))]
 
-        return [Bug(r) for r in project.searchTasks(importance=importance, status=statuses, milestone=milestone, tags=tags)]
+        return [Bug(r) for r in project.find(
+                {"$and": [{"status": {"$in": statuses}},
+                          {'milestone': milestone_name},
+                          {'importance': importance}]})
+                    if list(set(r['tags']).intersection(tags))]
 
     @ttl_cache(minutes=5)
     def get_all_bugs(self, project):
