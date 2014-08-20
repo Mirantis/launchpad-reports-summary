@@ -5,8 +5,7 @@ from launchpad.lpdata import LaunchpadData
 
 lpdata = LaunchpadData()
 connection = pymongo.Connection()
-
-db = connection["bugs"]
+db = connection["bugs_temp_db"]
 
 # Objects storage
 milestones = db.milestones
@@ -34,9 +33,10 @@ subprojects_list = ["murano", "sahara", "nova", "neutron", "keystone", "heat",
 db.projects.insert({"Project": projects_list})
 db.subprojects.insert({"Subproject": subprojects_list})
 
-
 for pr in db.projects.find_one()["Project"]:
     db.drop_collection(pr)
+
+for pr in db.projects.find_one()["Project"]:
     db.create_collection("{0}".format(pr))
     proj = lpdata._get_project("{0}".format(pr))
     bugs = lpdata.get_all_bugs(proj)
