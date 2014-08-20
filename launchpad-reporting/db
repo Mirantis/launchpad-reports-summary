@@ -199,15 +199,6 @@ for m in milestones_list:
              "high": fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)]["high"]}
         )
 
-db.drop_collection('summary_number_of_bugs_fuel_mos')
-for m in milestones_list:
-    for pr in ("fuel", "mos"):
-        db.summary_number_of_bugs.insert(
-            {"Project" : "{0}".format(pr),
-             "Milestone": "{0}".format(str(m).replace('.', '_')),
-             "done": summary_number_of_bugs["{0}".format(pr)]["{0}".format(str(m))]["done"],
-             "total": summary_number_of_bugs["{0}".format(pr)]["{0}".format(str(m))]["total"],
-             "high": summary_number_of_bugs["{0}".format(pr)]["{0}".format(str(m))]["high"]})
 
 db = connection["bugs"]
 for pr in db.projects.find_one()["Project"]:
