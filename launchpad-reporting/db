@@ -13,13 +13,6 @@ projects = db.projects
 subprojects = db.subprojects
 
 
-# Statistic storage
-main_tab = db.main_page
-project_tab = db.project_page
-subproject_tab = db.subproject_page
-milestone_tab = db.milestone_page
-fuel_plus_mos_statistic = db.fuel_plus_mos_statistic
-
 # Milestones
 db.drop_collection('milestones')
 mos = lpdata.get_project("mos")
@@ -33,7 +26,7 @@ db.milestones.insert({"Milestone": milestones_list})
 db.drop_collection('projects')
 db.drop_collection('subprojects')
 
-projects_list = ["FUEL", "MOS", "Murano", "Mistral", "Sahara", "Ceilometer"]
+projects_list = ["fuel", "mos", "murano", "mistral", "sahara", "ceilometer"]
 subprojects_list = ["murano", "sahara", "nova", "neutron", "keystone", "heat",
                     "glance", "horizon", "ceilometer", "oslo", "cinder"]
 
@@ -51,7 +44,7 @@ for pr in db.projects.find_one()["Project"]:
     for bug in bugs:
         db['{0}'.format(pr)].insert({
         'id': bug.bug.id,
-        'web_link': bug..web_link,
+        'web_link': bug.web_link,
         'milestone': bug.milestone.name if bug.milestone else bug.milestone,
         'milestone_link': bug.milestone.web_link if bug.milestone else bug.milestone,
         'status': bug.status,
@@ -59,7 +52,7 @@ for pr in db.projects.find_one()["Project"]:
         'title': bug.bug.title,
         'importance': bug.importance,
         'owner': bug.owner.name,
-        'owner_link': bug.web_link,
+        'owner_link': bug.owner.web_link,
         'assignee': bug.assignee.name if bug.assignee else bug.assignee,
         'assignee_link': bug.assignee.web_link if bug.assignee else bug.assignee,
         'date_assigned': bug.date_assigned,
@@ -88,144 +81,12 @@ for pr in db.projects.find_one()["Project"]:
             (date.today() - relativedelta.relativedelta(months=1)).ctime())
         if bug.date_fix_committed is not None else None})
 
-# Collect Main page statistic
-main_project_statistic = dict.fromkeys(projects_list)
-
-for pr in projects_list:
-    main_project_statistic["{0}".format(pr)] = \
-        lpdata.total_number_bugs(pr, None)
-
-subproject_statistic = dict.fromkeys(projects_list)
-
-for pr in ("FUEL", "MOS"):
-    for subpr in subprojects_list:
-        tag = ["{0}".format(subpr), ]
-        name = "{0}_{1}".format(pr.lower(), subpr.lower())
-        subproject_statistic["{0}".format(name)] = \
-            lpdata.total_number_bugs(pr, tag)
-
-
-# Collect milestone statistic
-
-milestone_statistic = dict.fromkeys(["fuel", "mos"])
-for pr in ("fuel", "mos"):
-    milestone_statistic["{0}".format(pr)] = dict.fromkeys(milestones_list)
-    for m in milestones_list:
-        milestone_statistic["{0}".format(pr)]["{0}".format(str(m))] = dict.fromkeys(subprojects_list)
-        for subpr in subprojects_list:
-            milestone_statistic["{0}".format(pr)]["{0}".format(str(m))]["{0}".format(subpr)] = \
-                dict.fromkeys(["done", "total", "high"])
-
-for pr in ("fuel", "mos"):
-    for m in milestones_list:
-        for subpr in subprojects_list:
-            tag = ["{0}".format(subpr), ]
-            milestone = "/{0}/+milestone/{1}".format(pr, m)
-            stat = lpdata.count_bugs_by_milestone(pr, tag, milestone)
-            milestone_statistic["{0}".format(pr)]["{0}".format(str(m))]["{0}".format(subpr)]["done"] = stat["done"]
-            milestone_statistic["{0}".format(pr)]["{0}".format(str(m))]["{0}".format(subpr)]["total"] = stat["total"]
-            milestone_statistic["{0}".format(pr)]["{0}".format(str(m))]["{0}".format(subpr)]["high"] = stat["high"]
-
-# Collect FUEL+MOS statistic by milestone
-
-fuel_plus_mos = dict.fromkeys(milestones_list)
-for m in milestones_list:
-    fuel_plus_mos["{0}".format(str(m))] = dict.fromkeys(subprojects_list)
-    for subpr in subprojects_list:
-        fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)] = dict.fromkeys(["done", "total", "high"])
-
-for m in milestones_list:
-    for subpr in subprojects_list:
-        tag = ["{0}".format(subpr)]
-        summary = lpdata.bugs_ids(tag, m)
-        fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)]["done"] = summary["done"]
-        fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)]["total"] = summary["total"]
-        fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)]["high"] = summary["high"]
-
-
-# Update db
-db.drop_collection('main_tab')
-db.drop_collection('project_tab')
-db.drop_collection('subproject_tab')
-
-for pr in projects_list:
-    db.main_tab.insert(
-        {"Project": pr,
-         "critical": main_project_statistic["{0}".format(pr)]["critical"],
-         "unresolved": main_project_statistic["{0}".format(pr)]["total_unresolved"],
-         "total": main_project_statistic["{0}".format(pr)]["total"]})
-
-    db.project_tab.insert(
-        {"Project": pr.lower(),
-         "new_for_week": main_project_statistic["{0}".format(pr)]["new_for_week"],
-         "fixed_for_week": main_project_statistic["{0}".format(pr)]["fixed_for_week"],
-         "new_for_month": main_project_statistic["{0}".format(pr)]["new_for_month"],
-         "fixed_for_month": main_project_statistic["{0}".format(pr)]["fixed_for_month"],
-          "critical": main_project_statistic["{0}".format(pr)]["critical"],
-          "unresolved": main_project_statistic["{0}".format(pr)]["total_unresolved"],
-          "total": main_project_statistic["{0}".format(pr)]["total"]})
-
-
-for pr in ("FUEL", "MOS"):
-    for subpr in subprojects_list:
-        name = "{0}_{1}".format(pr.lower(), subpr.lower())
-        db.subproject_tab.insert(
-            {"Project": name,
-             "new_for_week": subproject_statistic["{0}".format(name)]["new_for_week"],
-             "fixed_for_week": subproject_statistic["{0}".format(name)]["fixed_for_week"],
-             "new_for_month": subproject_statistic["{0}".format(name)]["new_for_month"],
-             "fixed_for_month": subproject_statistic["{0}".format(name)]["fixed_for_month"],
-             "critical": subproject_statistic["{0}".format(name)]["critical"],
-             "total": subproject_statistic["{0}".format(name)]["total"]})
-
-
-# Statistic by milestone in FUEL and MOS
-db.drop_collection('milestone_tab')
-
-for m in milestones_list:
-    for pr in ("fuel", "mos"):
-        for subpr in subprojects_list:
-            db.milestone_tab.insert(
-                {"Project" : "{0}".format(pr),
-                "Milestone": "{0}".format(str(m).replace('.', '_')),
-                "Subproject": "{0}".format(subpr),
-                "done": milestone_statistic["{0}".format(pr)]["{0}".format(str(m))]["{0}".format(subpr)]["done"],
-                "total": milestone_statistic["{0}".format(pr)]["{0}".format(str(m))]["{0}".format(subpr)]["total"],
-                "high": milestone_statistic["{0}".format(pr)]["{0}".format(str(m))]["{0}".format(subpr)]["high"]})
-
-
-db.drop_collection('fuel_plus_mos_statistic')
-for m in milestones_list:
-    for subpr in subprojects_list:
-        db.fuel_plus_mos_statistic.insert(
-            {"Milestone": "{0}".format(str(m).replace('.', '_')),
-             "Subproject": "{0}".format(subpr),
-             "done": fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)]["done"],
-             "total": fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)]["total"],
-             "high": fuel_plus_mos["{0}".format(str(m))]["{0}".format(subpr)]["high"]}
-        )
-
-db.drop_collection('summary_number_of_bugs_fuel_mos')
-for m in milestones_list:
-    for pr in ("fuel", "mos"):
-        db.summary_number_of_bugs.insert(
-            {"Project" : "{0}".format(pr),
-             "Milestone": "{0}".format(str(m).replace('.', '_')),
-             "done": summary_number_of_bugs["{0}".format(pr)]["{0}".format(str(m))]["done"],
-             "total": summary_number_of_bugs["{0}".format(pr)]["{0}".format(str(m))]["total"],
-             "high": summary_number_of_bugs["{0}".format(pr)]["{0}".format(str(m))]["high"]})
-
 db = connection["bugs"]
 for pr in db.projects.find_one()["Project"]:
     db.drop_collection(pr)
 db.drop_collection('milestones')
 db.drop_collection('projects')
 db.drop_collection('subprojects')
-db.drop_collection('main_tab')
-db.drop_collection('project_tab')
-db.drop_collection('subproject_tab')
-db.drop_collection('milestone_tab')
-db.drop_collection('fuel_plus_mos_statistic')
 
 db = connection["bugs_temp_db"]
 connection.copy_database("bugs_temp_db", "bugs")
