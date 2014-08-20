@@ -5,13 +5,20 @@ from launchpad.lpdata import LaunchpadData
 
 lpdata = LaunchpadData()
 connection = pymongo.Connection()
-
-db = connection["bugs"]
+db = connection["bugs_temp_db"]
 
 # Objects storage
 milestones = db.milestones
 projects = db.projects
 subprojects = db.subprojects
+
+
+# Statistic storage
+main_tab = db.main_page
+project_tab = db.project_page
+subproject_tab = db.subproject_page
+milestone_tab = db.milestone_page
+fuel_plus_mos_statistic = db.fuel_plus_mos_statistic
 
 # Milestones
 db.drop_collection('milestones')
@@ -33,9 +40,10 @@ subprojects_list = ["murano", "sahara", "nova", "neutron", "keystone", "heat",
 db.projects.insert({"Project": projects_list})
 db.subprojects.insert({"Subproject": subprojects_list})
 
-
 for pr in db.projects.find_one()["Project"]:
     db.drop_collection(pr)
+
+for pr in db.projects.find_one()["Project"]:
     db.create_collection("{0}".format(pr))
     proj = lpdata._get_project("{0}".format(pr))
     bugs = lpdata.get_all_bugs(proj)
@@ -43,7 +51,7 @@ for pr in db.projects.find_one()["Project"]:
     for bug in bugs:
         db['{0}'.format(pr)].insert({
         'id': bug.bug.id,
-        'milestone': bug.milestone.name if bug.milestone else None,
+        'milestone': bug.milestone.name if bug.milestone else bug.milestone,
         'status': bug.status,
         'tags': bug.bug.tags,
         'name': bug.bug.title,
@@ -74,7 +82,6 @@ for pr in db.projects.find_one()["Project"]:
             (date.today() - relativedelta.relativedelta(months=1)).ctime())
         if bug.date_fix_committed is not None else None})
 
-"""
 # Collect Main page statistic
 main_project_statistic = dict.fromkeys(projects_list)
 
@@ -193,10 +200,9 @@ for m in milestones_list:
         )
 
 
-#db = connection["bugs"]
+db = connection["bugs"]
 for pr in db.projects.find_one()["Project"]:
     db.drop_collection(pr)
-
 db.drop_collection('milestones')
 db.drop_collection('projects')
 db.drop_collection('subprojects')
@@ -206,11 +212,5 @@ db.drop_collection('subproject_tab')
 db.drop_collection('milestone_tab')
 db.drop_collection('fuel_plus_mos_statistic')
 
-<<<<<<< HEAD
 db = connection["bugs_temp_db"]
 connection.copy_database("bugs_temp_db", "bugs")
-=======
-
-
-"""
->>>>>>> 901c70bdb2d9c8b85c81995b0c3ced4dd8cb04f9
