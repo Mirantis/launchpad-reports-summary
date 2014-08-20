@@ -38,8 +38,8 @@ class ReleaseChart():
                 e2 = events[i + 1]
 
                 t = e1["type"]
-                d1 = e1["date"].replace(tzinfo=None)
-                d2 = e2["date"].replace(tzinfo=None)
+                d1 = e1["date"]
+                d2 = e2["date"]
 
                 if d1 <= d2:
                     d1 = d1.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -87,7 +87,7 @@ class ReleaseChart():
             # create series for the chart (except for the last point, which has all zeroes)
             values = []
             for idx in range(0, n - 1):
-                chart_seconds = (all_dates_sorted[idx].replace(tzinfo=None) - d3_start.replace(tzinfo=None)).total_seconds() * 1000.0
+                chart_seconds = (all_dates_sorted[idx] - d3_start).total_seconds() * 1000.0
                 values.append( [int(chart_seconds), all_dates_values[idx]] )
             chart.append( {'key': t, 'values': values})
 
@@ -139,7 +139,7 @@ class ReleaseChart():
             # create series for the chart
             values = []
             for idx in range(0, n):
-                chart_seconds = (all_dates_sorted[idx].replace(tzinfo=None) - d3_start.replace(tzinfo=None)).total_seconds() * 1000.0
+                chart_seconds = (all_dates_sorted[idx] - d3_start).total_seconds() * 1000.0
                 values.append( [int(chart_seconds), all_dates_values[idx]] )
             chart.append( {'key': t, 'values': values})
 
