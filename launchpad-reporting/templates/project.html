@@ -12,6 +12,10 @@
 
     {% for m in project.active_milestones|sort %}
     <ul class="nav nav-sidebar">
+        <li {% if milestone_name == m %}class="active"{% endif %}>
+            <a href="{{ url_for('statistic_for_project_by_milestone', project_name=project.name, milestone_name=m) }}">{{ m }}: Milestone Common Statistic
+            </a>
+        </li>
         <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}>
             <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
             </a>
