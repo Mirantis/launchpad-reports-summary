@@ -1,4 +1,4 @@
-import requests, flask
+import flask
 import pymongo
 from launchpad.release_chart import ReleaseChart
 from launchpad.lpdata import LaunchpadData
@@ -13,9 +13,8 @@ db = connection["bugs"]
 main_tab = db.main_page
 project_tab = db.project_page
 
-prs = []
-for prj in db.projects.find_one()["Project"]:
-    prs.append(prj.capitalize())
+prs = db.projects.find_one()["Project"]
+
 
 subprs = db.subprojects.find_one()["Subproject"]
 
@@ -38,7 +37,7 @@ for s in subprs:
     all_tags = all_tags+s+"+"
 all_tags = all_tags[:-1]
 
-
+flag = False
 
 @app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>/bug_list')
 def bug_list(project_name, bug_type, milestone_name):
@@ -47,7 +46,7 @@ def bug_list(project_name, bug_type, milestone_name):
     if 'tags' in flask.request.args:
         tags = flask.request.args['tags'].split(',')
     bugs = lpdata.get_bugs(project_name, LaunchpadData.BUG_STATUSES[bug_type], milestone_name, tags)
-    return flask.render_template("bug_list.html", project=project, bugs=bugs, bug_type=bug_type, milestone_name=milestone_name, selected_bug_table=True, prs=list(prs))
+    return flask.render_template("bug_list.html", project=project, bugs=bugs, bug_type=bug_type, milestone_name=milestone_name, selected_bug_table=True, prs=list(prs), key_milestone=key_milestone,)
 
 @app.route('/project/<project_name>/api/release_chart_trends/<milestone_name>/get_data')
 def bug_report_trends_data(project_name, milestone_name):
@@ -62,14 +61,35 @@ def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
 @app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>')
 def bug_table_for_status(project_name, bug_type, milestone_name):
     project = lpdata.get_project(project_name)
-    return flask.render_template("bug_table.html", project=project, prs=list(prs))
+    return flask.render_template("bug_table.html", project=project, prs=list(prs), key_milestone=key_milestone,)
 
 @app.route('/project/<project_name>/bug_trends/<milestone_name>')
 def bug_trends(project_name, milestone_name):
     project = lpdata.get_project(project_name)
-    return flask.render_template("bug_trends.html", project=project, milestone_name=milestone_name, selected_bug_trends=True, prs=list(prs))
+    return flask.render_template("bug_trends.html", project=project, milestone_name=milestone_name, selected_bug_trends=True, prs=list(prs), key_milestone=key_milestone,)
 
-@app.route('/project/<project_name>/<milestone_name>/project_statistic')
+@app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>')
+def statistic_for_project_by_milestone_by_tag(project_name, milestone_name, tag):
+    display = True
+    project = lpdata.get_project(project_name)
+
+    project.display_name = project.display_name.capitalize()
+
+    page_statistic = lpdata.common_statistic_for_project(project_name=project_name,
+                                                         tag=tag,
+                                                         milestone_name=[milestone_name])
+    return flask.render_template("project.html",
+                                 project=project,
+                                 key_milestone=key_milestone,
+                                 selected_overview=True,
+                                 display_subprojects=display,
+                                 prs=list(prs),
+                                 subprs=list(subprs),
+                                 page_statistic=page_statistic,
+                                 milestone=milestone_name,
+                                 flag=True)
+
+@app.route('/project/<project_name>/<milestone_name>/project_statistic/')
 def statistic_for_project_by_milestone(project_name, milestone_name):
     display = False
     project = lpdata.get_project(project_name)
@@ -77,152 +97,125 @@ def statistic_for_project_by_milestone(project_name, milestone_name):
         display = True
     project.display_name = project.display_name.capitalize()
 
-    page_statistic = dict.fromkeys(["total",
-                                   "critical",
-                                   "new_for_week",
-                                   "fixed_for_week",
-                                   "new_for_month"
-                                   "fixed_for_month",
-                                   "unresolved"])
-
-    page_statistic["total"] = db['{0}'.format(project_name)].find(
-        {"milestone": milestone_name}
-    ).count()
-    page_statistic["critical"] = db['{0}'.format(project_name)].find(
-        {"$and": [{"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                  {"importance": "Critical"},
-                  {"milestone": milestone_name}]}).count()
-    page_statistic["unresolved"] = db['{0}'.format(project_name)].find(
-        {"$and": [{"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                  {"milestone": milestone_name}]}).count()
-    page_statistic["new_for_week"] = db['{0}'.format(project_name)].find(
-        {"$and": [{"created less than week": {"$ne": False}},
-                  {"milestone": milestone_name}]}).count()
-    page_statistic["fixed_for_week"] = db['{0}'.format(project_name)].find(
-        {"$and": [{"fixed less than week": {"$ne": False}},
-                  {"milestone": milestone_name}]}).count()
-    page_statistic["new_for_month"] = db['{0}'.format(project_name)].find(
-        {"$and": [{"created less than month": {"$ne": False}},
-                  {"milestone": milestone_name}]}).count()
-    page_statistic["fixed_for_month"] = db['{0}'.format(project_name)].find(
-        {"$and": [{"fixed less than month": {"$ne": False}},
-                  {"milestone": milestone_name}]}).count()
+    page_statistic = lpdata.common_statistic_for_project(project_name=project_name,
+                                                         tag=None,
+                                                         milestone_name=[milestone_name])
 
     return flask.render_template("project.html",
+                                 key_milestone=key_milestone,
                                  project=project,
                                  selected_overview=True,
                                  display_subprojects=display,
                                  prs=list(prs),
                                  subprs=list(subprs),
-                                 page_statistic=page_statistic)
+                                 page_statistic=page_statistic,
+                                 milestone=milestone_name,
+                                 flag=True)
+
+@app.route('/project/fuelplusmos/<milestone_name>')
+def fuel_plus_mos_overview(milestone_name):
+
+    milestones = db.milestones.find_one()["Milestone"]
+
+    subprojects = list(subprs)
+    page_statistic = dict.fromkeys(subprojects)
+
+    for sbpr in subprojects:
+        page_statistic["{0}".format(sbpr)] = dict.fromkeys(["fuel", "mos"])
+        for pr in ("fuel", "mos"):
+            page_statistic["{0}".format(sbpr)]["{0}".format(pr)] = \
+                dict.fromkeys(["done", "total", "high"])
+
+            page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["done"] = \
+            len(lpdata.get_bugs(project_name=pr,
+                                statuses=lpdata.BUG_STATUSES["Closed"],
+                                milestone_name=milestone_name,
+                                tags=[sbpr]))
+
+            page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["total"] = \
+                len(lpdata.get_bugs(project_name=pr,
+                                    statuses=lpdata.BUG_STATUSES["All"],
+                                    milestone_name=milestone_name,
+                                    tags=[sbpr]))
+
+            page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["high"] = \
+            len(lpdata.get_bugs(project_name=pr,
+                                statuses=lpdata.BUG_STATUSES["NotDone"],
+                                milestone_name=milestone_name,
+                                tags=[sbpr],
+                                importance=["High", "Critical"]))
+
+
+    summary_statistic = dict.fromkeys("summary")
+    summary_statistic["summary"] = dict.fromkeys(["fuel", "mos"])
+    for pr in ("fuel", "mos"):
+        summary_statistic["summary"]["{0}".format(pr)] = \
+            dict.fromkeys(["done", "total", "high"])
+
+        summary_statistic["summary"]["{0}".format(pr)]["done"] = \
+        len(lpdata.get_bugs(project_name=pr,
+                            statuses=lpdata.BUG_STATUSES["Closed"],
+                            milestone_name=milestone_name,
+                            tags=subprojects))
+
+        summary_statistic["summary"]["{0}".format(pr)]["total"] = \
+        len(lpdata.get_bugs(project_name=pr,
+                            statuses=lpdata.BUG_STATUSES["All"],
+                            milestone_name=milestone_name,
+                            tags=subprojects))
+
+        summary_statistic["summary"]["{0}".format(pr)]["high"] = \
+        len(lpdata.get_bugs(project_name=pr,
+                            statuses=lpdata.BUG_STATUSES["Closed"],
+                            milestone_name=milestone_name,
+                            tags=subprojects,
+                            importance=["High", "Critical"]))
+
+    fuel_plus_mos = dict.fromkeys(subprojects)
+    for subpr in subprojects:
+        fuel_plus_mos["{0}".format(subpr)] = dict.fromkeys(["done",
+                                                            "total",
+                                                            "high"])
+
+    for subpr in subprojects:
+        tag = ["{0}".format(subpr)]
+        summary = lpdata.bugs_ids(tag, milestone_name)
+        fuel_plus_mos["{0}".format(subpr)]["done"] = summary["done"]
+        fuel_plus_mos["{0}".format(subpr)]["total"] = summary["total"]
+        fuel_plus_mos["{0}".format(subpr)]["high"] = summary["high"]
+
+
+    incomplete = dict.fromkeys("fuel", "mos")
+    for pr in ("fuel", "mos"):
+        incomplete['{0}'.format(pr)] = db['{0}'.format(pr)].find(
+            {"$and": [
+                {"milestone": "{0}".format(milestone_name)},
+                {"tags": {"$in": subprojects}},
+                {"status": "Incomplete"}
+            ]}).count()
+
+    return flask.render_template("project_fuelmos.html",
+                                 milestones=milestones,
+                                 key_milestone=key_milestone,
+                                 current_milestone=milestone_name,
+                                 prs=list(prs),
+                                 subprs=list(subprs),
+                                 fuel_milestone_id=fuel_milestone_id[milestone_name],
+                                 mos_milestone_id=mos_milestone_id[milestone_name],
+                                 page_statistic=page_statistic,
+                                 summary_statistic=summary_statistic,
+                                 fuel_plus_mos=fuel_plus_mos,
+                                 all_tags=all_tags,
+                                 incomplete=incomplete)
 
 @app.route('/project/<project_name>')
 def project_overview(project_name):
 
+    project_name = project_name.lower()
+
     if project_name == "fuelplusmos":
-        milestones = db.milestones.find_one()["Milestone"]
-
-        subprojects = list(subprs)
-        page_statistic = dict.fromkeys(subprojects)
-
-        for sbpr in subprojects:
-            page_statistic["{0}".format(sbpr)] = dict.fromkeys(["fuel", "mos"])
-            for pr in ("fuel", "mos"):
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)] = \
-                    dict.fromkeys(["done", "total", "high"])
-
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["done"] = \
-                    len(list([bug for bug in db['{0}'.format(pr)].find(
-                        {"$and": [
-                            {"milestone": "{0}".format(key_milestone)},
-                            {"status": {"$in": lpdata.BUG_STATUSES["Closed"]}}
-                        ]}) if list(set(bug['tags']).intersection(sbpr))]))
-
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["total"] = \
-                    db['{0}'.format(pr)].find(
-                        {"$and": [
-                            {"milestone": "{0}".format(key_milestone)},
-                            {"tags": "{0}".format(sbpr)},
-                            {"status": {"$in": lpdata.BUG_STATUSES["All"]}}
-                        ]}).count()
-
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["high"] = \
-                    db['{0}'.format(pr)].find(
-                        {"$and": [
-                            {"milestone": "{0}".format(key_milestone)},
-                            {"tags": "{0}".format(sbpr)},
-                            {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                            {"importance": {"$in": ["High", "Critical"]}}
-                        ]}).count()
-
-        summary_statistic = dict.fromkeys("summary")
-        summary_statistic["summary"] = dict.fromkeys(["fuel", "mos"])
-        for pr in ("fuel", "mos"):
-            summary_statistic["summary"]["{0}".format(pr)] = \
-                dict.fromkeys(["done", "total", "high"])
-
-            summary_statistic["summary"]["{0}".format(pr)]["done"] = \
-                db['{0}'.format(pr)].find(
-                    {"$and": [
-                        {"milestone": "{0}".format(key_milestone)},
-                        {"tags": {"$in": subprojects}},
-                        {"status": {"$in": lpdata.BUG_STATUSES["Closed"]}}
-                    ]}).count()
-
-            summary_statistic["summary"]["{0}".format(pr)]["total"] = \
-                db['{0}'.format(pr)].find(
-                    {"$and": [
-                        {"milestone": "{0}".format(key_milestone)},
-                        {"tags": {"$in": subprojects}},
-                        {"status": {"$in": lpdata.BUG_STATUSES["All"]}}
-                    ]}).count()
-
-            summary_statistic["summary"]["{0}".format(pr)]["high"] = \
-                db['{0}'.format(pr)].find(
-                    {"$and": [
-                        {"milestone": "{0}".format(key_milestone)},
-                        {"tags": {"$in": subprojects}},
-                        {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                        {"importance": {"$in": ["High", "Critical"]}}
-                    ]}).count()
-
-        fuel_plus_mos = dict.fromkeys(subprojects)
-        for subpr in subprojects:
-            fuel_plus_mos["{0}".format(subpr)] = dict.fromkeys(["done",
-                                                                "total",
-                                                                "high"])
-
-        for subpr in subprojects:
-            tag = ["{0}".format(subpr)]
-            summary = lpdata.bugs_ids(tag, key_milestone)
-            fuel_plus_mos["{0}".format(subpr)]["done"] = summary["done"]
-            fuel_plus_mos["{0}".format(subpr)]["total"] = summary["total"]
-            fuel_plus_mos["{0}".format(subpr)]["high"] = summary["high"]
-
-        incomplete = dict.fromkeys("fuel", "mos")
-        for pr in ("fuel", "mos"):
-            incomplete['{0}'.format(pr)] = db['{0}'.format(pr)].find(
-                {"$and": [
-                    {"milestone": "{0}".format(key_milestone)},
-                    {"tags": {"$in": subprojects}},
-                    {"status": "Incomplete"}
-                ]}).count()
-
-
-        return flask.render_template("project_fuelmos.html",
-                                     milestones=milestones,
-                                     current_milestone=key_milestone,
-                                     prs=list(prs),
-                                     subprs=subprojects,
-                                     page_statistic=page_statistic,
-                                     summary_statistic=summary_statistic,
-                                     fuel_milestone_id=
-                                     fuel_milestone_id[key_milestone],
-                                     mos_milestone_id=
-                                     mos_milestone_id[key_milestone],
-                                     fuel_plus_mos=fuel_plus_mos,
-                                     incomplete=incomplete,
-                                     all_tags=all_tags)
+        return flask.redirect("/project/fuelplusmos/{0}".format(key_milestone),
+                              code=302)
 
     display = False
     project = lpdata.get_project(project_name)
@@ -230,31 +223,13 @@ def project_overview(project_name):
         display = True
     project.display_name = project.display_name.capitalize()
 
-    page_statistic = dict.fromkeys(["total",
-                                   "critical",
-                                   "new_for_week",
-                                   "fixed_for_week",
-                                   "new_for_month"
-                                   "fixed_for_month",
-                                   "unresolved"])
-
-    page_statistic["total"] = db['{0}'.format(project_name)].count()
-    page_statistic["critical"] = db['{0}'.format(project_name)].find(
-        {"$and": [{"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-        {"importance": "Critical"}]}).count()
-    page_statistic["unresolved"] = db['{0}'.format(project_name)].find(
-        {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}}).count()
-    page_statistic["new_for_week"] = db['{0}'.format(project_name)].find(
-        {"created less than week": {"$ne": False}}).count()
-    page_statistic["fixed_for_week"] = db['{0}'.format(project_name)].find(
-        {"fixed less than week": {"$ne": False}}).count()
-    page_statistic["new_for_month"] = db['{0}'.format(project_name)].find(
-        {"created less than month": {"$ne": False}}).count()
-    page_statistic["fixed_for_month"] = db['{0}'.format(project_name)].find(
-        {"fixed less than month": {"$ne": False}}).count()
+    page_statistic = lpdata.common_statistic_for_project(project_name=project_name,
+                                                         milestone_name=project.active_milestones,
+                                                         tag=None)
 
     return flask.render_template("project.html",
                                  project=project,
+                                 key_milestone=key_milestone,
                                  selected_overview=True,
                                  display_subprojects=display,
                                  prs=list(prs),
@@ -263,169 +238,41 @@ def project_overview(project_name):
 
 @app.route('/project/<global_project_name>/<param>')
 def mos_project_overview(global_project_name, param):
-    if global_project_name == "fuelplusmos":
-        milestones = db.milestones.find_one()["Milestone"]
 
-        subprojects = list(subprs)
-        page_statistic = dict.fromkeys(subprojects)
+    global_project_name = global_project_name.lower()
 
-        for sbpr in subprojects:
-            page_statistic["{0}".format(sbpr)] = dict.fromkeys(["fuel", "mos"])
-            for pr in ("fuel", "mos"):
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)] = \
-                    dict.fromkeys(["done", "total", "high"])
-
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["done"] = \
-                    db['{0}'.format(pr)].find(
-                        {"$and": [
-                            {"milestone": "{0}".format(param)},
-                            {"tags": "{0}".format(sbpr)},
-                            {"status": {"$in": lpdata.BUG_STATUSES["Closed"]}}
-                        ]}).count()
-
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["total"] = \
-                    db['{0}'.format(pr)].find(
-                        {"$and": [
-                            {"milestone": "{0}".format(param)},
-                            {"tags": "{0}".format(sbpr)},
-                            {"status": {"$in": lpdata.BUG_STATUSES["All"]}}
-                        ]}).count()
-
-                page_statistic["{0}".format(sbpr)]["{0}".format(pr)]["high"] = \
-                    db['{0}'.format(pr)].find(
-                        {"$and": [
-                            {"milestone": "{0}".format(param)},
-                            {"tags": "{0}".format(sbpr)},
-                            {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                            {"importance": {"$in": ["High", "Critical"]}}
-                        ]}).count()
-
-        summary_statistic = dict.fromkeys("summary")
-        summary_statistic["summary"] = dict.fromkeys(["fuel", "mos"])
-        for pr in ("fuel", "mos"):
-            summary_statistic["summary"]["{0}".format(pr)] = \
-                dict.fromkeys(["done", "total", "high"])
-
-            summary_statistic["summary"]["{0}".format(pr)]["done"] = \
-                db['{0}'.format(pr)].find(
-                    {"$and": [
-                        {"milestone": "{0}".format(param)},
-                        {"tags": {"$in": subprojects}},
-                        {"status": {"$in": lpdata.BUG_STATUSES["Closed"]}}
-                    ]}).count()
-
-            summary_statistic["summary"]["{0}".format(pr)]["total"] = \
-                db['{0}'.format(pr)].find(
-                    {"$and": [
-                        {"milestone": "{0}".format(param)},
-                        {"tags": {"$in": subprojects}},
-                        {"status": {"$in": lpdata.BUG_STATUSES["All"]}}
-                    ]}).count()
-
-            summary_statistic["summary"]["{0}".format(pr)]["high"] = \
-                db['{0}'.format(pr)].find(
-                    {"$and": [
-                        {"milestone": "{0}".format(param)},
-                        {"tags": {"$in": subprojects}},
-                        {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                        {"importance": {"$in": ["High", "Critical"]}}
-                    ]}).count()
-
-        fuel_plus_mos = dict.fromkeys(subprojects)
-        for subpr in subprojects:
-            fuel_plus_mos["{0}".format(subpr)] = dict.fromkeys(["done",
-                                                                "total",
-                                                                "high"])
-
-        for subpr in subprojects:
-            tag = ["{0}".format(subpr)]
-            summary = lpdata.bugs_ids(tag, param)
-            fuel_plus_mos["{0}".format(subpr)]["done"] = summary["done"]
-            fuel_plus_mos["{0}".format(subpr)]["total"] = summary["total"]
-            fuel_plus_mos["{0}".format(subpr)]["high"] = summary["high"]
-
-
-        incomplete = dict.fromkeys("fuel", "mos")
-        for pr in ("fuel", "mos"):
-            incomplete['{0}'.format(pr)] = db['{0}'.format(pr)].find(
-                {"$and": [
-                    {"milestone": "{0}".format(param)},
-                    {"tags": {"$in": subprojects}},
-                    {"status": "Incomplete"}
-                ]}).count()
-
-        return flask.render_template("project_fuelmos.html",
-                                     milestones=milestones,
-                                     current_milestone=param,
-                                     prs=list(prs),
-                                     subprs=list(subprs),
-                                     fuel_milestone_id=fuel_milestone_id[param],
-                                     mos_milestone_id=mos_milestone_id[param],
-                                     page_statistic=page_statistic,
-                                     summary_statistic=summary_statistic,
-                                     fuel_plus_mos=fuel_plus_mos,
-                                     all_tags=all_tags,
-                                     incomplete=incomplete)
-
-    global_project_name = global_project_name.upper()
     project = lpdata.get_project(global_project_name)
-    page_statistic = dict.fromkeys(["total",
-                                   "critical",
-                                   "new_for_week",
-                                   "fixed_for_week",
-                                   "new_for_month"
-                                   "fixed_for_month",
-                                   "unresolved"])
-
-    page_statistic["total"] = db['{0}'.format(global_project_name)].\
-        find({"tags": "{0}".format(param)}).count()
-    page_statistic["critical"] = db['{0}'.format(global_project_name)].find(
-        {"$and": [{"tags": "{0}".format(param)},
-                  {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                  {"importance": "Critical"}]}).count()
-    page_statistic["unresolved"] = db['{0}'.format(global_project_name)].find(
-        {"$and": [{"tags": "{0}".format(param)},
-                  {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}}]}).count()
-    page_statistic["new_for_week"] = db['{0}'.format(global_project_name)].find(
-        {"$and": [{"tags": "{0}".format(param)},
-                  {"created less than week": {"$ne": False}}]}).count()
-    page_statistic["fixed_for_week"] = db['{0}'.format(global_project_name)].find(
-        {"$and": [{"tags": "{0}".format(param)},
-                  {"fixed less than week": {"$ne": False}}]}).count()
-    page_statistic["new_for_month"] = db['{0}'.format(global_project_name)].find(
-        {"$and": [{"tags": "{0}".format(param)},
-                  {"created less than month": {"$ne": False}}]}).count()
-    page_statistic["fixed_for_month"] = db['{0}'.format(global_project_name)].find(
-        {"$and": [{"tags": "{0}".format(param)},
-                  {"fixed less than month": {"$ne": False}}]}).count()
+    page_statistic = lpdata.common_statistic_for_project(project_name=global_project_name,
+                                                         tag=param,
+                                                         milestone_name=project.active_milestones)
 
     return flask.render_template("project.html",
                                  project=project,
+                                 key_milestone=key_milestone,
                                  tag=param,
                                  page_statistic=page_statistic,
                                  selected_overview=True,
                                  display_subprojects=True,
                                  prs=list(prs),
-                                 subprs=list(subprs))
-
-@app.route('/add_project')
-def add_page():
-    return flask.render_template("add_project.html")
+                                 subprs=list(subprs),
+                                 flag=True)
 
 @app.route('/')
 def main_page():
     global_statistic = dict.fromkeys(prs)
     for pr in global_statistic.keys()[:]:
         types = dict.fromkeys(["total", "critical", "unresolved"])
-        types["total"] = db['{0}'.format(pr)].count()
-        types["critical"] = db['{0}'.format(pr)].find(
-            {"$and": [{"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}},
-                      {"importance": "Critical"}]}).count()
-        types["unresolved"] = db['{0}'.format(pr)].find(
-            {"status": {"$in": lpdata.BUG_STATUSES["NotDone"]}}).count()
+        types["total"] = db['{0}'.format(pr)].find().count()
+        types["critical"] = len(lpdata.get_bugs(project_name=pr,
+                                                statuses=["Triaged"],
+                                                importance=["Critical"]))
+        types["unresolved"] = len(lpdata.get_bugs(
+            project_name=pr,
+            statuses=lpdata.BUG_STATUSES["NotDone"]))
         global_statistic['{0}'.format(pr)] = types
 
     return flask.render_template("main.html",
+                                 key_milestone=key_milestone,
                                  statistic=global_statistic,
                                  prs=list(prs))
 
