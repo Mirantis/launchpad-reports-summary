@@ -13,8 +13,11 @@
     {% for m in project.active_milestones|sort %}
     <ul class="nav nav-sidebar">
         <li {% if milestone_name == m %}class="active"{% endif %}>
-            <a href="{{ url_for('statistic_for_project_by_milestone', project_name=project.name, milestone_name=m) }}">{{ m }}: Milestone Common Statistic
-            </a>
+                {% if flag %}
+                    <a href="{{ url_for('statistic_for_project_by_milestone_by_tag', project_name=project.name, milestone_name=m, tag=tag) }}">{{ m }}: Milestone Common Statistic</a>
+                    {% else %}
+                    <a href="{{ url_for('statistic_for_project_by_milestone', project_name=project.name, milestone_name=m) }}">{{ m }}: Milestone Common Statistic</a>
+                {% endif %}
         </li>
         <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}>
             <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
@@ -101,11 +104,11 @@
         <tr {%if page_statistic["critical"] != 0 %}class="critical-bugs"{% endif %}>
             <td> Total Critical Bugs</td>
             <td>{{ page_statistic["critical"] }}</td>
-            {% if tag  %}
-              <td><a href="https://bugs.launchpad.net/{{ project.name }}/?field.searchtext=&orderby=-importance&search=Search&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL&field.tag={{ tag }}"><i>link</i></a></p></td>
-              {% else %}
-              <td><a href="https://bugs.launchpad.net/{{ project.name }}/?field.searchtext=&orderby=-importance&search=Search&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL"><i>link</i></a></p></td>
-            {% endif %}
+                {% if tag  %}
+                    <td><a href="https://bugs.launchpad.net/{{ project.name }}/?field.searchtext=&orderby=-importance&search=Search&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL&field.tag={{ tag }}"><i>link</i></a></p></td>
+                    {% else %}
+                    <td><a href="https://bugs.launchpad.net/{{ project.name }}/?field.searchtext=&orderby=-importance&search=Search&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL"><i>link</i></a></p></td>
+                {% endif %}
              </tr>
         {% if display_subprojects == False %}
         <tr>
@@ -117,6 +120,9 @@
         <tr>
             <td>Total Bugs</td>
             <td>{{ page_statistic["total"] }}</td>
+            {% if milestone and tag%}
+                <td><a href="https://launchpad.net/{{ project.name }}/+milestone/{{ milestone }}#milestone-specs-bugs"><i>link</i></a></td>
+            {% endif %}
             {% if tag  %}
               <td><a href="https://bugs.launchpad.net/{{ project.name }}/+bugs?field.tag={{ tag }}"><i>link</i></a></td>
               {% else %}
@@ -133,11 +139,14 @@
 <div id="rightcol" >
     <ul>
         {% for s in subprs %}
-             <li><p><a href="/project/{{ project.name }}/{{ s }}">{{ s }}</a></p></li>
+             {% if flag %}
+                 <li><p><a href="/project/{{ project.name }}/{{ milestone }}/project_statistic/{{ s }}">{{ s }}</a></p></li>
+                 {% else %}
+                 <li><p><a href="/project/{{ project.name }}/{{ s }}">{{ s }}</a></p></li>
+             {% endif %}
         {% endfor %}
     </ul>
 </div>
-
 {% endif %}
 
 </div>

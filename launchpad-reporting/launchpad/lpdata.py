@@ -1,5 +1,4 @@
-from datetime import date
-from dateutil import relativedelta, parser
+import copy
 import pymongo
 
 
@@ -20,7 +19,8 @@ class LaunchpadData():
                                    "Invalid", "Expired", "Opinion", "Incomplete"],
                     "All":        ["New", "Incomplete", "Invalid", "Won't Fix",
                                    "Confirmed", "Triaged", "In Progress",
-                                   "Fix Released", "Fix Committed"],
+                                   "Fix Released", "Fix Committed", "Opinion",
+                                   "Expired"],
                     "NotDone":    ["New", "Confirmed", "Triaged", "In Progress"]}
     BUG_STATUSES_ALL = []
     for k in BUG_STATUSES:
@@ -38,35 +38,26 @@ class LaunchpadData():
     def get_project(self, project_name):
         return Project(self._get_project(project_name))
 
-    @ttl_cache(minutes=5)
-    def get_bugs(self, project_name, statuses, milestone_name = None,
-                 tags = None, importance = None):
+    def get_bugs(self, project_name, statuses, milestone_name=None,
+                 tags=[], importance=[]):
         project = db[project_name]
-        if (milestone_name is None) or (milestone_name == 'None'):
-            return [Bug(r) for r in project.find({
-                "status": {"$in": statuses}
-            })]
 
-        if (tags is None) or (tags == 'None'):
-            return [Bug(r) for r in project.find(
-                {"$and": [{"status": {"$in": statuses}},
-                          {'milestone': milestone_name}]})]
+        search = [{"status": {"$in": statuses}}]
 
-        if (importance is None) or (importance == 'None'):
-            return [Bug(r) for r in project.find(
-                {"$and": [{"status": {"$in": statuses}},
-                          {'milestone': milestone_name}]})
-                    if list(set(r['tags']).intersection(tags))]
+        if milestone_name:
+            search.append({'milestone': milestone_name})
 
-        return [Bug(r) for r in project.find(
-                {"$and": [{"status": {"$in": statuses}},
-                          {'milestone': milestone_name},
-                          {'importance': importance}]})
-                    if list(set(r['tags']).intersection(tags))]
+        if importance:
+            search.append({"importance": {"$in": importance}})
+
+        if tags:
+            search.append({"tags": {"$in": tags}})
+
+        return [Bug(r) for r in project.find({"$and": search})]
 
     @ttl_cache(minutes=5)
     def get_all_bugs(self, project):
-        return project.searchTasks(status = self.BUG_STATUSES["All"],
+        return project.searchTasks(status=self.BUG_STATUSES["All"],
                                    milestone=[
                                        i.self_link
                                        for i in project.active_milestones])
@@ -107,3 +98,45 @@ class LaunchpadData():
         sum_without_duplicity["high"] = count(milestone, tag, "NotDone", ["Critical", "High"] )
 
         return sum_without_duplicity
+
+    def common_statistic_for_project(self, project_name, tag, milestone_name):
+
+        page_statistic = dict.fromkeys(["total",
+                                   "critical",
+                                   "new_for_week",
+                                   "fixed_for_week",
+                                   "new_for_month"
+                                   "fixed_for_month",
+                                   "unresolved"])
+
+
+        def criterion(dict_, tag):
+            if tag:
+                internal = copy.deepcopy(dict_)
+                internal["$and"].append({"tags": {"$in": ["{0}".format(tag)]}})
+                return internal
+            return dict_
+
+        page_statistic["total"] = db['{0}'.format(project_name)].find(
+            criterion({"$and": [{"milestone": {"$in": milestone_name}}]}, tag)).count()
+        page_statistic["critical"] = db['{0}'.format(project_name)].find(
+            criterion({"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
+                      {"importance": "Critical"},
+                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+        page_statistic["unresolved"] = db['{0}'.format(project_name)].find(
+            criterion({"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
+                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+        page_statistic["new_for_week"] = db['{0}'.format(project_name)].find(
+            criterion({"$and": [{"created less than week": {"$ne": False}},
+                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+        page_statistic["fixed_for_week"] = db['{0}'.format(project_name)].find(
+            criterion({"$and": [{"fixed less than week": {"$ne": False}},
+                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+        page_statistic["new_for_month"] = db['{0}'.format(project_name)].find(
+            criterion({"$and": [{"created less than month": {"$ne": False}},
+                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+        page_statistic["fixed_for_month"] = db['{0}'.format(project_name)].find(
+            criterion({"$and": [{"fixed less than month": {"$ne": False}},
+                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+
+        return page_statistic
