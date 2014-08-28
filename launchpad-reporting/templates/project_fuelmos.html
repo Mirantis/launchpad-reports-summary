@@ -17,8 +17,14 @@
 </div>
 
 
+<div class="links_for_launchpad">
+    <img src=http://png-4.findicons.com/files/icons/2232/wireframe_mono/16/bug.png><a href="https://launchpad.net/fuel/+milestone/{{ current_milestone }}#milestone_bugtasks">   FUEL {{ current_milestone }} bugs </a><br>
+    <img src=http://png-4.findicons.com/files/icons/2232/wireframe_mono/16/bug.png><a href="https://launchpad.net/mos/+milestone/{{ current_milestone }}#milestone_bugtasks">   MOS {{ current_milestone }} bugs </a>
+</div>
+
 <div class="table_wrapper">
     <table class="bug_statistic">
+     <br>
           <tr>
               <th rowspan="2">Subproject</th>
               <th colspan="3">FUEL</th>
@@ -88,16 +94,12 @@
     Aslo please note that "Done" includes bugs with "Incomplete" status.
     {% endif %}
         <ul>
-             {% if incomplete["fuel"] > 0 %}
-             <li>"Incomplete" {% if incomplete["fuel"] == 1 %}bug{% else %}bugs{% endif %} in the "FUEL":
+             <li>"Incomplete" {% if incomplete["fuel"] == 1 %}bug{% else %}bugs{% endif %} in FUEL:
                 <a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search"> <b>{{ incomplete["fuel"] }} </b></a>
              </li>
-             {% endif %}
-            {% if incomplete["mos"] > 0 %}
-            <li>"Incomplete" {% if incomplete["mos"] == 1 %}bug{% else %}bugs{% endif %} in the "MOS":
+            <li>"Incomplete" {% if incomplete["mos"] == 1 %}bug{% else %}bugs{% endif %} in MOS:
                 <a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search"> <b>{{ incomplete["mos"] }} </b></a>
             </li>
-            {% endif %}
         </ul>
 
 </div>
