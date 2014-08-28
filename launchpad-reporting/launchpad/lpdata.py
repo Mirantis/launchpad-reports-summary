@@ -39,7 +39,7 @@ class LaunchpadData():
         return Project(self._get_project(project_name))
 
     def get_bugs(self, project_name, statuses, milestone_name=None,
-                 tags=[], importance=[]):
+                 tags=[], importance=[], **kwargs):
         project = db[project_name]
 
         search = [{"status": {"$in": statuses}}]
@@ -51,7 +51,10 @@ class LaunchpadData():
             search.append({"importance": {"$in": importance}})
 
         if tags:
-            search.append({"tags": {"$in": tags}})
+            if kwargs.get("condition"):
+                search.append({"tags": {"$nin": tags}})
+            else:
+                search.append({"tags": {"$in": tags}})
 
         return [Bug(r) for r in project.find({"$and": search})]
 
@@ -79,8 +82,8 @@ class LaunchpadData():
 
     def bugs_ids(self, tag, milestone):
         sum_without_duplicity = {"done": "",
-                                "total": "",
-                                "high": ""}
+                                 "total": "",
+                                 "high": ""}
 
         def count(milestone, tag, bug_type, importance):
             bugs_fuel = self.get_bugs("fuel", self.BUG_STATUSES[bug_type], milestone, tag, importance)
@@ -95,11 +98,11 @@ class LaunchpadData():
 
         sum_without_duplicity["done"] = count(milestone, tag, "Closed", None)
         sum_without_duplicity["total"] = count(milestone, tag, "All", None)
-        sum_without_duplicity["high"] = count(milestone, tag, "NotDone", ["Critical", "High"] )
+        sum_without_duplicity["high"] = count(milestone, tag, "NotDone", ["Critical", "High"])
 
         return sum_without_duplicity
 
-    def common_statistic_for_project(self, project_name, tag, milestone_name):
+    def common_statistic_for_project(self, project_name, milestone_name, tag):
 
         page_statistic = dict.fromkeys(["total",
                                    "critical",

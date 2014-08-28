@@ -19,16 +19,16 @@ fuel = lpdata.get_project("fuel")
 
 milestones_list = lpdata.common_milestone(mos.active_milestones,
                                           fuel.active_milestones)
-milestones.update({"Milestone": milestones.find_one()["Milestone"]},
+milestones.update({"Milestone": milestones.find_one()["Milestone"] if "Milestone" in db.collection_names() else ""},
                   {"Milestone": milestones_list}, upsert=True)
 
 projects_list = ["fuel", "mos", "murano", "mistral", "sahara", "ceilometer"]
 subprojects_list = ["murano", "sahara", "nova", "neutron", "keystone", "heat",
                     "glance", "horizon", "ceilometer", "oslo", "cinder"]
 
-projects.update({"Project": projects.find_one()["Project"]},
+projects.update({"Project": projects.find_one()["Project"] if "Project" in db.collection_names() else ""},
                 {"Project": projects_list}, upsert=True)
-subprojects.update({"Subproject": subprojects.find_one()["Subproject"]},
+subprojects.update({"Subproject": subprojects.find_one()["Subproject"] if "Subproject" in db.collection_names() else ""},
                    {"Subproject": subprojects_list}, upsert=True)
 
 bugs_list = []
