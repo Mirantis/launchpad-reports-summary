@@ -35,7 +35,11 @@
           <a class="navbar-brand" href="/"></a>
           <a class="navbar-brand" href="/project/fuelplusmos/{{ key_milestone }}">FUEL+MOS</a>
           {% for p in prs %}
-             <a class="navbar-brand" href="/project/{{ p }}">{{ p }}</a>
+             {% if p in ("fuel", "mos")%}
+                <a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform:  uppercase;">{{ p }}</font></p></a>
+             {% else %}
+                <a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: capitalize;">{{ p }}</font></p></a>
+             {% endif %}
           {% endfor %}
         </div>
       </div>
