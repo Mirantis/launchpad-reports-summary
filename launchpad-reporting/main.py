@@ -30,7 +30,7 @@ all_tags = all_tags[:-1]
 
 flag = False
 
-@app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>/bug_list')
+@app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>/bug_list/')
 def bug_list(project_name, bug_type, milestone_name):
     project = lpdata.get_project(project_name)
     tags = None
@@ -51,19 +51,19 @@ def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
     data = ReleaseChart(lpdata, project_name, milestone_name).get_incoming_outgoing_data()
     return flask.json.dumps(data)
 
-@app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>')
+@app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>/')
 def bug_table_for_status(project_name, bug_type, milestone_name):
     project = lpdata.get_project(project_name)
     if bug_type == "New":
         milestone_name = None
     return flask.render_template("bug_table.html", project=project, prs=list(prs), key_milestone=key_milestone, milestone_name=milestone_name)
 
-@app.route('/project/<project_name>/bug_trends/<milestone_name>')
+@app.route('/project/<project_name>/bug_trends/<milestone_name>/')
 def bug_trends(project_name, milestone_name):
     project = lpdata.get_project(project_name)
     return flask.render_template("bug_trends.html", project=project, milestone_name=milestone_name, selected_bug_trends=True, prs=list(prs), key_milestone=key_milestone)
 
-@app.route('/project/code_freeze_report/<milestone_name>')
+@app.route('/project/code_freeze_report/<milestone_name>/')
 def code_freeze_report(milestone_name):
     milestones = db.milestones.find_one()["Milestone"]
 
@@ -85,9 +85,10 @@ def code_freeze_report(milestone_name):
                                  current_milestone=milestone_name,
                                  prs=list(prs),
                                  teams=teams,
-                                 bugs=bugs)
+                                 bugs=bugs,
+                                 key_milestone=key_milestone)
 
-@app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>')
+@app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>/')
 def statistic_for_project_by_milestone_by_tag(project_name, milestone_name, tag):
 
     display = True
@@ -146,7 +147,7 @@ def statistic_for_project_by_milestone(project_name, milestone_name):
                                  milestone=milestone,
                                  flag=True)
 
-@app.route('/project/fuelplusmos/<milestone_name>')
+@app.route('/project/fuelplusmos/<milestone_name>/')
 def fuel_plus_mos_overview(milestone_name):
 
     milestones = db.milestones.find_one()["Milestone"]
@@ -268,22 +269,24 @@ def fuel_plus_mos_overview(milestone_name):
                                  all_tags=all_tags,
                                  incomplete=incomplete)
 
-@app.route('/project/<project_name>')
+@app.route('/project/<project_name>/')
 def project_overview(project_name):
 
     project_name = project_name.lower()
 
     if project_name == "fuelplusmos":
-        return flask.redirect("/project/fuelplusmos/{0}".format(key_milestone),
+        return flask.redirect("/project/fuelplusmos/{0}/".format(key_milestone),
                               code=302)
 
+    if project_name == "code_freeze_report":
+        return flask.redirect("/project/code_freeze_report/{0}/".format(key_milestone),
+                              code=302)
 
     project = lpdata.get_project(project_name)
     project.display_name = project.display_name.capitalize()
     page_statistic = lpdata.common_statistic_for_project(project_name=project_name,
                                                          milestone_name=project.active_milestones,
                                                          tag=None)
-
 
     return flask.render_template("project.html",
                                  project=project,
@@ -294,7 +297,7 @@ def project_overview(project_name):
                                  page_statistic=page_statistic,
                                  milestone=[])
 
-@app.route('/project/<global_project_name>/<tag>')
+@app.route('/project/<global_project_name>/<tag>/')
 def mos_project_overview(global_project_name, tag):
 
     global_project_name = global_project_name.lower()
@@ -337,4 +340,4 @@ def main_page():
                                  prs=list(prs))
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=4444, threaded=True, debug=True)
+    app.run(host="0.0.0.0", port=1111, threaded=True, debug=True)
