@@ -1,0 +1,92 @@
+{
+    "Fuel": {
+        "teams": [
+            "fuel-python",
+            "fuel-ui",
+            "fuel-library",
+            "fuel-astute",
+            "fuel-osci"
+        ],
+        "people": [
+            "dborodaenko",
+            "rmoe",
+            "xarses",
+            "tzn",
+            "salmon",
+            "ksambor",
+            "prmtl",
+            "loles",
+            "sgolovatiuk",
+            "bogdando",
+            "longgeek",
+            "berendt",
+            "jesse-pretorius",
+            "sammiestoel",
+            "zynzel",
+            "vpleshakov",
+            "vdenisov",
+            "nikishov-da",
+            "atarasov",
+            "dtyzhnenko",
+            "manashkin"
+        ]
+    },
+    "mos-linux": {
+        "teams": [
+            "mos-linux"
+        ],
+        "people": [
+            "asyriy"
+        ]
+    },
+    "mos-openstack": {
+        "teams": [
+            "mos-neutron",
+            "mos-nova",
+            "mos-horizon",
+            "mos-ceilometer",
+            "mos-oslo",
+            "mos-sahara",
+            "mos-heat",
+            "mos-murano",
+            "mos-cinder"
+        ],
+        "people": [
+            "alexei-kornienko",
+            "mmaxur",
+            "yorik-sar",
+            "maxmazurenka"
+        ]
+    },
+    "Partners": {
+        "teams": [],
+        "people": [
+            "eshumakher",
+            "izinovik",
+            "gcon-monolake",
+            "igajsin",
+            "moshele",
+            "aviramb",
+            "srogov"
+        ]
+    },
+    "excludes": {
+        "teams": [
+            "fuel-devops",
+            "fuel-qa"
+        ],
+        "people": [
+            "afedorova",
+            "teran",
+            "acharykov",
+            "acharykov",
+            "dreidellhasa",
+            "apalkina",
+            "aurlapova",
+            "tatyana-leontovich",
+            "asledzinskiy",
+            "apanchenko-8",
+            "ykotko"
+        ]
+    }
+}

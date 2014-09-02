@@ -1,7 +1,6 @@
 import copy
 import pymongo
 
-
 from launchpadlib.launchpad import Launchpad
 from bug import Bug
 from project import Project
@@ -9,6 +8,7 @@ from ttl_cache import ttl_cache
 
 connection = pymongo.Connection()
 db = connection["bugs"]
+assignees_db = connection["assignees"]
 
 class LaunchpadData():
 
@@ -143,3 +143,34 @@ class LaunchpadData():
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
 
         return page_statistic
+
+    def code_freeze_statistic(self, milestone, teams, exclude_tags):
+        connection = pymongo.Connection()
+        assignees_db = connection["assignees"]
+
+        report = dict.fromkeys(teams)
+
+        for team in teams:
+            report[team] = dict.fromkeys(["bugs", "count"])
+            BUGS=[]
+
+            people = []
+            for b in assignees_db.assignees.find({"Team": team}):
+                people.extend(b["Members"])
+
+            for pr in ["fuel", "mos"]:
+
+                bugs = db["{0}".format(pr)].find(
+                    {"$and": [
+                        {"status": {"$in": self.BUG_STATUSES["NotDone"]}},
+                        {"milestone": {"$in": milestone}},
+                        {"tags": {"$nin": exclude_tags}},
+                        {"importance": {"$in": ["High", "Critical"]}},
+                        {"assignee": {"$in": people}}
+                    ]})
+                for b in bugs:
+                    BUGS.append(b)
+            report[team]["bugs"] = BUGS
+            report[team]["count"] = len(BUGS)
+
+        return report

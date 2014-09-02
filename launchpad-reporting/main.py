@@ -63,6 +63,30 @@ def bug_trends(project_name, milestone_name):
     project = lpdata.get_project(project_name)
     return flask.render_template("bug_trends.html", project=project, milestone_name=milestone_name, selected_bug_trends=True, prs=list(prs), key_milestone=key_milestone)
 
+@app.route('/project/code_freeze_report/<milestone_name>')
+def code_freeze_report(milestone_name):
+    milestones = db.milestones.find_one()["Milestone"]
+
+    teams = ["Fuel", "Partners", "mos-linux", "mos-openstack"]
+    exclude_tags = ["devops", "docs"]
+
+    if milestone_name == "5.1" or milestone_name == "5.0.2":
+        milestone = ["5.1", "5.0.2"]
+        bugs = lpdata.code_freeze_statistic(milestone=milestone,
+                                            teams=teams,
+                                            exclude_tags=exclude_tags)
+    else:
+        bugs = lpdata.code_freeze_statistic(milestone=[milestone_name],
+                                            teams=teams,
+                                            exclude_tags=exclude_tags)
+
+    return flask.render_template("code_freeze_report.html",
+                                 milestones=milestones,
+                                 current_milestone=milestone_name,
+                                 prs=list(prs),
+                                 teams=teams,
+                                 bugs=bugs)
+
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>')
 def statistic_for_project_by_milestone_by_tag(project_name, milestone_name, tag):
 
