@@ -41,6 +41,8 @@ for pr in projects.find_one()["Project"]:
 
 processes = []
 
+for pr in projects.find_one()["Project"]:
+    db['{0}'.format(pr)].update({}, {"$set": {'flag': False}}, upsert=True, multi=True)
 
 def create_collections(bugs):
     for bug in bugs:
@@ -93,13 +95,15 @@ def create_collections(bugs):
                             bug.date_fix_committed.ctime()) > parser.parse(
                             (date.today() -
                              relativedelta.relativedelta(months=1)).ctime())
-                        if bug.date_fix_committed is not None else None},
+                        if bug.date_fix_committed is not None else None,
+                        'flag': True},
                     upsert=True)
                 break
             except Exception:
                 pass
 
-for i in xrange(1, 11):
+
+for i in xrange(1,11):
     proc = Process(
         target=create_collections,
         args=(bugs_list[(i-1)*len(bugs_list)/10:i*len(bugs_list)/10],))
@@ -109,3 +113,7 @@ for i in xrange(1, 11):
 
 for i in processes:
     i.join()
+
+# Removing all 'non-actual' bugs (duplicates, with inactive milestone)
+for pr in projects.find_one()["Project"]:
+    db['{0}'.format(pr)].remove({'flag': False}, multi=True)

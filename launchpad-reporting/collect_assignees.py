@@ -1,5 +1,6 @@
-import pymongo
 import json
+import pymongo
+import os
 
 from launchpad.lpdata import LaunchpadData
 
@@ -9,13 +10,13 @@ db = connection["assignees"]
 
 assignees = db.assignees
 
-with open('launchpad/fuel_teams.json') as data_file:
+path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
+with open('{0}/fuel_teams.json'.format(path_to_data)) as data_file:
     data = json.load(data_file)
 
 teams = ["Fuel", "Partners", "mos-linux", "mos-openstack"]
 
 db.drop_collection(assignees)
-
 
 for team in teams:
     people = []
@@ -27,5 +28,10 @@ for team in teams:
         members = tt.members_details
         for member in members:
             people.append(member.member.name)
+
+    for member in data["excludes"]["people"]:
+        if member in people:
+            people.remove(member)
+
     assignees.insert({"Team": "{0}".format(team),
                       "Members": people})

@@ -8,16 +8,9 @@
             "fuel-osci"
         ],
         "people": [
-            "dborodaenko",
-            "rmoe",
-            "xarses",
             "tzn",
             "salmon",
-            "ksambor",
-            "prmtl",
             "loles",
-            "sgolovatiuk",
-            "bogdando",
             "longgeek",
             "berendt",
             "jesse-pretorius",
@@ -28,7 +21,15 @@
             "nikishov-da",
             "atarasov",
             "dtyzhnenko",
-            "manashkin"
+            "manashkin",
+            "lux-place",
+            "a-gordeev",
+            "sbogatkin",
+            "xdeller",
+            "andreika-mail",
+            "ekozhemyakin",
+            "akolesnikov",
+            "fsoppelsa"
         ]
     },
     "mos-linux": {
@@ -48,10 +49,11 @@
             "mos-oslo",
             "mos-sahara",
             "mos-heat",
-            "mos-murano",
-            "mos-cinder"
+            "mos-murano"
         ],
         "people": [
+            "e0ne",
+            "vrovachev",
             "alexei-kornienko",
             "mmaxur",
             "yorik-sar",
@@ -78,7 +80,6 @@
         "people": [
             "afedorova",
             "teran",
-            "acharykov",
             "acharykov",
             "dreidellhasa",
             "apalkina",

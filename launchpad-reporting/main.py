@@ -1,10 +1,13 @@
 import flask
+import os
 import pymongo
 from launchpad.release_chart import ReleaseChart
 from launchpad.lpdata import LaunchpadData
 import json
 
-with open('data.json') as data_file:
+path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
+
+with open('{0}/data.json'.format(path_to_data)) as data_file:
     data = json.load(data_file)
 
 
@@ -51,7 +54,7 @@ def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
     data = ReleaseChart(lpdata, project_name, milestone_name).get_incoming_outgoing_data()
     return flask.json.dumps(data)
 
-@app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>/')
+@app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>')
 def bug_table_for_status(project_name, bug_type, milestone_name):
     project = lpdata.get_project(project_name)
     if bug_type == "New":
@@ -68,7 +71,7 @@ def code_freeze_report(milestone_name):
     milestones = db.milestones.find_one()["Milestone"]
 
     teams = ["Fuel", "Partners", "mos-linux", "mos-openstack"]
-    exclude_tags = ["devops", "docs"]
+    exclude_tags = ["devops", "docs", "fuel-devops"]
 
     if milestone_name == "5.1" or milestone_name == "5.0.2":
         milestone = ["5.1", "5.0.2"]
