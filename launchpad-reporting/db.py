@@ -117,3 +117,7 @@ for i in processes:
 # Removing all 'non-actual' bugs (duplicates, with inactive milestone)
 for pr in projects.find_one()["Project"]:
     db['{0}'.format(pr)].remove({'flag': False}, multi=True)
+
+
+
+

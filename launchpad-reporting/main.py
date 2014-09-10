@@ -255,8 +255,7 @@ def fuel_plus_mos_overview(milestone_name):
             len(lpdata.get_bugs(project_name=pr,
                                 statuses=["Incomplete"],
                                 milestone_name=milestone_name,
-                                tags=subprojects,
-                                importance=["High", "Critical"]))
+                                tags=subprojects))
 
     return flask.render_template("project_fuelmos.html",
                                  milestones=milestones,

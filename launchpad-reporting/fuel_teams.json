@@ -61,7 +61,9 @@
         ]
     },
     "Partners": {
-        "teams": [],
+        "teams": [
+            "fuel-partner"
+        ],
         "people": [
             "eshumakher",
             "izinovik",
