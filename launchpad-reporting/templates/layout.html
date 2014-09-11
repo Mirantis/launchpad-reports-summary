@@ -26,6 +26,7 @@
           $('#clock').text(minutesPassed + ' minutes since last update');
           }, 1000);
           });
+          var t = $('#clock')
       </script>
   </head>
   <body>
@@ -52,7 +53,7 @@
                 <a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: capitalize;">{{ p }}</font></p></a>
              {% endif %}
           {% endfor %}
-          <span class='navbar-brand' id="clock">$('span#clock')</span>
+          <span class='navbar-brand' id="clock">{{t}}</span>
         </div>
       </div>
     </div>
