@@ -4,6 +4,7 @@ import pymongo
 from launchpad.release_chart import ReleaseChart
 from launchpad.lpdata import LaunchpadData
 import json
+import time
 
 path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
 
@@ -42,7 +43,7 @@ def bug_list(project_name, bug_type, milestone_name):
     if bug_type == "New":
         milestone_name = None
     bugs = lpdata.get_bugs(project_name=project_name, statuses=LaunchpadData.BUG_STATUSES[bug_type], milestone_name=milestone_name, tags=tags)
-    return flask.render_template("bug_list.html", project=project, bugs=bugs, bug_type=bug_type, milestone_name=milestone_name, selected_bug_table=True, prs=list(prs), key_milestone=key_milestone,)
+    return flask.render_template("bug_list.html", project=project, bugs=bugs, bug_type=bug_type, milestone_name=milestone_name, selected_bug_table=True, prs=list(prs), key_milestone=key_milestone, update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/<project_name>/api/release_chart_trends/<milestone_name>/get_data')
 def bug_report_trends_data(project_name, milestone_name):
@@ -59,12 +60,12 @@ def bug_table_for_status(project_name, bug_type, milestone_name):
     project = lpdata.get_project(project_name)
     if bug_type == "New":
         milestone_name = None
-    return flask.render_template("bug_table.html", project=project, prs=list(prs), key_milestone=key_milestone, milestone_name=milestone_name)
+    return flask.render_template("bug_table.html", project=project, prs=list(prs), key_milestone=key_milestone, milestone_name=milestone_name, update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/<project_name>/bug_trends/<milestone_name>/')
 def bug_trends(project_name, milestone_name):
     project = lpdata.get_project(project_name)
-    return flask.render_template("bug_trends.html", project=project, milestone_name=milestone_name, selected_bug_trends=True, prs=list(prs), key_milestone=key_milestone)
+    return flask.render_template("bug_trends.html", project=project, milestone_name=milestone_name, selected_bug_trends=True, prs=list(prs), key_milestone=key_milestone, update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/code_freeze_report/<milestone_name>/')
 def code_freeze_report(milestone_name):
@@ -89,7 +90,8 @@ def code_freeze_report(milestone_name):
                                  prs=list(prs),
                                  teams=teams,
                                  bugs=bugs,
-                                 key_milestone=key_milestone)
+                                 key_milestone=key_milestone,
+                                 update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>/')
 def statistic_for_project_by_milestone_by_tag(project_name, milestone_name, tag):
@@ -119,7 +121,8 @@ def statistic_for_project_by_milestone_by_tag(project_name, milestone_name, tag)
                                  page_statistic=page_statistic,
                                  milestone=milestone,
                                  flag=True,
-                                 tag=tag)
+                                 tag=tag,
+                                 update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/')
 def statistic_for_project_by_milestone(project_name, milestone_name):
@@ -148,7 +151,8 @@ def statistic_for_project_by_milestone(project_name, milestone_name):
                                  subprs=list(subprs),
                                  page_statistic=page_statistic,
                                  milestone=milestone,
-                                 flag=True)
+                                 flag=True,
+                                 update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/fuelplusmos/<milestone_name>/')
 def fuel_plus_mos_overview(milestone_name):
@@ -269,7 +273,8 @@ def fuel_plus_mos_overview(milestone_name):
                                  summary_statistic=summary_statistic,
                                  fuel_plus_mos=fuel_plus_mos,
                                  all_tags=all_tags,
-                                 incomplete=incomplete)
+                                 incomplete=incomplete,
+                                 update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/<project_name>/')
 def project_overview(project_name):
@@ -297,7 +302,8 @@ def project_overview(project_name):
                                  prs=list(prs),
                                  subprs=list(subprs),
                                  page_statistic=page_statistic,
-                                 milestone=[])
+                                 milestone=[],
+                                 update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/project/<global_project_name>/<tag>/')
 def mos_project_overview(global_project_name, tag):
@@ -319,7 +325,8 @@ def mos_project_overview(global_project_name, tag):
                                  display_subprojects=True,
                                  prs=list(prs),
                                  subprs=list(subprs),
-                                 milestone=[])
+                                 milestone=[],
+                                 update_time=db.update_date.find_one()["Update_date"])
 
 @app.route('/')
 def main_page():
@@ -339,7 +346,8 @@ def main_page():
     return flask.render_template("main.html",
                                  key_milestone=key_milestone,
                                  statistic=global_statistic,
-                                 prs=list(prs))
+                                 prs=list(prs),
+                                 update_time=db.update_date.find_one()["Update_date"])
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=1111, threaded=True, debug=True)
