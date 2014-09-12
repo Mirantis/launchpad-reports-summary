@@ -10,18 +10,21 @@ connection = pymongo.Connection()
 db = connection["bugs"]
 assignees_db = connection["assignees"]
 
+
 class LaunchpadData():
 
     BUG_STATUSES = {"New":        ["New"],
                     "Incomplete": ["Incomplete"],
                     "Open":       ["Triaged", "In Progress", "Confirmed"],
-                    "Closed":     ["Fix Committed", "Fix Released", "Won't Fix",
-                                   "Invalid", "Expired", "Opinion", "Incomplete"],
-                    "All":        ["New", "Incomplete", "Invalid", "Won't Fix",
-                                   "Confirmed", "Triaged", "In Progress",
-                                   "Fix Released", "Fix Committed", "Opinion",
-                                   "Expired"],
-                    "NotDone":    ["New", "Confirmed", "Triaged", "In Progress"]}
+                    "Closed":     ["Fix Committed", "Fix Released",
+                                   "Won't Fix", "Invalid", "Expired",
+                                   "Opinion", "Incomplete"],
+                    "All":        ["New", "Incomplete", "Invalid",
+                                   "Won't Fix", "Confirmed", "Triaged",
+                                   "In Progress", "Fix Released",
+                                   "Fix Committed", "Opinion", "Expired"],
+                    "NotDone":    ["New", "Confirmed", "Triaged",
+                                   "In Progress"]}
     BUG_STATUSES_ALL = []
     for k in BUG_STATUSES:
         BUG_STATUSES_ALL.append(BUG_STATUSES[k])
@@ -86,8 +89,10 @@ class LaunchpadData():
                                  "high": ""}
 
         def count(milestone, tag, bug_type, importance):
-            bugs_fuel = self.get_bugs("fuel", self.BUG_STATUSES[bug_type], milestone, tag, importance)
-            bugs_mos = self.get_bugs("mos", self.BUG_STATUSES[bug_type], milestone, tag, importance)
+            bugs_fuel = self.get_bugs("fuel", self.BUG_STATUSES[bug_type],
+                                      milestone, tag, importance)
+            bugs_mos = self.get_bugs("mos", self.BUG_STATUSES[bug_type],
+                                     milestone, tag, importance)
             ids = []
             for bug in bugs_fuel:
                 ids.append(bug.id)
@@ -98,20 +103,20 @@ class LaunchpadData():
 
         sum_without_duplicity["done"] = count(milestone, tag, "Closed", None)
         sum_without_duplicity["total"] = count(milestone, tag, "All", None)
-        sum_without_duplicity["high"] = count(milestone, tag, "NotDone", ["Critical", "High"])
+        sum_without_duplicity["high"] = count(milestone, tag, "NotDone",
+                                              ["Critical", "High"])
 
         return sum_without_duplicity
 
     def common_statistic_for_project(self, project_name, milestone_name, tag):
 
         page_statistic = dict.fromkeys(["total",
-                                   "critical",
-                                   "new_for_week",
-                                   "fixed_for_week",
-                                   "new_for_month"
-                                   "fixed_for_month",
-                                   "unresolved"])
-
+                                        "critical",
+                                        "new_for_week",
+                                        "fixed_for_week",
+                                        "new_for_month",
+                                        "fixed_for_month",
+                                        "unresolved"])
 
         def criterion(dict_, tag):
             if tag:
@@ -121,14 +126,20 @@ class LaunchpadData():
             return dict_
 
         page_statistic["total"] = db['{0}'.format(project_name)].find(
-            criterion({"$and": [{"milestone": {"$in": milestone_name}}]}, tag)).count()
+            criterion(
+                {"$and": [{"milestone": {"$in": milestone_name}}]},
+                tag)).count()
         page_statistic["critical"] = db['{0}'.format(project_name)].find(
-            criterion({"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
-                      {"importance": "Critical"},
-                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+            criterion(
+                {"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
+                          {"importance": "Critical"},
+                          {"milestone": {"$in": milestone_name}}]},
+                tag)).count()
         page_statistic["unresolved"] = db['{0}'.format(project_name)].find(
-            criterion({"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
-                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+            criterion(
+                {"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
+                          {"milestone": {"$in": milestone_name}}]},
+                tag)).count()
         page_statistic["new_for_week"] = db['{0}'.format(project_name)].find(
             criterion({"$and": [{"created less than week": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
@@ -138,9 +149,11 @@ class LaunchpadData():
         page_statistic["new_for_month"] = db['{0}'.format(project_name)].find(
             criterion({"$and": [{"created less than month": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
-        page_statistic["fixed_for_month"] = db['{0}'.format(project_name)].find(
+        page_statistic["fixed_for_month"] = db[
+            '{0}'.format(project_name)].find(
             criterion({"$and": [{"fixed less than month": {"$ne": False}},
-                      {"milestone": {"$in": milestone_name}}]}, tag)).count()
+                                {"milestone": {"$in": milestone_name}}]},
+                      tag)).count()
 
         return page_statistic
 
@@ -152,7 +165,7 @@ class LaunchpadData():
 
         for team in teams:
             report[team] = dict.fromkeys(["bugs", "count"])
-            BUGS=[]
+            BUGS = []
 
             people = []
             for b in assignees_db.assignees.find({"Team": team}):
