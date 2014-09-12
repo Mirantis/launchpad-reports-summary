@@ -6,25 +6,29 @@ from collections import defaultdict
 from bisect import bisect_left
 from operator import itemgetter
 
+
 class ReleaseChart():
 
     def __init__(self, lpdata, project_name, milestone_name):
         self.bugs = []
         for status in LaunchpadData.BUG_STATUSES:
-            self.bugs += lpdata.get_bugs(project_name, LaunchpadData.BUG_STATUSES[status], milestone_name);
+            self.bugs += lpdata.get_bugs(project_name,
+                                         LaunchpadData.BUG_STATUSES[status],
+                                         milestone_name)
 
     def get_trends_data(self):
 
         # the chart will span until tomorrow
-        window_end = datetime.datetime.now(pytz.utc) + datetime.timedelta(days=1)
+        window_end = datetime.datetime.now(pytz.utc) + datetime.timedelta(
+            days=1)
 
         # add chart series in order from bottom to top
         data = OrderedDict()
-        data["Verified"]    = [];
-        data["Resolved"]    = [];
-        data["In Progress"] = [];
-        data["Open"]        = [];
-        data["Incomplete"]  = [];
+        data["Verified"] = []
+        data["Resolved"] = []
+        data["In Progress"] = []
+        data["Open"] = []
+        data["Incomplete"] = []
 
         # all dates
         all_dates = set()
@@ -32,7 +36,7 @@ class ReleaseChart():
         # process each bug and its events
         for b in self.bugs:
             events = b.get_status_changes()
-            events.append( {"date": window_end, "type": "N/A"} )
+            events.append({"date": window_end, "type": "N/A"})
             for i in range(0, len(events) - 1):
                 e1 = events[i]
                 e2 = events[i + 1]
@@ -45,8 +49,8 @@ class ReleaseChart():
                     d1 = d1.replace(hour=0, minute=0, second=0, microsecond=0)
                     d2 = d2.replace(hour=0, minute=0, second=0, microsecond=0)
 
-                    data[t].append( {"date" : d1, "num": 1} )
-                    data[t].append( {"date" : d2, "num": -1} )
+                    data[t].append({"date": d1, "num": 1})
+                    data[t].append({"date": d2, "num": -1})
                     all_dates.add(d1)
                     all_dates.add(d2)
 
@@ -68,7 +72,8 @@ class ReleaseChart():
                 bug_count += e["num"]
                 idx = bisect_left(all_dates_sorted, e["date"])
                 if not all_dates_sorted[idx] == e["date"]:
-                    raise ValueError("Date not found in array using binary search")
+                    raise ValueError(
+                        "Date not found in array using binary search")
                 all_dates_values[idx] = bug_count
 
             # process all global dates
@@ -84,24 +89,28 @@ class ReleaseChart():
                 else:
                     prev = all_dates_values[idx]
 
-            # create series for the chart (except for the last point, which has all zeroes)
+            # create series for the chart
+            # (except for the last point, which has all zeroes)
             values = []
             for idx in range(0, n - 1):
-                chart_seconds = (all_dates_sorted[idx].replace(tzinfo=None) - d3_start.replace(tzinfo=None)).total_seconds() * 1000.0
-                values.append( [int(chart_seconds), all_dates_values[idx]] )
-            chart.append( {'key': t, 'values': values})
+                chart_seconds = (all_dates_sorted[idx].replace(
+                    tzinfo=None) - d3_start.replace(
+                    tzinfo=None)).total_seconds() * 1000.0
+                values.append([int(chart_seconds), all_dates_values[idx]])
+            chart.append({'key': t, 'values': values})
 
         return chart
 
     def get_incoming_outgoing_data(self):
 
         # the chart will span until tomorrow
-        window_end = datetime.datetime.now(pytz.utc) + datetime.timedelta(days=1)
+        window_end = datetime.datetime.now(pytz.utc) + datetime.timedelta(
+            days=1)
 
         # add chart series in order from bottom to top
         data = OrderedDict()
-        data["Incoming"] = defaultdict(int);
-        data["Outgoing"] = defaultdict(int);
+        data["Incoming"] = defaultdict(int)
+        data["Outgoing"] = defaultdict(int)
 
         # all dates
         all_dates = set()
@@ -139,8 +148,10 @@ class ReleaseChart():
             # create series for the chart
             values = []
             for idx in range(0, n):
-                chart_seconds = (all_dates_sorted[idx].replace(tzinfo=None) - d3_start.replace(tzinfo=None)).total_seconds() * 1000.0
-                values.append( [int(chart_seconds), all_dates_values[idx]] )
-            chart.append( {'key': t, 'values': values})
+                chart_seconds = (all_dates_sorted[idx].replace(
+                    tzinfo=None) - d3_start.replace(
+                    tzinfo=None)).total_seconds() * 1000.0
+                values.append([int(chart_seconds), all_dates_values[idx]])
+            chart.append({'key': t, 'values': values})
 
         return chart

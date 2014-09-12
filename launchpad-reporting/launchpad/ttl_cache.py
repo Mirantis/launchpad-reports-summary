@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from copy import deepcopy
 from threading import RLock
 
+
 def ttl_cache(seconds=0, minutes=0, hours=0, days=0):
 
-    time_delta = timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
+    time_delta = timedelta(seconds=seconds, minutes=minutes, hours=hours,
+                           days=days)
 
     def decorate(f):
 
@@ -18,7 +20,8 @@ def ttl_cache(seconds=0, minutes=0, hours=0, days=0):
             lock.acquire()
 
             try:
-                key = (tuple([str(r) for r in args]), tuple(sorted(kwargs.items(), key=lambda i:i[0])))
+                key = (tuple([str(r) for r in args]),
+                       tuple(sorted(kwargs.items(), key=lambda i: i[0])))
 
                 updates = f._updates
                 results = f._results
@@ -49,7 +52,7 @@ if __name__ == "__main__":
 
     class T(object):
 
-        i = 0;
+        i = 0
 
         @ttl_cache(seconds=1)
         def expensive_func(self, c):

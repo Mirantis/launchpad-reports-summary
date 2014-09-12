@@ -19,17 +19,24 @@ fuel = lpdata.get_project("fuel")
 
 milestones_list = lpdata.common_milestone(mos.active_milestones,
                                           fuel.active_milestones)
-milestones.update({"Milestone": milestones.find_one()["Milestone"] if "Milestone" in db.collection_names() else ""},
-                  {"Milestone": milestones_list}, upsert=True)
+milestones.update(
+    {"Milestone": milestones.find_one()["Milestone"]
+        if "Milestone" in db.collection_names() else ""},
+    {"Milestone": milestones_list}, upsert=True)
 
 projects_list = ["fuel", "mos", "murano", "mistral", "sahara", "ceilometer"]
 subprojects_list = ["murano", "sahara", "nova", "neutron", "keystone", "heat",
                     "glance", "horizon", "ceilometer", "oslo", "cinder"]
 
-projects.update({"Project": projects.find_one()["Project"] if "Project" in db.collection_names() else ""},
-                {"Project": projects_list}, upsert=True)
-subprojects.update({"Subproject": subprojects.find_one()["Subproject"] if "Subproject" in db.collection_names() else ""},
-                   {"Subproject": subprojects_list}, upsert=True)
+projects.update(
+    {"Project": projects.find_one()["Project"]
+        if "Project" in db.collection_names() else ""},
+    {"Project": projects_list}, upsert=True)
+
+subprojects.update(
+    {"Subproject": subprojects.find_one()["Subproject"]
+        if "Subproject" in db.collection_names() else ""},
+    {"Subproject": subprojects_list}, upsert=True)
 
 bugs_list = []
 
@@ -42,7 +49,9 @@ for pr in projects.find_one()["Project"]:
 processes = []
 
 for pr in projects.find_one()["Project"]:
-    db['{0}'.format(pr)].update({}, {"$set": {'flag': False}}, upsert=True, multi=True)
+    db['{0}'.format(pr)].update(
+        {}, {"$set": {'flag': False}}, upsert=True, multi=True)
+
 
 def create_collections(bugs):
     for bug in bugs:
@@ -103,7 +112,7 @@ def create_collections(bugs):
                 pass
 
 
-for i in xrange(1,11):
+for i in xrange(1, 11):
     proc = Process(
         target=create_collections,
         args=(bugs_list[(i-1)*len(bugs_list)/10:i*len(bugs_list)/10],))
@@ -118,5 +127,7 @@ for i in processes:
 for pr in projects.find_one()["Project"]:
     db['{0}'.format(pr)].remove({'flag': False}, multi=True)
 
-db.update_date.update({"Update_date": db.update_date.find_one()["Update_date"] if "Update_date" in db.collection_names() else ""},
-                      {"Update_date": time.time()}, upsert=True)
+db.update_date.update(
+    {"Update_date": db.update_date.find_one()["Update_date"]
+        if "Update_date" in db.collection_names() else ""},
+    {"Update_date": time.time()}, upsert=True)
