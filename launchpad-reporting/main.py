@@ -114,7 +114,7 @@ def code_freeze_report(milestone_name):
     milestones = db.milestones.find_one()["Milestone"]
 
     teams = ["Fuel", "Partners", "mos-linux", "mos-openstack"]
-    exclude_tags = ["devops", "docs", "fuel-devops"]
+    exclude_tags = ["devops", "docs", "fuel-devops", "experimental"]
 
     if milestone_name == "5.1" or milestone_name == "5.0.2":
         milestone = ["5.1", "5.0.2"]

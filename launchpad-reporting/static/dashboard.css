@@ -151,3 +151,8 @@ tr.critical-bugs {
   padding-top: 50px;
 
 }
+
+.status_button {
+    cursor: pointer;
+    float: right;
+}
