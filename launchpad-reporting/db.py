@@ -127,7 +127,6 @@ for i in processes:
 for pr in projects.find_one()["Project"]:
     db['{0}'.format(pr)].remove({'flag': False}, multi=True)
 
-db.update_date.update(
-    {"Update_date": db.update_date.find_one()["Update_date"]
-        if "Update_date" in db.collection_names() else ""},
-    {"Update_date": time.time()}, upsert=True)
+db.drop_collection("update_date")
+db.create_collection("update_date")
+db.update_date.insert({"Update_date": time.time()})
