@@ -421,3 +421,24 @@ def main_page():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=1111, threaded=True, debug=True)
+
+    def test_create_and_delete_workflow(self):
+        resp, body = self.client.create_workflow('wf')
+
+        self.assertEqual(201, resp.status)
+        self.assertEqual('wf', body['name'])
+
+        resp, body = self.client.get_list_obj('workflows')
+
+        self.assertEqual(200, resp.status)
+        names = [body['workflows'][i]['name']
+                 for i in range(len(body['workflows']))]
+        self.assertIn('wf', names)
+
+        self.client.delete_obj('workflows', 'wf')
+        _, body = self.client.get_list_obj('workflows')
+
+        names = [body['workflows'][i]['name']
+                 for i in range(len(body['workflows']))]
+        self.assertNotIn('wf', names)
+
