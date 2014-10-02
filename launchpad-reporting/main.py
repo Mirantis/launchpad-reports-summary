@@ -25,7 +25,7 @@ prs = db.projects.find_one()["Project"]
 
 subprs = db.subprojects.find_one()["Subproject"]
 
-key_milestone = "5.1"
+key_milestone = "6.0"
 
 all_tags = ""
 for s in subprs:
@@ -116,8 +116,8 @@ def code_freeze_report(milestone_name):
     teams = ["Fuel", "Partners", "mos-linux", "mos-openstack"]
     exclude_tags = ["devops", "docs", "fuel-devops", "experimental"]
 
-    if milestone_name == "5.1" or milestone_name == "5.0.2":
-        milestone = ["5.1", "5.0.2"]
+    if milestone_name == "6.0":
+        milestone = ["6.0"]
         bugs = lpdata.code_freeze_statistic(milestone=milestone,
                                             teams=teams,
                                             exclude_tags=exclude_tags)
