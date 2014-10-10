@@ -23,7 +23,7 @@
           window.setInterval(function() {
             var lastUpdate = {{ update_time }},
           minutesPassed = Math.round((Date.now() / 1000 - lastUpdate)/60);
-          $('#clock').text(minutesPassed + ' minutes since last update');
+          $('#clock').text(minutesPassed + ' minutes ago');
           }, 1000);
           });
           var t = $('#clock')
@@ -43,7 +43,7 @@
             }
             else {
                 div.style.display = 'block';
-                toggler.innerHTML = 'Close UPDATE status';
+                toggler.innerHTML = 'Close status';
             }
         }
    </script>
@@ -53,10 +53,10 @@
 
       <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="container-fluid">
-          <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" width="3%" align="left" alt="Mirantis Logo">
-        <div class="navbar-header">
+          <div class="navbar-header">
+          <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" width="4%" align="left" alt="Mirantis Logo">
           <a class="navbar-brand" href="/">Launchpad Bugs Summary Reports</a>
-          <a class="navbar-brand" href=""></a>
+          <!--<a class="navbar-brand" href=""></a>-->
           <a class="navbar-brand" href="/project/fuelplusmos/{{ key_milestone }}">FUEL+MOS</a>
           {% for p in prs %}
              {% if p in ("fuel", "mos")%}
@@ -65,7 +65,7 @@
                 <a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: capitalize;">{{ p }}</font></p></a>
              {% endif %}
           {% endfor %}
-          <a class="navbar-brand" href=""></a>
+          <!--<a class="navbar-brand" href=""></a>-->
           <div class="navbar-brand">
               <a id="toggler" href="/">UPDATE status</a>
               <div id="box" style="display: none;"><div id="clock">{{t}}</div></div>
