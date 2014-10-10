@@ -1,7 +1,8 @@
 import copy
 import pymongo
 
-from launchpadlib.launchpad import Launchpad
+import launchpadlib.launchpad
+from launchpadlib.uris import LPNET_SERVICE_ROOT
 from bug import Bug
 from project import Project
 from ttl_cache import ttl_cache
@@ -31,8 +32,11 @@ class LaunchpadData():
 
     def __init__(self):
         cachedir = "~/.launchpadlib/cache/"
-        self.launchpad = Launchpad.login_anonymously(
-            'launchpad-reporting-www', 'production', cachedir)
+        credentials_filename = "credentials.txt"
+
+        self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
+            'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
+            credentials_file=credentials_filename, launchpadlib_dir=cachedir)
 
     def _get_project(self, project_name):
         return self.launchpad.projects[project_name]
