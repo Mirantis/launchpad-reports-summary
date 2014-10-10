@@ -56,7 +56,6 @@
           <div class="navbar-header">
           <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" width="4%" align="left" alt="Mirantis Logo">
           <a class="navbar-brand" href="/">Launchpad Bugs Summary Reports</a>
-          <!--<a class="navbar-brand" href=""></a>-->
           <a class="navbar-brand" href="/project/fuelplusmos/{{ key_milestone }}">FUEL+MOS</a>
           {% for p in prs %}
              {% if p in ("fuel", "mos")%}
@@ -65,7 +64,6 @@
                 <a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: capitalize;">{{ p }}</font></p></a>
              {% endif %}
           {% endfor %}
-          <!--<a class="navbar-brand" href=""></a>-->
           <div class="navbar-brand">
               <a id="toggler" href="/">UPDATE status</a>
               <div id="box" style="display: none;"><div id="clock">{{t}}</div></div>
