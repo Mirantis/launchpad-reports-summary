@@ -1,14 +1,15 @@
 {% extends "layout.html" %}
 
+
 {% block body %}
 <h2 class="page-header"><br>Hard Code Freeze Status: Milestone {{ current_milestone }}</h2>
 <div class="col-sm-3 col-md-2 sidebar">
     <br>
     {% for m in milestones|sort %}
-    {% if m != "5.0.2" %}
+    {% if m != "5.0.3" %}
     <ul class="nav nav-sidebar">
         <li {% if current_milestone == m %}class="active"{% endif %}>
-            <a href="/project/code_freeze_report/{{ m }}">Milestone {{ m }}</a>
+            <a href="/project/code_freeze_report/{{ m }}">MOS HCF Status {{ m }}</a>
         </li>
     </ul>
     {% endif %}
@@ -17,7 +18,7 @@
     <ul class="nav nav-sidebar">
 
         <li>
-            <a href="/project/code_freeze_report/{{ key_milestone }}">MOS HCF Status
+            <a href="/project/fuelplusmos/{{ key_milestone }}">Back to FUEL/MOS statistic
             </a>
         </li>
     </ul>
@@ -26,7 +27,7 @@
 {% for team in teams %}
 
         <h3 class="page-header"><br>{{team}} : {{bugs[team]["count"]}} {% if bugs[team]["count"] == 1%}bug{%else%}bugs{%endif%}</h3>
-        <table class="table table-striped">
+        <table class="sortable table table-striped" id="hcf_{{ team }}_table">
             <thead>
                 <tr>
                     <th>Bug #</th>

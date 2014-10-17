@@ -1,40 +1,36 @@
 {% extends "layout.html" %}
+
 {% block body %}
 
-<h1 class="page-header"><br>Launchpad Bugs Summary Reports</h1>
+    <div class="page_code">
+        <h1 class="page-header"><br>Launchpad Bugs Summary Reports</h1>
 
-<div class="main_info">
-  This service allows to get information about current status of projects:
-    main information, bugs' statistic.<br>
-  Just select interest project.<br><br>
+        <div class="main_info">
+          This service allows to get information about current status of projects:
+            main information, bugs' statistic.<br>
+          Just select interest project.<br><br>
 
-</div>
+        </div>
 
-<table class="bugs">
-    <thead>
-          <tr>
-              <th>Project</th>
-              <th>Total Critical Unresolved Bugs</th>
-              <th>Total Unresolved Bugs</th>
-              <th>Total Number of Bugs</th>
-          </tr>
-        </thead>
+        <table class="sortable" id="bugs">
+            <thead>
+                  <tr>
+                      <th>Project</th>
+                      <th>Total Critical Unresolved Bugs</th>
+                      <th>Total Unresolved Bugs</th>
+                      <th>Total Number of Bugs</th>
+                  </tr>
+                </thead>
 
 
-    {% for p in prs %}
-    <tr>
-        <td><p><a href="project/{{p}}">{{p}}</a></p></td>
-        <td>{{ statistic[p]["critical"] }}</td>
-        <td>{{ statistic[p]["unresolved"] }}</td>
-        <td>{{ statistic[p]["total"] }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<div class="add">
-    <form action="/add_project">
-        <button style="display:none;"><img src="https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678121-cloud-sync-64.png" alt="Add project"> ADD PROJECT </button></p>
-    </form>
-</div>
-
+            {% for p in prs %}
+            <tr>
+                <td><p><a href="project/{{p}}">{{p}}</a></p></td>
+                <td>{{ statistic[p]["critical"] }}</td>
+                <td>{{ statistic[p]["unresolved"] }}</td>
+                <td>{{ statistic[p]["total"] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endblock %}

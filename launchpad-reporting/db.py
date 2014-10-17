@@ -10,7 +10,10 @@ lpdata = LaunchpadData()
 connection = pymongo.Connection()
 db = connection["bugs"]
 
+
 milestones = db.milestones
+db.drop_collection(milestones)
+
 projects = db.projects
 subprojects = db.subprojects
 
@@ -19,10 +22,8 @@ fuel = lpdata.get_project("fuel")
 
 milestones_list = lpdata.common_milestone(mos.active_milestones,
                                           fuel.active_milestones)
-milestones.update(
-    {"Milestone": milestones.find_one()["Milestone"]
-        if "Milestone" in db.collection_names() else ""},
-    {"Milestone": milestones_list}, upsert=True)
+
+milestones.insert({"Milestone": milestones_list})
 
 projects_list = ["fuel", "mos", "murano", "mistral", "sahara", "ceilometer"]
 subprojects_list = ["murano", "sahara", "nova", "neutron", "keystone", "heat",
@@ -127,7 +128,6 @@ for i in processes:
 for pr in projects.find_one()["Project"]:
     db['{0}'.format(pr)].remove({'flag': False}, multi=True)
 
-db.update_date.update(
-    {"Update_date": db.update_date.find_one()["Update_date"]
-        if "Update_date" in db.collection_names() else ""},
-    {"Update_date": time.time()}, upsert=True)
+db.drop_collection("update_date")
+db.create_collection("update_date")
+db.update_date.insert({"Update_date": time.time()})

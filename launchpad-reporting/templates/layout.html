@@ -1,78 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Roman Alekseenkov">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="author" content="Roman Alekseenkov">
 
-    <title>Launchpad Bugs Summary Reports</title>
+        <title>Launchpad Bugs Summary Reports</title>
 
-    <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+        <!-- Bootstrap core CSS -->
+        <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
 
-    <!-- Dashboard CSS -->
-    <link href="{{ url_for('static', filename='dashboard.css') }}" rel="stylesheet">
+        <!-- Dashboard CSS -->
+        <link href="{{ url_for('static', filename='dashboard.css') }}" rel="stylesheet">
 
-    <!-- D3 & NVD3  CSS -->
-    <link href="{{ url_for('static', filename='nvd3/nv.d3.css') }}" rel="stylesheet">
-      <script src="/static/jquery/jquery.min.js"></script>
-      <script>
-        $(function() {
+        <!-- D3 & NVD3  CSS -->
+        <link href="{{ url_for('static', filename='nvd3/nv.d3.css') }}" rel="stylesheet">
+        <script src="/static/jquery/jquery.min.js"></script>
+        <script>
+            $(function() {
 
-          window.setInterval(function() {
-            var lastUpdate = {{ update_time }},
-          minutesPassed = Math.round((Date.now() / 1000 - lastUpdate)/60);
-          $('#clock').text(minutesPassed + ' minutes ago');
-          }, 1000);
-          });
-          var t = $('#clock')
+                window.setInterval(function() {
+                    var lastUpdate = {{ update_time }},
+                    minutesPassed = Math.round((Date.now() / 1000 - lastUpdate)/60);
+                    $('#clock').text(minutesPassed + ' minutes ago');
+                }, 1000);
+            });
+            var t = $('#clock')
 
-          window.onload= function() {
-            document.getElementById('toggler').onclick = function() {
-              openbox('box', this);
-              return false;
+            window.onload= function() {
+                document.getElementById('toggler').onclick = function() {
+                openbox('box', this);
+                return false;
+                };
             };
-          };
 
-          function openbox(id, toggler) {
-            var div = document.getElementById(id);
-            if(div.style.display == 'block') {
-                div.style.display = 'none';
-                toggler.innerHTML = 'UPDATE status';
+            function openbox(id, toggler) {
+                var div = document.getElementById(id);
+                if(div.style.display == 'block') {
+                    div.style.display = 'none';
+                    toggler.innerHTML = 'Last update';
+                }
+                else {
+                    div.style.display = 'block';
+                    toggler.innerHTML = 'Close status';
+                }
             }
-            else {
-                div.style.display = 'block';
-                toggler.innerHTML = 'Close status';
-            }
-        }
-   </script>
+        </script>
+        <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+        <script type="text/javascript" src="http://www.tablesorter.ru/jquery.tablesorter.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $("table.sortable").tablesorter();
+            });
+        </script>
 
   </head>
   <body>
-
       <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container-fluid">
-          <div class="navbar-header">
-          <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" width="4%" align="left" alt="Mirantis Logo">
-          <a class="navbar-brand" href="/">Launchpad Bugs Summary Reports</a>
-          <a class="navbar-brand" href="/project/fuelplusmos/{{ key_milestone }}">FUEL+MOS</a>
-          {% for p in prs %}
-             {% if p in ("fuel", "mos")%}
-                <a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform:  uppercase;">{{ p }}</font></p></a>
-             {% else %}
-                <a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: capitalize;">{{ p }}</font></p></a>
-             {% endif %}
-          {% endfor %}
-          <div class="navbar-brand">
-              <a id="toggler" href="/">UPDATE status</a>
-              <div id="box" style="display: none;"><div id="clock">{{t}}</div></div>
+          <div class="container-fluid">
+              <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" height="60" align="left" alt="Mirantis Logo">
+              <div class="navbar-header">
+
+                  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+
+                  <div class="navbar-collapse collapse">
+                      <ul class="nav navbar-nav navbar-left">
+                            <ul id="menu">
+                                <li><a class="navbar-brand" href="/">Summary Reports</a></li>
+                                <li>
+                                    <a class="navbar-brand" href="#">MOS Reports</a>
+                                    <ul>
+                                        {% for p in prs %}
+                                            {% if p in ("fuel", "mos")%}
+                                                <li><a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: uppercase;">{{ p }}</font></p></a></li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <li><a class="navbar-brand" href="/project/fuelplusmos/{{ key_milestone }}">FUEL+MOS</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a class="navbar-brand" href="">OS Reports</a>
+                                    <ul>
+                                       {% for p in prs %}
+                                           {% if p not in ("fuel", "mos")%}
+                                               <li><a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: capitalize;">{{ p }}</font></p></a></li>
+                                           {% endif %}
+                                       {% endfor %}
+                                    </ul>
+                                </li>
+                            </ul>
+                      </ul>
+
+                      <ul class="nav navbar-nav navbar-right">
+                          <li>
+                              <a id="toggler" href="/">Last update</a>
+                              <div id="box" style="display: none; color:white"><div id="clock">{{t}}</div></div>
+                          </li>
+                          <li><a href="/"></a></li>
+                      </ul>
+                  </div>
+              </div>
           </div>
-        </div>
-      </div>
     </div>
-
-
 
     <div class="container-fluid">
       <div class="row">
@@ -82,7 +116,6 @@
         <!-- Placed at the end of the document so the pages load faster -->
         <!-- It looks like it must be placed before body block, as otherwise
              child pages won't be able to use bootstrap -->
-        <script src="{{ url_for('static', filename='jquery/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
 
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
@@ -91,5 +124,5 @@
       </div>
     </div>
 
-  </body>
+</body>
 </html>
