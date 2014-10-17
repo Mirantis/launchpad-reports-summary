@@ -54,10 +54,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="dashboard.css" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="dashboard.css" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/static/dashboard.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="186" column="17" selection-start="2729" selection-end="2729" vertical-scroll-proportion="0.0" vertical-offset="3126" max-vertical-offset="5490">
+            <state line="186" column="17" selection-start="2729" selection-end="2729" vertical-scroll-proportion="0.27715355" vertical-offset="3126" max-vertical-offset="5490">
               <folding />
             </state>
           </provider>
@@ -92,10 +92,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="db.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="db.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/db.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="27" column="75" selection-start="699" selection-end="699" vertical-scroll-proportion="0.44818977" vertical-offset="127" max-vertical-offset="2502">
+            <state line="27" column="75" selection-start="699" selection-end="699" vertical-scroll-proportion="0.0" vertical-offset="127" max-vertical-offset="2502">
               <folding>
                 <element signature="e#0#42#0" expanded="true" />
               </folding>
@@ -131,8 +131,8 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="64" />
-    <option name="y" value="-4" />
+    <option name="x" value="73" />
+    <option name="y" value="50" />
     <option name="width" value="1857" />
     <option name="height" value="1085" />
   </component>
@@ -466,7 +466,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="64" y="-4" width="1857" height="1085" extended-state="6" />
+    <frame x="73" y="50" width="1857" height="1085" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -581,23 +581,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/templates/project_fuelmos.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="51" selection-start="310" selection-end="310" vertical-scroll-proportion="-6.6666665" vertical-offset="0" max-vertical-offset="2196">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/static/bootstrap/css/bootstrap.css">
       <provider selected="true" editor-type-id="text-editor">
         <state line="4617" column="16" selection-start="75000" selection-end="75000" vertical-scroll-proportion="-18.703703" vertical-offset="82601" max-vertical-offset="128214">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/dashboard.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="186" column="17" selection-start="2729" selection-end="2729" vertical-scroll-proportion="0.0" vertical-offset="3126" max-vertical-offset="5490">
           <folding />
         </state>
       </provider>
@@ -615,10 +601,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/db.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="27" column="75" selection-start="699" selection-end="699" vertical-scroll-proportion="0.44818977" vertical-offset="127" max-vertical-offset="2502">
+        <state line="27" column="75" selection-start="699" selection-end="699" vertical-scroll-proportion="0.0" vertical-offset="127" max-vertical-offset="2502">
           <folding>
             <element signature="e#0#42#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates/project_fuelmos.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="10" column="51" selection-start="310" selection-end="310" vertical-scroll-proportion="-6.6666665" vertical-offset="0" max-vertical-offset="2196">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/dashboard.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="186" column="17" selection-start="2729" selection-end="2729" vertical-scroll-proportion="0.27715355" vertical-offset="3126" max-vertical-offset="5490">
+          <folding />
         </state>
       </provider>
     </entry>
