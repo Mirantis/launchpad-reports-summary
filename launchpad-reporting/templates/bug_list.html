@@ -1,3 +1,4 @@
+
 {% block body %}
 <h2 class="sub-header"><br>{{ bug_type }} Bugs: {{ bugs|length }} total</h2>
 
@@ -31,15 +32,9 @@
     {% endfor %}
 
 </div>
-<div class="table-responsive">
-
-{% if breakdown_by_status %}
-
-... ... ...
-
-{% else %}
-
-<table class="table table-striped">
+<div>
+<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+<table class="sortable table table-striped">
   <thead>
     <tr>
       <th>Bug #</th>
@@ -63,6 +58,5 @@
 </table>
 </div>
 
-{% endif %}
 {% endblock %}
 

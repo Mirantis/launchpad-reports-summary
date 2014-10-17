@@ -112,15 +112,15 @@ def bug_trends(project_name, milestone_name):
 @app.route('/project/code_freeze_report/<milestone_name>/')
 def code_freeze_report(milestone_name):
     milestones = db.milestones.find_one()["Milestone"]
-
     teams = ["Fuel", "Partners", "mos-linux", "mos-openstack"]
     exclude_tags = ["devops", "docs", "fuel-devops", "experimental"]
 
-    if milestone_name == "6.0":
-        milestone = ["6.0"]
+    if milestone_name == "5.1.1":
+        milestone = ["5.1.1", "5.0.3"]
         bugs = lpdata.code_freeze_statistic(milestone=milestone,
                                             teams=teams,
                                             exclude_tags=exclude_tags)
+        milestone_name = "5.1.1 + 5.0.3"
     else:
         bugs = lpdata.code_freeze_statistic(milestone=[milestone_name],
                                             teams=teams,
