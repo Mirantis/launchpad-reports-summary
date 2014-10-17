@@ -129,7 +129,7 @@ th, tr{
   padding:10px;
 }
 table th, table td:nth-child(2) {
-  text-align:center;тф
+  text-align:center;
 }
 table tr:nth-child(odd) {
   background:##FFFAFA;
