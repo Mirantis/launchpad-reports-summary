@@ -91,7 +91,7 @@ def create_collections(bugs):
                         'created less than week': parser.parse(
                             bug.date_created.ctime()) > parser.parse(
                             (date.today() -
-                             relativedelta.relativedelta(weeks=1)).ctime()),
+                            relativedelta.relativedelta(weeks=1)).ctime()),
                         'created less than month': parser.parse(
                             bug.date_created.ctime()) > parser.parse(
                             (date.today() -
