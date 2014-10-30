@@ -25,7 +25,8 @@ class LaunchpadData():
                                    "In Progress", "Fix Released",
                                    "Fix Committed", "Opinion", "Expired"],
                     "NotDone":    ["New", "Confirmed", "Triaged",
-                                   "In Progress"]}
+                                   "In Progress"],
+                    "Fixed": ["Fix Committed", "Fix Released"]}
     BUG_STATUSES_ALL = []
     for k in BUG_STATUSES:
         BUG_STATUSES_ALL.append(BUG_STATUSES[k])
@@ -144,18 +145,26 @@ class LaunchpadData():
                 {"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
                           {"milestone": {"$in": milestone_name}}]},
                 tag)).count()
+
         page_statistic["new_for_week"] = db['{0}'.format(project_name)].find(
-            criterion({"$and": [{"created less than week": {"$ne": False}},
+            criterion({"$and": [
+                      {"status": {"$in": self.BUG_STATUSES["New"]}},
+                      {"created less than week": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
         page_statistic["fixed_for_week"] = db['{0}'.format(project_name)].find(
-            criterion({"$and": [{"fixed less than week": {"$ne": False}},
+            criterion({"$and": [
+                      {"status": {"$in": self.BUG_STATUSES["Fixed"]}},
+                      {"fixed less than week": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
         page_statistic["new_for_month"] = db['{0}'.format(project_name)].find(
-            criterion({"$and": [{"created less than month": {"$ne": False}},
+            criterion({"$and": [
+                      {"status": {"$in": self.BUG_STATUSES["New"]}},
+                      {"created less than month": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
         page_statistic["fixed_for_month"] = db[
             '{0}'.format(project_name)].find(
-            criterion({"$and": [{"fixed less than month": {"$ne": False}},
+            criterion({"$and": [{"status": {"$in": self.BUG_STATUSES["Fixed"]}},
+                                {"fixed less than month": {"$ne": False}},
                                 {"milestone": {"$in": milestone_name}}]},
                       tag)).count()
 
