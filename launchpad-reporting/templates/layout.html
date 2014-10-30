@@ -27,24 +27,6 @@
             });
             var t = $('#clock')
 
-            window.onload= function() {
-                document.getElementById('toggler').onclick = function() {
-                openbox('box', this);
-                return false;
-                };
-            };
-
-            function openbox(id, toggler) {
-                var div = document.getElementById(id);
-                if(div.style.display == 'block') {
-                    div.style.display = 'none';
-                    toggler.innerHTML = 'Last update';
-                }
-                else {
-                    div.style.display = 'block';
-                    toggler.innerHTML = 'Close status';
-                }
-            }
         </script>
         <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
         <script type="text/javascript" src="http://www.tablesorter.ru/jquery.tablesorter.js"></script>
@@ -58,7 +40,7 @@
   <body>
       <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
           <div class="container-fluid">
-              <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" height="60" align="left" alt="Mirantis Logo">
+              <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" height="70" align="left" alt="Mirantis Logo">
               <div class="navbar-header">
 
                   <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -97,8 +79,7 @@
 
                       <ul class="nav navbar-nav navbar-right">
                           <li>
-                              <a id="toggler" href="/">Last update</a>
-                              <div id="box" style="display: none; color:white"><div id="clock">{{t}}</div></div>
+                              <a id="toggler" href="/">Last update<div id="clock">{{t}}</div></a>
                           </li>
                           <li><a href="/"></a></li>
                       </ul>

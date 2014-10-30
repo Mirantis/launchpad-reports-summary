@@ -1,14 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<h2 class="page-header"><br>Bug Statistic: Milestone {{ current_milestone }}</h2>
+<h2 class="page-header"><br>Milestone {{ current_milestone }}</h2>
 <div class="col-sm-3 col-md-2 sidebar">
     <br>
     {% for m in milestones|sort %}
     <ul class="nav nav-sidebar">
 
         <li>
-            <a href="/project/fuelplusmos/{{ m }}">FUEL/MOS statistic for {{ m }}
+            <a href="/project/fuelplusmos/{{ m }}">FUEL/MOS {{ m }}
             </a>
         </li>
     </ul>
