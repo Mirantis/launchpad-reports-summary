@@ -208,7 +208,7 @@ div.clock {
 	opacity: 0;
 	visibility: hidden;
 	position: absolute;
-	top: 60px;
+	top: 70px;
 	left: 0;
 	z-index: 9999;
 	background: #444;
