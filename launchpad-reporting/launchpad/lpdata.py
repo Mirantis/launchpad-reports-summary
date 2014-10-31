@@ -1,5 +1,7 @@
 import copy
+import datetime
 import pymongo
+import time
 
 import launchpadlib.launchpad
 from launchpadlib.uris import LPNET_SERVICE_ROOT
@@ -68,10 +70,23 @@ class LaunchpadData():
 
     @ttl_cache(minutes=5)
     def get_all_bugs(self, project):
+
+        def timestamp_to_utc_date(timestamp):
+            return (datetime.datetime.fromtimestamp(timestamp).
+                    strftime('%Y-%m-%d'))
+
+        update_time = None
+        try:
+            update_time = db.update_date.find_one()["Update_date"]
+            update_time = timestamp_to_utc_date(update_time)
+        except:
+            pass
+
         return project.searchTasks(status=self.BUG_STATUSES["All"],
                                    milestone=[
                                        i.self_link
-                                       for i in project.active_milestones])
+                                       for i in project.active_milestones],
+                                   modified_since=update_time)
 
     @staticmethod
     def dump_object(object):
@@ -200,3 +215,13 @@ class LaunchpadData():
             report[team]["count"] = len(BUGS)
 
         return report
+
+    def get_update_time(self):
+
+        update_time = time.time()
+        try:
+            update_time = db.update_date.find_one()["Update_date"]
+        except:
+            pass
+
+        return update_time

@@ -2,4 +2,6 @@ flask
 requests
 launchpadlib
 pytz
+mongodb
 pymongo
+dateutil
