@@ -65,25 +65,28 @@ def bug_list(project_name, bug_type, milestone_name):
 @app.route("/iso_build/<version>/<iso_number>/<result>")                        
 def iso_build_result(version, iso_number, result):
     mos = connection["mos"]
-    data = {"version": version, "iso_number": iso_number, "result": result}
+    data = {"version": version, "iso_number": iso_number,
+            "build_date": time.strftime("%d %b %Y %H:%M:%S", time.gmtime()),
+            "build_status": result}
     mos.images.insert(data)
 
-    return {"result": "OK"}
+    return flask.json.dumps({"result": "OK"})
 
 
 @app.route("/iso_tests/<version>/<iso_number>/<tests_name>/<result>")
 def iso_tests_result(version, iso_number, tests_name, result):
     mos = connection["mos"]
     tests_result = {"tests_name": tests_name, "result": result}
+    status = "FAIL"
 
     for image in mos.images.find():
-        if (image["version"] == version &&
+        if (image["version"] == version and
                 image["iso_number"] == iso_number):
             image["tests_result"] = tests_result
             mos.images.update(image)
-            return {"result": "OK"}
+            status = "OK"
 
-    return {"result": "FAIL"}
+    return flask.json.dumps({"result": status})
 
 
 @app.route('/mos_images/<version>/')
@@ -92,7 +95,7 @@ def mos_images_status(version):
     images = list(mos.images.find())
 
     return flask.render_template("iso_status.html", version=version,
-                                 images=images)
+                                 images=images, prs=list(prs))
 
 
 @app.route('/project/<project_name>/api/release_chart_trends/'
@@ -453,6 +456,6 @@ def main_page():
                                      "Update_date"])
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80, threaded=True)
+    app.run(host="0.0.0.0", port=80, threaded=True, debug=True)
 
 
