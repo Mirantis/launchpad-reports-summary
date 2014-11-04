@@ -6,10 +6,18 @@ from launchpadlib.uris import LPNET_SERVICE_ROOT
 from bug import Bug
 from project import Project
 from ttl_cache import ttl_cache
+import logging
 
-connection = pymongo.Connection()
-db = connection["bugs"]
-assignees_db = connection["assignees"]
+
+LOG = logging.getLogger(__name__)
+
+
+try:
+    connection = pymongo.Connection()
+    db = connection["bugs"]
+    assignees_db = connection["assignees"]
+except Exception as e:
+    LOG.exception(e.message)
 
 
 class LaunchpadData():

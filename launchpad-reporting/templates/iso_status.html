@@ -1,0 +1,29 @@
+{% block body %}
+<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+<table class="sortable table table-striped">
+  <thead>
+    <tr>
+      <th>Image #</th>
+      <th>Build Date</th>
+      <th>Build Status</th>
+      <th>Tests Results</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for image in images %}
+    <tr class="mos_images_status">
+        <!--<td><a href="https://bugs.launchpad.net/{{ project.name }}/+bug/{{b.id}}">{{ b.id }}</a></td>
+        -->
+        <td>{{ image.get('build_number', '') }}</td>
+        <td>{{ image.get('build_date', '') }}</td>
+        <td>{{ image.get('build_status', 'FAIL') }}</td>
+        <td>{{ image.get('tests_result', 'FAIL') }}</td>
+        <td></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}
