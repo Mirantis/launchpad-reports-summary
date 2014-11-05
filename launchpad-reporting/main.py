@@ -67,7 +67,7 @@ def iso_build_result(version, iso_number, result):
     mos = connection["mos"]
     data = {"version": version, "iso_number": iso_number,
             "build_date": time.strftime("%d %b %Y %H:%M:%S", time.gmtime()),
-            "build_status": result}
+            "build_status": result, "tests_results": {}}
     mos.images.insert(data)
 
     return flask.json.dumps({"result": "OK"})
@@ -76,13 +76,15 @@ def iso_build_result(version, iso_number, result):
 @app.route("/iso_tests/<version>/<iso_number>/<tests_name>/<result>")
 def iso_tests_result(version, iso_number, tests_name, result):
     mos = connection["mos"]
-    tests_result = {"tests_name": tests_name, "result": result}
     status = "FAIL"
+
+    if tests_name not in mos.tests_types.find():
+        mos.tests_types.insert(tests_name)
 
     for image in mos.images.find():
         if (image["version"] == version and
                 image["iso_number"] == iso_number):
-            image["tests_result"] = tests_result
+            image["tests_results"][tests_name] = result
             mos.images.update(image)
             status = "OK"
 
@@ -93,9 +95,11 @@ def iso_tests_result(version, iso_number, tests_name, result):
 def mos_images_status(version):
     mos = connection["mos"]
     images = list(mos.images.find())
+    tests_types = list(mos.tests_types.find())
 
     return flask.render_template("iso_status.html", version=version,
-                                 images=images, prs=list(prs))
+                                 images=images, prs=list(prs),
+                                 tests_types=tests_types)
 
 
 @app.route('/project/<project_name>/api/release_chart_trends/'

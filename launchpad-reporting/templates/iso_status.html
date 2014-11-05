@@ -12,7 +12,11 @@
       <th>Image #</th>
       <th>Build Date</th>
       <th>Build Status</th>
-      <th>Tests Results</th>
+
+      {% for test_type in tests_types %}
+        <th>{% test_type %} Tests Results</th>
+      {% endfor %}
+
       <th>ISO Link</th>
     </tr>
   </thead>
@@ -23,7 +27,11 @@
           <td>{{ image.get('iso_number', '') }}</td>
           <td>{{ image.get('build_date', '') }}</td>
           <td>{{ image.get('build_status', 'FAIL') }}</td>
-          <td>{{ image.get('tests_result', 'FAIL') }}</td>
+          
+          {% for test in tests_types %}
+            <td>{{ image.get('tests_results', []).get(test, 'FAIL') }}</td>
+          {% endfor %}
+
           <td>-Not Implemented Yet-</td>
         </tr>
       {% endif %}
