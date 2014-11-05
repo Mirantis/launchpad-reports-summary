@@ -70,6 +70,9 @@ def iso_build_result(version, iso_number, result):
             "build_status": result, "tests_results": {}}
     mos.images.insert(data)
 
+    if version not in mos.images_versions.find():
+        mos.images_versions.insert(version)
+
     return flask.json.dumps({"result": "OK"})
 
 
@@ -96,10 +99,12 @@ def mos_images_status(version):
     mos = connection["mos"]
     images = list(mos.images.find())
     tests_types = list(mos.tests_types.find())
+    images_versions = list(mos.images_versions.find())
 
     return flask.render_template("iso_status.html", version=version,
-                                 images=images, prs=list(prs),
-                                 tests_types=tests_types)
+                                 project="mos_images", images=images,
+                                 images_versions=images_versions,
+                                 prs=list(prs), tests_types=tests_types)
 
 
 @app.route('/project/<project_name>/api/release_chart_trends/'

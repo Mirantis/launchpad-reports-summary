@@ -4,6 +4,11 @@
 <script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 
 <br>
+
+{% for v in images_versions %}
+    <a href="../{{ v }}">{{ v }}</a>
+{% endfor %}
+
 <h2>MOS {{ version }} Images Status</h2>
 <br>
 <table class="sortable table table-striped">
