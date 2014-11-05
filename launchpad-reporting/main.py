@@ -98,7 +98,7 @@ def iso_tests_result(version, iso_number, tests_name, result):
             image["tests_results"][tests_name] = result
 
             mos.images.update({"version": version, "iso_number": iso_number},
-                {"$set": {"tests_results": image["tests_results"]})
+                {"$set": {"tests_results": image["tests_results"]}})
 
             status = "OK"
 
