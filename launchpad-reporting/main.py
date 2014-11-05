@@ -96,7 +96,10 @@ def iso_tests_result(version, iso_number, tests_name, result):
         if (image["version"] == version and
                 image["iso_number"] == iso_number):
             image["tests_results"][tests_name] = result
-            mos.images.update(image)
+
+            mos.images.update({"version": version, "iso_number": iso_number},
+                {"$set": {"tests_results": image["tests_results"])
+
             status = "OK"
 
     return flask.json.dumps({"result": status})
