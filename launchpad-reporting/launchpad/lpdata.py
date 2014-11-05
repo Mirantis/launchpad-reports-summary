@@ -41,7 +41,7 @@ class LaunchpadData():
 
     def __init__(self):
         cachedir = "~/.launchpadlib/cache/"
-        credentials_filename = "credentials.txt"
+        credentials_filename = "/etc/lp-reports/credentials.txt"
 
         self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
             'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
