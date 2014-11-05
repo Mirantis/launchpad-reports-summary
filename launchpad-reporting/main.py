@@ -87,7 +87,7 @@ def iso_tests_result(version, iso_number, tests_name, result):
 
     need_add = True
     for t in mos.tests_types.find():
-        if t["name"] == test_name:
+        if t["name"] == tests_name:
             need_add = False
     if need_add:
         mos.tests_types.insert({"name": tests_name})
