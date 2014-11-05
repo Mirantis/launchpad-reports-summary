@@ -70,8 +70,12 @@ def iso_build_result(version, iso_number, result):
             "build_status": result, "tests_results": {}}
     mos.images.insert(data)
 
-    if version not in mos.images_versions.find():
-        mos.images_versions.insert(version)
+    need_add = True
+    for v in mos.images_versions.find():
+        if v["version"] == version:
+            need_add = False
+    if need_add:
+        mos.images_versions.insert({"version": version})
 
     return flask.json.dumps({"result": "OK"})
 
@@ -81,8 +85,12 @@ def iso_tests_result(version, iso_number, tests_name, result):
     mos = connection["mos"]
     status = "FAIL"
 
-    if tests_name not in mos.tests_types.find():
-        mos.tests_types.insert(tests_name)
+    need_add = True
+    for t in mos.tests_types.find():
+        if t["name"] == test_name:
+            need_add = False
+    if need_add:
+        mos.tests_types.insert({"name": tests_name})
 
     for image in mos.images.find():
         if (image["version"] == version and

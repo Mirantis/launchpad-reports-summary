@@ -6,7 +6,7 @@
 <br>
 
 {% for v in images_versions %}
-    <a href="../{{ v }}">{{ v }}</a>
+    <a href="../{{ v['version'] }}">{{ v['version'] }}</a>
 {% endfor %}
 
 <h2>MOS {{ version }} Images Status</h2>
@@ -19,7 +19,7 @@
       <th>Build Status</th>
 
       {% for test_type in tests_types %}
-        <th>{{ test_type }} Tests Results</th>
+        <th>{{ test_type['name'] }} Tests Results</th>
       {% endfor %}
 
       <th>ISO Link</th>
@@ -34,7 +34,7 @@
           <td>{{ image.get('build_status', 'FAIL') }}</td>
           
           {% for test in tests_types %}
-            <td>{{ image.get('tests_results', []).get(test, 'FAIL') }}</td>
+            <td>{{ image.get('tests_results', []).get(test['name'], 'FAIL') }}</td>
           {% endfor %}
 
           <td>-Not Implemented Yet-</td>
