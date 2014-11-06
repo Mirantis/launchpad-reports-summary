@@ -8,14 +8,17 @@ Getting Started
 ===============
 
 ```
-# git clone git@github.com:ralekseenkov/launchpad-reporting.git
+# git clone https://github.com/Mirantis/launchpad-reports-summary.git
+# mongod --dbpath db.py
+# python db.py
+# python collect_assignees.py
 # virtualenv env
 # source ./env/bin/activate
 # ./install_deps.sh
 # ./run_app.sh
 ```
 
-After that, open http://localhost:4444 in your browser.
+After that, open http://localhost:1111 in your browser.
 
 
 How it works
