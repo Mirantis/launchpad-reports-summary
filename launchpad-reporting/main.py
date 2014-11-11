@@ -117,7 +117,7 @@ def mos_images_status(version):
 
 
 @app.route('/mos_images_auto/<version>/')
-def mos_images_status(version):
+def mos_images_status_auto(version):
     mos = connection["mos"]
     images = list(mos.images.find())
     tests_types = list(mos.tests_types.find())
