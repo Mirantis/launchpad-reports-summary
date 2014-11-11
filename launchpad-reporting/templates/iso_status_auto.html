@@ -1,0 +1,46 @@
+{% block body %}
+<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+
+<br>
+
+{% for v in images_versions %}
+    <a href="../{{ v['version'] }}">{{ v['version'] }}</a>
+{% endfor %}
+
+<h2>MOS {{ version }} Images Status</h2>
+<br>
+<table class="sortable table table-striped">
+  <thead>
+    <tr>
+      <th>Image #</th>
+      <th>Build Date</th>
+      <th>Build Status</th>
+
+      {% for test_type in tests_types %}
+        <th>{{ test_type['name'] }} Tests Results</th>
+      {% endfor %}
+
+      <th>ISO Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for image in images %}
+      {% if image['version'] == version %}
+        <tr class="mos_images_status">
+          <td>{{ image.get('iso_number', '') }}</td>
+          <td>{{ image.get('build_date', '') }}</td>
+          <td>{{ image.get('build_status', 'FAIL') }}</td>
+          
+          {% for test in tests_types %}
+            <td>{{ image.get('tests_results', []).get(test['name'], 'FAIL') }}</td>
+          {% endfor %}
+
+          <td>-Not Implemented Yet-</td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}

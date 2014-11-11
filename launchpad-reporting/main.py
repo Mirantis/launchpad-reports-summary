@@ -116,6 +116,19 @@ def mos_images_status(version):
                                  prs=list(prs), tests_types=tests_types)
 
 
+@app.route('/mos_images_auto/<version>/')
+def mos_images_status(version):
+    mos = connection["mos"]
+    images = list(mos.images.find())
+    tests_types = list(mos.tests_types.find())
+    images_versions = list(mos.images_versions.find())
+
+    return flask.render_template("iso_status_auto.html", version=version,
+                                 project="mos_images", images=images,
+                                 images_versions=images_versions,
+                                 prs=list(prs), tests_types=tests_types)
+
+
 @app.route('/project/<project_name>/api/release_chart_trends/'
            '<milestone_name>/get_data')
 def bug_report_trends_data(project_name, milestone_name):
@@ -466,5 +479,3 @@ def main_page():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=80, threaded=True, debug=True)
-
-
