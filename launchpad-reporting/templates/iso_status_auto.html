@@ -1,15 +1,19 @@
 {% block body %}
-<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 
-<br>
+<style>
+  table, td, th {
+    border: 1px solid black;
+  }
 
-{% for v in images_versions %}
-    <a href="../{{ v['version'] }}">{{ v['version'] }}</a>
-{% endfor %}
+  th {
+    background-color: gray;
+    color: white;
+    padding: 7px;
+  }
+</style>
 
-<h2>MOS {{ version }} Images Status</h2>
-<br>
-<table class="sortable table table-striped">
+
+<table>
   <thead>
     <tr>
       <th>Image #</th>
@@ -20,7 +24,7 @@
         <th>{{ test_type['name'] }} Tests Results</th>
       {% endfor %}
 
-      <th>ISO Link</th>
+      <th>Image Links</th>
     </tr>
   </thead>
   <tbody>
@@ -29,13 +33,33 @@
         <tr class="mos_images_status">
           <td>{{ image.get('iso_number', '') }}</td>
           <td>{{ image.get('build_date', '') }}</td>
-          <td>{{ image.get('build_status', 'FAIL') }}</td>
+
+          <td><b>
+          {% if image.get('build_status', '') == 'PASS' %}
+            <font color="green">
+          {% else %}
+            <font color="red">
+          {% endif %}
+          {{ image.get('build_status', '') }}
+          </font> </b> </td>
           
           {% for test in tests_types %}
-            <td>{{ image.get('tests_results', []).get(test['name'], 'FAIL') }}</td>
+           <td> <b>
+           {% if image.get('tests_results', []).get(test['name'], '') == 'PASS' %}
+              <font color="green">
+           {% else %}
+              <font color="red">
+           {% endif %}
+           
+           {{ image.get('tests_results', []).get(test['name'], '') }}
+           </font> </b> </td>
           {% endfor %}
 
-          <td>-Not Implemented Yet-</td>
+          <td>
+            <a href="{{ image.get('iso_link', '') }}">ISO</a> &nbsp;
+            <a href="{{ image.get('img_link', '') }}">IMG</a> &nbsp;
+            <a href="{{ image.get('torrent_link', '') }}">Torrent</a>
+          </td>
         </tr>
       {% endif %}
     {% endfor %}

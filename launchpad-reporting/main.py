@@ -126,7 +126,7 @@ def mos_images_status_auto(version):
     return flask.render_template("iso_status_auto.html", version=version,
                                  project="mos_images", images=images,
                                  images_versions=images_versions,
-                                 prs=list(prs), tests_types=tests_types)
+                                 tests_types=tests_types)
 
 
 @app.route('/project/<project_name>/api/release_chart_trends/'
