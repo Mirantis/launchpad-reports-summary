@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from dateutil import relativedelta, parser
 from datetime import date
 from multiprocessing import Process

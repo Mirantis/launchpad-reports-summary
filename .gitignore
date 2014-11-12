@@ -1,4 +1,5 @@
 *.pyc
 .idea/
 launchpad-reporting/credentials.txt
+launchpad-reporting/data
 
