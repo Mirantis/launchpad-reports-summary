@@ -8,14 +8,18 @@ Getting Started
 ===============
 
 ```
-# git clone https://github.com/Mirantis/launchpad-reports-summary.git
-# mongod --dbpath db.py
-# python db.py
-# python collect_assignees.py
-# virtualenv env
-# source ./env/bin/activate
-# ./install_deps.sh
-# ./run_app.sh
+First, install pip and virtualenv on your system. On Ubuntu it can be done by running "sudo apt-get install python-pip python-virtualenv". You may also consider using virtualenvwrapper script (http://virtualenvwrapper.readthedocs.org/en/latest/). Also you will need to install mongodb. Then:
+
+~$ virtualenv venv  # creating virtualenv
+~$ source venv/bin/activate
+~$ git clone https://github.com/Mirantis/launchpad-reports-summary.git
+~$ cd launchpad-reports-summary/launchpad-reporting
+~$ mkdir data  # folder to store mongodb data (you can specify your own)
+~$ mongod --dbpath ./data  # this launches mongodb instance. It may take some time first
+~$ pip install -r requirements.txt
+~$ python db.py
+~$ python collect_assignees.py
+~$ ./run_app.sh
 ```
 
 After that, open http://localhost:1111 in your browser.

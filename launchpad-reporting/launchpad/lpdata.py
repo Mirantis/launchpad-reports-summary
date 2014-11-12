@@ -22,7 +22,7 @@ except Exception as e:
     LOG.exception(e.message)
 
 
-class LaunchpadData():
+class LaunchpadData(object):
 
     BUG_STATUSES = {"New":        ["New"],
                     "Incomplete": ["Incomplete"],
@@ -41,10 +41,11 @@ class LaunchpadData():
     for k in BUG_STATUSES:
         BUG_STATUSES_ALL.append(BUG_STATUSES[k])
 
-    def __init__(self):
-        cachedir = "~/.launchpadlib/cache/"
-        credentials_filename = "/etc/lp-reports/credentials.txt"
-
+    def __init__(
+        self,
+        cachedir="~/.launchpadlib/cache/",
+        credentials_filename="/etc/lp-reports/credentials.txt"
+    ):
         self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
             'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
             credentials_file=credentials_filename, launchpadlib_dir=cachedir)
