@@ -1,25 +1,20 @@
+# -*- coding: utf-8 -*-
+
 import copy
 import datetime
+import logging
 import pymongo
 import time
 
 import launchpadlib.launchpad
 from launchpadlib.uris import LPNET_SERVICE_ROOT
+
 from bug import Bug
 from project import Project
 from ttl_cache import ttl_cache
-import logging
 
 
 LOG = logging.getLogger(__name__)
-
-
-try:
-    connection = pymongo.Connection()
-    db = connection["bugs"]
-    assignees_db = connection["assignees"]
-except Exception as e:
-    LOG.exception(e.message)
 
 
 class LaunchpadData(object):
@@ -43,9 +38,11 @@ class LaunchpadData(object):
 
     def __init__(
         self,
+        db,
         cachedir="~/.launchpadlib/cache/",
-        credentials_filename="/etc/lp-reports/credentials.txt"
+        credentials_filename="credentials.txt"
     ):
+        self.db = db
         self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
             'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
             credentials_file=credentials_filename, launchpadlib_dir=cachedir)
@@ -59,7 +56,7 @@ class LaunchpadData(object):
 
     def get_bugs(self, project_name, statuses, milestone_name=None,
                  tags=[], importance=[], **kwargs):
-        project = db[project_name]
+        project = self.db.bugs[project_name]
 
         search = [{"status": {"$in": statuses}}]
 
@@ -86,7 +83,7 @@ class LaunchpadData(object):
 
         update_time = None
         try:
-            update_time = db.update_date.find_one()["Update_date"]
+            update_time = self.db.bugs.update_date.find_one()["Update_date"]
             update_time = timestamp_to_utc_date(update_time)
         except:
             pass
@@ -154,39 +151,50 @@ class LaunchpadData(object):
                 return internal
             return dict_
 
-        page_statistic["total"] = db['{0}'.format(project_name)].find(
+        page_statistic["total"] = self.db.bugs['{0}'.format(project_name)].find(
             criterion(
                 {"$and": [{"milestone": {"$in": milestone_name}}]},
                 tag)).count()
-        page_statistic["critical"] = db['{0}'.format(project_name)].find(
+        page_statistic["critical"] = self.db.bugs[
+            '{0}'.format(project_name)
+        ].find(
             criterion(
                 {"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
                           {"importance": "Critical"},
                           {"milestone": {"$in": milestone_name}}]},
                 tag)).count()
-        page_statistic["unresolved"] = db['{0}'.format(project_name)].find(
+        page_statistic["unresolved"] = self.db.bugs[
+            '{0}'.format(project_name)
+        ].find(
             criterion(
                 {"$and": [{"status": {"$in": self.BUG_STATUSES["NotDone"]}},
                           {"milestone": {"$in": milestone_name}}]},
                 tag)).count()
 
-        page_statistic["new_for_week"] = db['{0}'.format(project_name)].find(
+        page_statistic["new_for_week"] = self.db.bugs[
+            '{0}'.format(project_name)
+        ].find(
             criterion({"$and": [
                       {"status": {"$in": self.BUG_STATUSES["New"]}},
                       {"created less than week": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
-        page_statistic["fixed_for_week"] = db['{0}'.format(project_name)].find(
+        page_statistic["fixed_for_week"] = self.db.bugs[
+            '{0}'.format(project_name)
+        ].find(
             criterion({"$and": [
                       {"status": {"$in": self.BUG_STATUSES["Fixed"]}},
                       {"fixed less than week": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
-        page_statistic["new_for_month"] = db['{0}'.format(project_name)].find(
+        page_statistic["new_for_month"] = self.db.bugs[
+            '{0}'.format(project_name)
+        ].find(
             criterion({"$and": [
                       {"status": {"$in": self.BUG_STATUSES["New"]}},
                       {"created less than month": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
-        page_statistic["fixed_for_month"] = db[
-            '{0}'.format(project_name)].find(
+        page_statistic["fixed_for_month"] = self.db.bugs[
+            '{0}'.format(project_name)
+        ].find(
             criterion({"$and": [{"status": {"$in": self.BUG_STATUSES["Fixed"]}},
                                 {"fixed less than month": {"$ne": False}},
                                 {"milestone": {"$in": milestone_name}}]},
@@ -210,7 +218,7 @@ class LaunchpadData(object):
 
             for pr in ["fuel", "mos"]:
 
-                bugs = db["{0}".format(pr)].find(
+                bugs = self.db.bugs["{0}".format(pr)].find(
                     {"$and": [
                         {"status": {"$in": self.BUG_STATUSES["NotDone"]}},
                         {"milestone": {"$in": milestone}},
@@ -229,7 +237,7 @@ class LaunchpadData(object):
 
         update_time = time.time()
         try:
-            update_time = db.update_date.find_one()["Update_date"]
+            update_time = self.db.bugs.update_date.find_one()["Update_date"]
         except:
             pass
 

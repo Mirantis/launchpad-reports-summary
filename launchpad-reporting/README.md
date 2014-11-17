@@ -17,9 +17,9 @@ First, install pip and virtualenv on your system. On Ubuntu it can be done by ru
 ~$ mkdir data  # folder to store mongodb data (you can specify your own)
 ~$ mongod --dbpath ./data  # this launches mongodb instance. It may take some time first
 ~$ pip install -r requirements.txt
-~$ python db.py
+~$ python syncdb.py
 ~$ python collect_assignees.py
-~$ ./run_app.sh
+~$ python main.py run
 ```
 
 After that, open http://localhost:1111 in your browser.
@@ -41,4 +41,4 @@ Limitations
 
 Screenshots
 ===========
-![alt tag](https://raw2.github.com/ralekseenkov/launchpad-reporting/master/screenshots/release_bug_trends.png)
+![alt tag](https://raw.githubusercontent.com/Mirantis/launchpad-reports-summary/master/launchpad-reporting/screenshots/release_bug_trends.png)

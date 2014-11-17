@@ -1,13 +1,17 @@
+# -*- coding: utf-8 -*-
+
 import datetime
-import pytz
-from launchpad.lpdata import LaunchpadData
+
 from collections import OrderedDict
 from collections import defaultdict
 from bisect import bisect_left
-from operator import itemgetter
+
+import pytz
+
+from launchpad.lpdata import LaunchpadData
 
 
-class ReleaseChart():
+class ReleaseChart(object):
 
     def __init__(self, lpdata, project_name, milestone_name):
         self.bugs = []

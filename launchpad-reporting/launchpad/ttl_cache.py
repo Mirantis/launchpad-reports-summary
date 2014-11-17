@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
+
 from datetime import datetime, timedelta
-from copy import deepcopy
 from threading import RLock
 
 
