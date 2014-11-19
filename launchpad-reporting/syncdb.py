@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import time
 
 from Queue import Empty
@@ -11,6 +12,7 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from multiprocessing import Event
 
+from datetime import datetime
 from dateutil import relativedelta, parser
 
 from launchpad import LaunchpadClient
@@ -43,7 +45,19 @@ SUBPROJECTS_LIST = [
 ]
 
 
-def serialize_bug(bug):
+class Bug(object):
+    def __init__(self, dictionary):
+        for key, value in dictionary.iteritems():
+            if 'date' in key and value:
+                self.__setattr__(key,
+                                 datetime.strptime(
+                                     value, '%Y-%m-%dT%H:%M:%S.%f+00:00'))
+            else:
+                self.__setattr__(key, value)
+
+
+def serialize_bug(bug, task=None):
+
     print("Loading bug: {0}".format(bug.web_link))
     bug_dates = {
         'date_assigned': bug.date_assigned,
@@ -58,32 +72,45 @@ def serialize_bug(bug):
         'date_left_new': bug.date_left_new,
         'date_triaged': bug.date_triaged,
     }
-    bug_assignee = bug.assignee
-    bug_milestone = bug.milestone
-    bug_owner = bug.owner
-    bug_item = bug.bug
+    if task:
+        bug_item = task.bug
+        bug_assignee = str(bug.assignee_link).split("~")[1] \
+            if bug.assignee_link else None
+        bug_assignee_link = bug.assignee_link
+        bug_milestone = str(bug.milestone_link).split("/")[-1]
+        bug_milestone_link = bug.milestone_link
+        bug_owner = str(bug.owner_link).split("~")[1]
+        bug_owner_link = bug.owner_link
+    else:
+        bug_item = bug.bug
+        bug_assignee = bug.assignee.name if bug.assignee else None
+        bug_assignee_link = bug.assignee.web_link
+        bug_milestone = bug.milestone.name
+        bug_milestone_link = bug.milestone.web_link
+        bug_owner = bug.owner.name
+        bug_owner_link = bug.owner.web_link
 
     return {
         'id': bug_item.id,
         'target_name': bug.bug_target_name,
         'web_link': bug.web_link,
         'milestone': (
-            bug_milestone.name if bug_milestone else None
+            bug_milestone if bug_milestone else None
         ),
         'milestone_link': (
-            bug_milestone.web_link if bug_milestone else None,
+            bug_milestone_link if bug_milestone else None,
         ),
         'status': bug.status,
         'tags': bug_item.tags,
         'title': bug_item.title,
         'importance': bug.importance,
-        'owner': bug_owner.name,
-        'owner_link': bug_owner.web_link,
+        'owner': bug_owner,
+        'owner_link': bug_owner_link,
         'assignee': (
-            bug_assignee.name if bug_assignee else None
+            bug_assignee if bug_assignee else None
         ),
         'assignee_link': (
-            bug_assignee.web_link if bug_assignee else bug_assignee
+            bug_assignee_link if bug_assignee else bug_assignee
         ),
         'created less than week': parser.parse(
             bug_dates["date_created"].ctime()
@@ -116,8 +143,15 @@ def load_project_bugs(project_name, queue, stop_event):
     project = launchpad._get_project(project_name)
     counter = 0
     for bug in launchpad.get_all_bugs(project):
-        counter += 1
-        queue.put(serialize_bug(bug))
+        rts = bug.related_tasks.entries
+        if rts:
+            for rt in rts:
+                counter += 1
+                rt = Bug(rt)
+                queue.put(serialize_bug(rt, task=bug))
+        else:
+            counter += 1
+            queue.put(serialize_bug(bug))
     print(
         "No more bugs for project '{0}' ({1} processed)".format(
             project_name,
@@ -130,10 +164,14 @@ def load_project_bugs(project_name, queue, stop_event):
 def process_bugs(queue, stop_events):
     while True:
         try:
+
             bug = queue.get_nowait()
             db.bugs[
-                bug['target_name']
-            ].update({'id': bug['id']}, bug, upsert=True)
+                str(bug['target_name']).split('/')[0]
+            ].update({"$and": [
+                {'id': bug['id']},
+                {'milestone': bug['milestone']}]}, bug, upsert=True)
+
         except Empty:
             if all([e.is_set() for e in stop_events]):
                 break

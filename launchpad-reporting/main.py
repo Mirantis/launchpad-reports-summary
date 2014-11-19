@@ -170,8 +170,8 @@ def bug_trends(project_name, milestone_name):
 
 @app.route('/project/code_freeze_report/<milestone_name>/')
 def code_freeze_report(milestone_name):
-    milestones = db.milestones.find_one()["Milestone"]
-    teams = ["Fuel", "Partners", "mos-linux", "mos-openstack"]
+    milestones = db.bugs.milestones.find_one()["Milestone"]
+    teams = ["Fuel", "Partners", "mos-linux", "mos-openstack", "Unknown"]
     exclude_tags = ["devops", "docs", "fuel-devops", "experimental"]
 
     if milestone_name == "5.1.1":
@@ -265,8 +265,7 @@ def statistic_for_project_by_milestone(project_name, milestone_name):
 
 @app.route('/project/fuelplusmos/<milestone_name>/')
 def fuel_plus_mos_overview(milestone_name):
-
-    milestones = db.milestones.find_one()["Milestone"]
+    milestones = db.bugs.milestones.find_one()["Milestone"]
 
     subprojects = list(db.subprs)
     page_statistic = dict.fromkeys(subprojects)

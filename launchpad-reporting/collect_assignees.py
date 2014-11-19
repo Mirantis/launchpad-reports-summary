@@ -5,9 +5,11 @@ import json
 import pymongo
 import os
 
+from db import db
+
 from launchpad.lpdata import LaunchpadData
 
-lpdata = LaunchpadData()
+lpdata = LaunchpadData(db=db)
 connection = pymongo.Connection()
 db = connection["assignees"]
 
