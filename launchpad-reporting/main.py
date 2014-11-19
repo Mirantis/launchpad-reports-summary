@@ -489,7 +489,7 @@ if __name__ == "__main__":
     )
     run_parser.add_argument(
         '-p', '--port', dest='port', action='store', type=str,
-        help='application port', default='8000'
+        help='application port', default='80'
     )
     run_parser.add_argument(
         '-H', '--host', dest='host', action='store', type=str,
