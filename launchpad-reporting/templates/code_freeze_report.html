@@ -24,34 +24,46 @@
     </ul>
 </div>
 
-{% for team in teams %}
+<ul class="tabs">
+    {% for i in range(5) %}
+    <li>
+        {% if i==0 %}
+            <input type="radio" checked name="tabs" id="tab{{i}}">
+        {%else%}
+            <input type="radio" name="tabs" id="tab{{i}}">
+        {%endif%}
+        <label for="tab{{i}}">{{ teams[i] }}</label>
+        <div id="tab-content{{i}}" class="tab-content animated fadeIn">
+            <b>{{teams[i]}} : {{bugs[teams[i]]["count"]}} {% if bugs[teams[i]]["count"] == 1%}bug{%else%}bugs{%endif%}</b>
+                <br>
+                <table class="sortable table table-striped" id="hcf_Fuel_table">
+                    <thead>
+                        <tr>
+                            <th>Bug #</th>
+                            <th>Title</th>
+                            <th>Milestone</th>
+                            <th>Status</th>
+                            <th>Importance</th>
+                            <th>Assignee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-        <h3 class="page-header"><br>{{team}} : {{bugs[team]["count"]}} {% if bugs[team]["count"] == 1%}bug{%else%}bugs{%endif%}</h3>
-        <table class="sortable table table-striped" id="hcf_{{ team }}_table">
-            <thead>
-                <tr>
-                    <th>Bug #</th>
-                    <th>Title</th>
-                    <th>Milestone</th>
-                    <th>Status</th>
-                    <th>Importance</th>
-                    <th>Assignee</th>
-                </tr>
-            </thead>
-            <tbody>
-
-            {% for b in bugs[team]["bugs"] %}
-            <tr class="bug_row" id="{{ b.id }}">
-                <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
-                <td>{{ b.title }}</td>
-                <td>{{ b.milestone }}</td>
-                <td>{{ b.status }}</td>
-                <td>{{ b.importance }}</td>
-                <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-{% endfor %}
+                    {% for b in bugs[teams[i]]["bugs"] %}
+                    <tr class="bug_row" id="{{ b.id }}">
+                        <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
+                        <td>{{ b.title }}</td>
+                        <td>{{ b.milestone }}</td>
+                        <td>{{ b.status }}</td>
+                        <td>{{ b.importance }}</td>
+                        <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
 
 {% endblock %}

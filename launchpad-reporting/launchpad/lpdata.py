@@ -29,8 +29,7 @@ class LaunchpadData(object):
                                    "Won't Fix", "Confirmed", "Triaged",
                                    "In Progress", "Fix Released",
                                    "Fix Committed", "Opinion", "Expired"],
-                    "NotDone":    ["New", "Confirmed", "Triaged",
-                                   "In Progress"],
+                    "NotDone":    ["New", "Confirmed", "Triaged", "In Progress"],
                     "Fixed": ["Fix Committed", "Fix Released"]}
     BUG_STATUSES_ALL = []
     for k in BUG_STATUSES:
@@ -207,25 +206,40 @@ class LaunchpadData(object):
         assignees_db = connection["assignees"]
 
         report = dict.fromkeys(teams)
+        assigners = dict.fromkeys(teams)
+
+        for team in teams:
+            assigners[team] = []
+            if team != "Unknown":
+                for b in assignees_db.assignees.find({"Team": team}):
+                    assigners[team].extend(b["Members"])
+
+        all_assigners = []
+        all_assigners.extend(assigners[t] for t in teams if t != "Unknown")
 
         for team in teams:
             report[team] = dict.fromkeys(["bugs", "count"])
             BUGS = []
 
-            people = []
-            for b in assignees_db.assignees.find({"Team": team}):
-                people.extend(b["Members"])
-
             for pr in ["fuel", "mos"]:
-
-                bugs = self.db.bugs["{0}".format(pr)].find(
-                    {"$and": [
-                        {"status": {"$in": self.BUG_STATUSES["NotDone"]}},
-                        {"milestone": {"$in": milestone}},
-                        {"tags": {"$nin": exclude_tags}},
-                        {"importance": {"$in": ["High", "Critical"]}},
-                        {"assignee": {"$in": people}}
-                    ]})
+                if team != "Unknown":
+                    bugs = self.db.bugs["{0}".format(pr)].find(
+                        {"$and": [
+                            {"status": {"$in": self.BUG_STATUSES["NotDone"]}},
+                            {"milestone": {"$in": milestone}},
+                            {"tags": {"$nin": exclude_tags}},
+                            {"importance": {"$in": ["High", "Critical"]}},
+                            {"assignee": {"$in": assigners[team]}}
+                        ]})
+                else:
+                    bugs = self.db.bugs["{0}".format(pr)].find(
+                        {"$and": [
+                            {"status": {"$in": self.BUG_STATUSES["NotDone"]}},
+                            {"milestone": {"$in": milestone}},
+                            {"tags": {"$nin": exclude_tags}},
+                            {"importance": {"$in": ["High", "Critical"]}},
+                            {"assignee": {"$nin": all_assigners[0]}}
+                        ]})
                 for b in bugs:
                     BUGS.append(b)
             report[team]["bugs"] = BUGS
