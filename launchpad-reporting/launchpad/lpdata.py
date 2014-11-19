@@ -39,7 +39,7 @@ class LaunchpadData(object):
         self,
         db,
         cachedir="~/.launchpadlib/cache/",
-        credentials_filename="credentials.txt"
+        credentials_filename="/etc/lp-reports/credentials.txt"
     ):
         self.db = db
         self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
