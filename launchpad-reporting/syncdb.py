@@ -72,34 +72,23 @@ def serialize_bug(bug, task=None):
         'date_left_new': bug.date_left_new,
         'date_triaged': bug.date_triaged,
     }
-    try:
-        bug_assignee = bug.assignee.name if bug.assignee else None
-        bug_assignee_link = bug_assignee.web_link
-    except:
+    if task:
+        bug_item = task.bug
         bug_assignee = str(bug.assignee_link).split("~")[1] \
             if bug.assignee_link else None
         bug_assignee_link = bug.assignee_link
-
-    try:
-        bug_milestone = bug.milestone.name
-        print(bug_milestone)
-        bug_milestone_link = bug.milestone.web_link
-    except:
         bug_milestone = str(bug.milestone_link).split("/")[-1]
-        print (bug_milestone)
         bug_milestone_link = bug.milestone_link
-
-    try:
-        bug_owner = bug.owner.name
-        bug_owner_link = bug.owner.web_link
-    except:
         bug_owner = str(bug.owner_link).split("~")[1]
         bug_owner_link = bug.owner_link
-
-    if task:
-        bug_item = task.bug
     else:
         bug_item = bug.bug
+        bug_assignee = bug.assignee.name if bug.assignee else None
+        bug_assignee_link = bug.assignee.web_link
+        bug_milestone = bug.milestone.name
+        bug_milestone_link = bug.milestone.web_link
+        bug_owner = bug.owner.name
+        bug_owner_link = bug.owner.web_link
 
     return {
         'id': bug_item.id,
