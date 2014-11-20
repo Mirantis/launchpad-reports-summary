@@ -22,6 +22,9 @@
                 window.setInterval(function() {
                     var lastUpdate = {{ update_time }},
                     minutesPassed = Math.round((Date.now() / 1000 - lastUpdate)/60);
+                    if (minutesPassed > 60){
+                        minutesPassed = minutesPassed - 60;
+                    }
                     $('#clock').text(minutesPassed + ' minutes ago');
                 }, 1000);
             });
@@ -35,19 +38,7 @@
                 $("table.sortable").tablesorter();
             });
         </script>
-        <script>$(document).ready(function() {
-                      $('ul.tabs').each(function() {
-                        $(this).find('li').each(function(i) {
-                          $(this).click(function() {
-                            $(this).addClass('active').siblings().removeClass('active');
-                            var p = $(this).parents('div.tabs_container');
-                            p.find('div.tab_container').hide();
-                            p.find('div.tab_container:eq(' + i + ')').show();
-                          });
-                        });
-                      });
-                    })
-        </script>
+
 
   </head>
   <body>

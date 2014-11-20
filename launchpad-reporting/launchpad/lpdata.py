@@ -215,7 +215,9 @@ class LaunchpadData(object):
                     assigners[team].extend(b["Members"])
 
         all_assigners = []
-        all_assigners.extend(assigners[t] for t in teams if t != "Unknown")
+        for t in teams:
+            if t != "Unknown":
+                all_assigners.extend(assigners[t])
 
         for team in teams:
             report[team] = dict.fromkeys(["bugs", "count"])
@@ -238,7 +240,7 @@ class LaunchpadData(object):
                             {"milestone": {"$in": milestone}},
                             {"tags": {"$nin": exclude_tags}},
                             {"importance": {"$in": ["High", "Critical"]}},
-                            {"assignee": {"$nin": all_assigners[0]}}
+                            {"assignee": {"$nin": all_assigners}}
                         ]})
                 for b in bugs:
                     BUGS.append(b)
