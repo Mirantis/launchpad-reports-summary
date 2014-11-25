@@ -76,7 +76,8 @@ def serialize_bug(bug, task=None):
         bug_item = task.bug
         bug_assignee = str(bug.assignee_link).split("~")[1] \
             if bug.assignee_link else None
-        bug_assignee_link = bug.assignee_link
+        bug_assignee_link = bug.assignee_link \
+            if bug.assignee_link else None
         bug_milestone = str(bug.milestone_link).split("/")[-1]
         bug_milestone_link = bug.milestone_link
         bug_owner = str(bug.owner_link).split("~")[1]
@@ -84,7 +85,8 @@ def serialize_bug(bug, task=None):
     else:
         bug_item = bug.bug
         bug_assignee = bug.assignee.name if bug.assignee else None
-        bug_assignee_link = bug.assignee.web_link
+        bug_assignee_link = bug.assignee.web_link \
+            if bug.assignee else None
         bug_milestone = bug.milestone.name
         bug_milestone_link = bug.milestone.web_link
         bug_owner = bug.owner.name
@@ -112,6 +114,17 @@ def serialize_bug(bug, task=None):
         'assignee_link': (
             bug_assignee_link if bug_assignee else bug_assignee
         ),
+        'date_assigned': bug_dates["date_assigned"],
+        'date_closed': bug_dates["date_closed"],
+        'date_confirmed': bug_dates["date_confirmed"],
+        'date_created': bug_dates["date_created"],
+        'date_fix_committed': bug_dates["date_fix_committed"],
+        'date_fix_released': bug_dates["date_fix_released"],
+        'date_in_progress': bug_dates["date_in_progress"],
+        'date_incomplete': bug_dates["date_incomplete"],
+        'date_left_closed': bug_dates["date_left_closed"],
+        'date_left_new': bug_dates["date_left_new"],
+        'date_triaged': bug_dates["date_triaged"],
         'created less than week': parser.parse(
             bug_dates["date_created"].ctime()
         ) > parser.parse(
