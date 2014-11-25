@@ -39,7 +39,6 @@ class ReleaseChart(object):
 
         # process each bug and its events
         for b in self.bugs:
-            print b.date_left_new
             events = b.get_status_changes()
             events.append({"date": window_end, "type": "N/A"})
             for i in range(0, len(events) - 1):
