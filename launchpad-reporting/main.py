@@ -498,7 +498,7 @@ if __name__ == "__main__":
 
     params, args = parser.parse_known_args()
     app.run(
-        debug=True,
+        debug=False,
         host=params.host,
         port=int(params.port),
         use_reloader=True,
