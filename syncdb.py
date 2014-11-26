@@ -16,8 +16,8 @@ import pytz
 from datetime import datetime
 from dateutil import relativedelta, parser
 
-from launchpad import LaunchpadClient
-from db import db
+from launchpad_reporting.launchpad import LaunchpadClient
+from launchpad_reporting.db import db
 
 
 NUM_PROCESSES = 5
@@ -92,7 +92,7 @@ def serialize_bug(bug, task=None):
         'date_left_new': process_date(bug.date_left_new),
         'date_triaged': process_date(bug.date_triaged)
     }
-    
+
     if task:
         bug_item = task.bug
         bug_assignee = str(bug.assignee_link).split("~")[1] \

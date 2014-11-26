@@ -13,7 +13,7 @@ First, install pip and virtualenv on your system. On Ubuntu it can be done by ru
 ~$ virtualenv venv  # creating virtualenv
 ~$ source venv/bin/activate
 ~$ git clone https://github.com/Mirantis/launchpad-reports-summary.git
-~$ cd launchpad-reports-summary/launchpad-reporting
+~$ cd launchpad-reports-summary
 ~$ mkdir data  # folder to store mongodb data (you can specify your own)
 ~$ mongod --dbpath ./data  # this launches mongodb instance. It may take some time first
 ~$ pip install -r requirements.txt

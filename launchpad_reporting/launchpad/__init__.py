@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import simplejson
 
-from launchpad.lpdata import LaunchpadData
-from launchpad.release_chart import ReleaseChart
+from launchpad_reporting.launchpad.lpdata import LaunchpadData
+from launchpad_reporting.launchpad.release_chart import ReleaseChart
 
-from lazr.uri import URI
-
-from db import db
+from launchpad_reporting.db import db
 
 
 LOG = logging.getLogger(__name__)

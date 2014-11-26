@@ -7,7 +7,7 @@ import os
 
 from db import db
 
-from launchpad.lpdata import LaunchpadData
+from launchpad_reporting.launchpad.lpdata import LaunchpadData
 
 lpdata = LaunchpadData(db=db)
 connection = pymongo.Connection()

@@ -8,8 +8,8 @@ import time
 
 import flask
 
-from launchpad import launchpad
-from db import db
+from launchpad_reporting.launchpad import launchpad
+from launchpad_reporting.db import db
 
 
 path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
