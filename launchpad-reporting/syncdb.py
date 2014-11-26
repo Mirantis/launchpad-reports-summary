@@ -11,6 +11,7 @@ from itertools import ifilter
 from multiprocessing import Process
 from multiprocessing import Queue
 from multiprocessing import Event
+import pytz
 
 from datetime import datetime
 from dateutil import relativedelta, parser
@@ -49,29 +50,49 @@ class Bug(object):
     def __init__(self, dictionary):
         for key, value in dictionary.iteritems():
             if 'date' in key and value:
-                self.__setattr__(key,
-                                 datetime.strptime(
-                                     value, '%Y-%m-%dT%H:%M:%S.%f+00:00'))
+                dt = datetime.strptime(
+                    value, '%Y-%m-%dT%H:%M:%S.%f+00:00').replace(tzinfo=pytz.UTC)
+                self.__setattr__(key, dt)
             else:
                 self.__setattr__(key, value)
+
+
+def younger_than(bug_time, **kwargs):
+    if (bug_time == None):
+        return True
+
+    bug_time = parser.parse(bug_time.ctime())
+
+    threshold = date.today() - relativedelta.relativedelta(**kwargs)
+    threshold = parser.parse(threshold.ctime())
+
+    return bug_time > threshold
+
+
+def process_date(bug_date):
+    if bug_date == None:
+        return None
+    else:
+        return bug_date.replace(tzinfo=pytz.UTC)
 
 
 def serialize_bug(bug, task=None):
 
     print("Loading bug: {0}".format(bug.web_link))
     bug_dates = {
-        'date_assigned': bug.date_assigned,
-        'date_closed': bug.date_closed,
-        'date_confirmed': bug.date_confirmed,
-        'date_created': bug.date_created,
-        'date_fix_committed': bug.date_fix_committed,
-        'date_fix_released': bug.date_fix_released,
-        'date_in_progress': bug.date_in_progress,
-        'date_incomplete': bug.date_incomplete,
-        'date_left_closed': bug.date_left_closed,
-        'date_left_new': bug.date_left_new,
-        'date_triaged': bug.date_triaged,
+        'date_assigned': process_date(bug.date_assigned),
+        'date_closed': process_date(bug.date_closed),
+        'date_confirmed': process_date(bug.date_confirmed),
+        'date_created': process_date(bug.date_created),
+        'date_fix_committed': process_date(bug.date_fix_committed),
+        'date_fix_released': process_date(bug.date_fix_released),
+        'date_in_progress': process_date(bug.date_in_progress),
+        'date_incomplete': process_date(bug.date_incomplete),
+        'date_left_closed': process_date(bug.date_left_closed),
+        'date_left_new': process_date(bug.date_left_new),
+        'date_triaged': process_date(bug.date_triaged)
     }
+    
     if task:
         bug_item = task.bug
         bug_assignee = str(bug.assignee_link).split("~")[1] \
@@ -125,29 +146,10 @@ def serialize_bug(bug, task=None):
         'date_left_closed': bug_dates["date_left_closed"],
         'date_left_new': bug_dates["date_left_new"],
         'date_triaged': bug_dates["date_triaged"],
-        'created less than week': parser.parse(
-            bug_dates["date_created"].ctime()
-        ) > parser.parse(
-            (date.today() -
-             relativedelta.relativedelta(weeks=1)).ctime()
-        ),
-        'created less than month': parser.parse(
-            bug_dates["date_created"].ctime()
-        ) > parser.parse(
-            (date.today() -
-             relativedelta.relativedelta(months=1)).ctime()),
-        'fixed less than week': parser.parse(
-            bug_dates["date_fix_committed"].ctime()
-        ) > parser.parse(
-            (date.today() -
-             relativedelta.relativedelta(weeks=1)).ctime())
-        if bug_dates["date_fix_committed"] is not None else None,
-        'fixed less than month': parser.parse(
-            bug_dates["date_fix_committed"].ctime()
-        ) > parser.parse(
-            (date.today() -
-             relativedelta.relativedelta(months=1)).ctime())
-        if bug_dates["date_fix_committed"] is not None else None
+        'created less than week': younger_than(bug_dates["date_created"], weeks=1),
+        'created less than month': younger_than(bug_dates["date_created"], months=1),
+        'fixed less than week': younger_than(bug_dates["date_fix_committed"], weeks=1),
+        'fixed less than month': younger_than(bug_dates['date_fix_committed'], months=1),
     }
 
 
@@ -177,7 +179,6 @@ def load_project_bugs(project_name, queue, stop_event):
 def process_bugs(queue, stop_events):
     while True:
         try:
-
             bug = queue.get_nowait()
             db.bugs[
                 str(bug['target_name']).split('/')[0]
