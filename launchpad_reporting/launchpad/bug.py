@@ -35,7 +35,7 @@ FIELDS_TO_COPY = [
 ]
 
 
-class Bug():
+class Bug(object):
 
     def __init__(self, lpbug):
 

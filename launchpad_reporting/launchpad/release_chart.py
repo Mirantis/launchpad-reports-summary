@@ -8,7 +8,7 @@ from bisect import bisect_left
 
 import pytz
 
-from launchpad.lpdata import LaunchpadData
+from launchpad_reporting.launchpad.lpdata import LaunchpadData
 
 
 class ReleaseChart(object):
