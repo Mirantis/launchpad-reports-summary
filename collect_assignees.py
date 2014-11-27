@@ -5,7 +5,7 @@ import json
 import pymongo
 import os
 
-from db import db
+from launchpad_reporting.db import db
 
 from launchpad_reporting.launchpad.lpdata import LaunchpadData
 
