@@ -158,6 +158,10 @@ def load_project_bugs(project_name, queue, stop_event):
     project = launchpad._get_project(project_name)
     counter = 0
     for bug in launchpad.get_all_bugs(project):
+        db.bugs[
+            str(bug.bug_target_name).split('/')[0]
+        ].remove({'id': bug.bug.id})
+
         rts = bug.related_tasks.entries
         if rts:
             queue.put(serialize_bug(bug))
