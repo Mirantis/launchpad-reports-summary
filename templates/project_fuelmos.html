@@ -53,12 +53,15 @@
             {% for i in page_statistic %}
                 <tr>
                     <td>{{i}}</td>
-                    <td><a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{ i }}&field.tags_combinator=ANY&search=Search">{{page_statistic[i]["fuel"]["done"]}}</a></td>
-                    <td><a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{i}}&field.tags_combinator=ANY&search=Search">{{ page_statistic[i]["fuel"]["total"] }}</a></td>
-                    <td><a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL&field.importance%3Alist=HIGH&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{i}}&field.tags_combinator=ANY&search=Search">{{ page_statistic[i]["fuel"]["high"] }}</a></td>
-                    <td><a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{ i }}&field.tags_combinator=ANY&search=Search">{{page_statistic[i]["mos"]["done"]}}</a></td>
-                    <td><a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{i}}&field.tags_combinator=ANY&search=Search">{{page_statistic[i]["mos"]["total"]}}</a></td>
-                    <td><a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL&field.importance%3Alist=HIGH&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{i}}&field.tags_combinator=ANY&search=Search">{{page_statistic[i]["mos"]["high"]}}</a></td>
+                    <!--<td><a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{ i }}&field.tags_combinator=ANY&search=Search">{{page_statistic[i]["fuel"]["done"]}}</a></td>-->
+                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/done/{{i}}">{{ page_statistic[i]["fuel"]["done"] }}</a></td>
+                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/total/{{i}}">{{ page_statistic[i]["fuel"]["total"] }}</a></td>
+                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/high/{{i}}">{{ page_statistic[i]["fuel"]["high"] }}</a></td>
+
+                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/done/{{i}}">{{ page_statistic[i]["mos"]["done"] }}</a></td>
+                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/total/{{i}}">{{ page_statistic[i]["mos"]["total"] }}</a></td>
+                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/high/{{i}}">{{ page_statistic[i]["mos"]["high"] }}</a></td>
+
                     <td>{{ fuel_plus_mos[i]["done"] }}</td>
                     <td>{{ fuel_plus_mos[i]["total"] }}</td>
                     <td>{{ fuel_plus_mos[i]["high"] }}</td>
@@ -68,12 +71,14 @@
         <tfoot>
             <tr>
                 <td><b>Summary by tags:</b></td>
-                <td><a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search">{{summary_statistic["summary"]["tags"]["fuel"]["done"]}}</a></td>
-                <td><a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search">{{ summary_statistic["summary"]["tags"]["fuel"]["total"] }}</a></td>
-                <td><a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL&field.importance%3Alist=HIGH&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search">{{summary_statistic["summary"]["tags"]["fuel"]["high"]}}</a></td>
-                <td><a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search">{{summary_statistic["summary"]["tags"]["mos"]["done"]}}</a></td>
-                <td><a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=OPINION&field.status%3Alist=INVALID&field.status%3Alist=WONTFIX&field.status%3Alist=EXPIRED&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.status%3Alist=FIXCOMMITTED&field.status%3Alist=FIXRELEASED&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search">{{summary_statistic["summary"]["tags"]["mos"]["total"]}}</a></td>
-                <td><a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.importance%3Alist=CRITICAL&field.importance%3Alist=HIGH&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search">{{summary_statistic["summary"]["tags"]["mos"]["high"]}}</a></td>
+                <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/done/all">{{ summary_statistic["summary"]["tags"]["fuel"]["done"] }}</a></td>
+                <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/total/all">{{ summary_statistic["summary"]["tags"]["fuel"]["total"] }}</a></td>
+                <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/high/all">{{ summary_statistic["summary"]["tags"]["fuel"]["high"] }}</a></td>
+
+                <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/done/all">{{ summary_statistic["summary"]["tags"]["mos"]["done"] }}</a></td>
+                <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/total/all">{{ summary_statistic["summary"]["tags"]["mos"]["total"] }}</a></td>
+                <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/high/all">{{ summary_statistic["summary"]["tags"]["mos"]["high"] }}</a></td>
+
                 <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["done"]}}</b></td>
                 <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["total"]}}</b></td>
                 <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["high"]}}</b></td>
@@ -106,10 +111,10 @@
     {% endif %}
         <ul>
              <li>"Incomplete" {% if incomplete["fuel"] == 1 %}bug{% else %}bugs{% endif %} in FUEL:
-                <a href="https://bugs.launchpad.net/fuel/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ fuel_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search"> <b>{{ incomplete["fuel"] }} </b></a>
+                <a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/incomplete/all"><b>{{ incomplete["fuel"]}} </b></a>
              </li>
             <li>"Incomplete" {% if incomplete["mos"] == 1 %}bug{% else %}bugs{% endif %} in MOS:
-                <a href="https://bugs.launchpad.net/mos/+bugs?field.searchtext=&orderby=-importance&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&field.milestone%3Alist={{ mos_milestone_id }}&field.tag={{ all_tags }}&field.tags_combinator=ANY&search=Search"> <b>{{ incomplete["mos"] }} </b></a>
+                <a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/incomplete/all"><b>{{ incomplete["mos"]}} </b></a>
             </li>
         </ul>
 </div>

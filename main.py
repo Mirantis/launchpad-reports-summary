@@ -8,8 +8,8 @@ import time
 
 import flask
 
-from launchpad_reporting.launchpad import launchpad
-from launchpad_reporting.db import db
+from launchpad import launchpad
+from db import db
 
 
 path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
@@ -50,6 +50,56 @@ def bug_list(project_name, bug_type, milestone_name):
                                  prs=list(db.prs),
                                  key_milestone=key_milestone,
                                  update_time=launchpad.get_update_time())
+
+
+@app.route('/project/<project_name>/bug_list_for_sbpr/<milestone_name>/'
+           '<bug_type>/<sbpr>')
+def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr):
+    subprojects = [sbpr]
+
+    if sbpr == 'all':
+        subprojects = list(db.subprs)
+
+    milestones = db.bugs.milestones.find_one()["Milestone"]
+
+    bug_importance = []
+    bug_statuses = ""
+    bugs_type_to_print = ""
+
+    if bug_type == "done":
+        bugs_type_to_print = "Closed"
+        bug_statuses = "Closed"
+
+    if bug_type == "total":
+        bugs_type_to_print = "Total"
+        bug_statuses = "All"
+
+    if bug_type == "high":
+        bugs_type_to_print = "High and Critical"
+        bug_statuses = "NotDone"
+        bug_importance = ["High", "Critical"]
+
+    if bug_type == "incomplete":
+        bugs_type_to_print = "Incomplete"
+        bug_statuses = "Incomplete"
+
+    bugs = list(set(launchpad.get_bugs(project_name=project_name,
+                                       statuses=launchpad.
+                                       BUG_STATUSES[bug_statuses],
+                                       milestone_name=milestone_name,
+                                       tags=subprojects,
+                                       importance=bug_importance)))
+
+    return flask.render_template("bug_table_sbpr.html",
+                                 project=project_name,
+                                 prs=list(db.prs),
+                                 bugs=bugs,
+                                 sbpr=sbpr,
+                                 key_milestone=key_milestone,
+                                 milestone_name=milestone_name,
+                                 milestones=milestones,
+                                 update_time=launchpad.get_update_time(),
+                                 bugs_type_to_print=bugs_type_to_print)
 
 
 @app.route("/iso_build/<version>/<iso_number>/<result>")
@@ -498,7 +548,7 @@ if __name__ == "__main__":
 
     params, args = parser.parse_known_args()
     app.run(
-        debug=False,
+        debug=True,
         host=params.host,
         port=int(params.port),
         use_reloader=True,
