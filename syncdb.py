@@ -160,6 +160,7 @@ def load_project_bugs(project_name, queue, stop_event):
     for bug in launchpad.get_all_bugs(project):
         rts = bug.related_tasks.entries
         if rts:
+            queue.put(serialize_bug(bug))
             for rt in rts:
                 counter += 1
                 rt = Bug(rt)
