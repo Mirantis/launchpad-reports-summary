@@ -53,7 +53,7 @@
             {% for i in page_statistic %}
                 <tr>
                     <td>{{i}}</td>
-                    
+
                     <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/done/{{i}}">{{ page_statistic[i]["fuel"]["done"] }}</a></td>
                     <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/total/{{i}}">{{ page_statistic[i]["fuel"]["total"] }}</a></td>
                     <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/high/{{i}}">{{ page_statistic[i]["fuel"]["high"] }}</a></td>

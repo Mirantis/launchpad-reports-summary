@@ -8,8 +8,8 @@ import time
 
 import flask
 
-from launchpad_reporting.launchpad import launchpad
-from launchpad_reporting.db import db
+from launchpad import launchpad
+from db import db
 
 
 path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
@@ -548,7 +548,7 @@ if __name__ == "__main__":
 
     params, args = parser.parse_known_args()
     app.run(
-        debug=False,
+        debug=True,
         host=params.host,
         port=int(params.port),
         use_reloader=True,
