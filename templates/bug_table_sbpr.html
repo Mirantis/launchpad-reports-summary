@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block body %}
+<div>
+<head>
+    <h2 class="page-header"><br>Project "{{ project }}" {{milestone_name}}<br>Subproject "{{sbpr}}": <b>{{bugs_type_to_print}}</b> bugs</h2>
+</head>
+<div class="col-sm-3 col-md-2 sidebar">
+    <br>
+    {% for m in milestones|sort %}
+    <ul class="nav nav-sidebar">
+
+        <li>
+            <a href="/project/fuelplusmos/{{ m }}">FUEL/MOS {{ m }}
+            </a>
+        </li>
+    </ul>
+
+    {% endfor %}
+    <ul class="nav nav-sidebar">
+
+        <li>
+            <a href="/project/code_freeze_report/{{ key_milestone }}">MOS HCF Status
+            </a>
+        </li>
+    </ul>
+</div>
+
+<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+<table class="sortable table table-striped">
+  <thead>
+    <tr>
+      <th>Bug #</th>
+      <th>Importance</th>
+      <th>Title</th>
+      <th>Assignee</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in bugs %}
+    <tr class="bug_row" id="{{ b.id }}">
+        <td><a href="https://bugs.launchpad.net/{{ project }}/+bug/{{b.id}}">{{ b.id }}</a></td>
+        <td>{{ b.importance }}</td>
+        <td>{{ b.title }}</td>
+        <td><a href="https://launchpad.net/~{{ b.assignee }}">{{ b.assignee }}</a></td>
+        <td>{{ b.status }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
