@@ -156,15 +156,27 @@ def serialize_bug(bug, task=None):
 def load_project_bugs(project_name, queue, stop_event):
     launchpad = LaunchpadClient()
     project = launchpad._get_project(project_name)
+
+    milestone_series = {}
+    for m in project.active_milestones:
+        milestone_series[str(m)] = str(m.series_target)
+
     counter = 0
     for bug in launchpad.get_all_bugs(project):
         db.bugs[
             str(bug.bug_target_name).split('/')[0]
         ].remove({'id': bug.bug.id})
 
+        bug_milestone = str(bug.milestone)
         rts = bug.related_tasks.entries
+
         if rts:
-            queue.put(serialize_bug(bug))
+            rts_milestones = []
+            for rt in rts:
+                rts_milestones.append(rt["target_link"])
+            if milestone_series[bug_milestone] not in rts_milestones:
+                queue.put(serialize_bug(bug))
+
             for rt in rts:
                 counter += 1
                 rt = Bug(rt)
