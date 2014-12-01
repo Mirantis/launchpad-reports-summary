@@ -163,6 +163,9 @@ def load_project_bugs(project_name, queue, stop_event):
 
     counter = 0
     for bug in launchpad.get_all_bugs(project):
+        db.bugs[
+            str(bug.bug_target_name).split('/')[0]
+        ].remove({'id': bug.bug.id})
 
         bug_milestone = str(bug.milestone)
         rts = bug.related_tasks.entries
