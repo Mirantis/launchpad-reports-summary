@@ -222,7 +222,7 @@ def bug_trends(project_name, milestone_name):
 def code_freeze_report(milestone_name):
     milestones = db.bugs.milestones.find_one()["Milestone"]
     teams = ["Fuel", "Partners", "mos-linux", "mos-openstack", "Unknown"]
-    exclude_tags = ["devops", "docs", "fuel-devops", "experimental"]
+    exclude_tags = ["devops", "docs", "fuel-devops", "experimental", "system-tests"]
 
     if milestone_name == "5.1.1":
         milestone = ["5.1.1", "5.0.3"]
