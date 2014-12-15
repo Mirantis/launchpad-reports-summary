@@ -167,6 +167,9 @@ def load_project_bugs(project_name, queue, stop_event):
             str(bug.bug_target_name).split('/')[0]
         ].remove({'id': bug.bug.id})
 
+        if bug.bug.duplicate_of is not None:
+            continue
+
         bug_milestone = str(bug.milestone)
         rts = bug.related_tasks.entries
 
