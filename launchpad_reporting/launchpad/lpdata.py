@@ -91,7 +91,8 @@ class LaunchpadData(object):
                                    milestone=[
                                        i.self_link
                                        for i in project.active_milestones],
-                                   modified_since=update_time)
+                                   modified_since=update_time,
+                                   omit_duplicates=False)
 
     @staticmethod
     def dump_object(object):
