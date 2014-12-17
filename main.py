@@ -5,10 +5,12 @@ import argparse
 import collections
 import json
 import os
-import time
 
 import flask
-from flask import request
+
+from flask import (Flask, request, render_template, json as flask_json,
+                   redirect)
+
 
 from launchpad_reporting.launchpad import launchpad
 from launchpad_reporting.db import db
@@ -21,7 +23,7 @@ with open('{0}/data.json'.format(path_to_data)) as data_file:
 with open('{0}/file.json'.format(path_to_data)) as teams_file:
     teams_data = json.load(teams_file, object_pairs_hook=collections.OrderedDict)
 
-app = flask.Flask(__name__)
+app = Flask(__name__)
 
 
 def print_select(dct, param, val):
@@ -63,8 +65,8 @@ def bug_list(project_name, bug_type, milestone_name):
     project = launchpad.get_project(project_name)
     tags = None
 
-    if 'tags' in flask.request.args:
-        tags = flask.request.args['tags'].split(',')
+    if 'tags' in request.args:
+        tags = request.args['tags'].split(',')
     if bug_type == "New":
         milestone_name = None
 
@@ -73,7 +75,7 @@ def bug_list(project_name, bug_type, milestone_name):
         statuses=launchpad.BUG_STATUSES[bug_type],
         milestone_name=milestone_name, tags=tags)
 
-    return flask.render_template("bug_list.html",
+    return render_template("bug_list.html",
                                  project=project,
                                  bugs=bugs,
                                  bug_type=bug_type,
@@ -82,6 +84,7 @@ def bug_list(project_name, bug_type, milestone_name):
                                  prs=list(db.prs),
                                  key_milestone=KEY_MILESTONE,
                                  update_time=launchpad.get_update_time())
+
 
 
 @app.route('/project/<project_name>/bug_list_for_sbpr/<milestone_name>/'
@@ -120,7 +123,7 @@ def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr):
                                        tags=subprojects,
                                        importance=bug_importance)))
 
-    return flask.render_template("bug_table_sbpr.html",
+    return render_template("bug_table_sbpr.html",
                                  project=project_name,
                                  prs=list(db.prs),
                                  bugs=bugs,
@@ -140,7 +143,7 @@ def bug_report_trends_data(project_name, milestone_name):
         milestone_name
     ).get_trends_data()
 
-    return flask.json.dumps(data)
+    return flask_json.dumps(data)
 
 
 @app.route('/project/<project_name>/api/release_chart_incoming_outgoing/'
@@ -150,7 +153,7 @@ def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
         project_name,
         milestone_name
     ).get_incoming_outgoing_data()
-    return flask.json.dumps(data)
+    return flask_json.dumps(data)
 
 
 @app.route('/project/<project_name>/bug_table_for_status/'
@@ -161,24 +164,26 @@ def bug_table_for_status(project_name, bug_type, milestone_name):
     if bug_type == "New":
         milestone_name = None
 
-    return flask.render_template("bug_table.html",
-                                 project=project,
-                                 prs=list(db.prs),
-                                 key_milestone=KEY_MILESTONE,
-                                 milestone_name=milestone_name,
-                                 update_time=launchpad.get_update_time())
+    return render_template("bug_table.html",
+                           project=project,
+                           prs=list(db.prs),
+                           key_milestone=KEY_MILESTONE,
+                           milestone_name=milestone_name,
+                           update_time=launchpad.get_update_time())
 
 
 @app.route('/project/<project_name>/bug_trends/<milestone_name>/')
 def bug_trends(project_name, milestone_name):
     project = launchpad.get_project(project_name)
-    return flask.render_template("bug_trends.html",
-                                 project=project,
-                                 milestone_name=milestone_name,
-                                 selected_bug_trends=True,
-                                 prs=list(db.prs),
-                                 key_milestone=KEY_MILESTONE,
-                                 update_time=launchpad.get_update_time())
+
+    return render_template("bug_trends.html",
+                           project=project,
+                           milestone_name=milestone_name,
+                           selected_bug_trends=True,
+                           prs=list(db.prs),
+                           key_milestone=KEY_MILESTONE,
+                           update_time=launchpad.get_update_time())
+
 
 @app.route('/hcf_report/<milestone_name>')
 def bugs_hcf_report(milestone_name):
@@ -186,7 +191,7 @@ def bugs_hcf_report(milestone_name):
                                         milestone_name)
     bugs, filters = filter(request, bugs)
 
-    return flask.render_template(
+    return render_template(
         "bugs_lifecycle_report.html",
         report="hcf",
         milestone_name=milestone_name,
@@ -196,6 +201,7 @@ def bugs_hcf_report(milestone_name):
         filters=filters,
     )
 
+
 @app.route('/sla_report/<milestone_name>')
 def bugs_lifecycle_report(milestone_name):
     bugs = sla_reports.get_reports_data('sla-report', ['mos', 'fuel'],
@@ -203,7 +209,7 @@ def bugs_lifecycle_report(milestone_name):
 
     bugs, filters = filter(request, bugs)
 
-    return flask.render_template(
+    return render_template(
         "bugs_lifecycle_report.html",
         report="sla",
         milestone_name=milestone_name,
@@ -212,6 +218,7 @@ def bugs_lifecycle_report(milestone_name):
         teams=teams_data,
         filters=filters,
     )
+
 
 @app.route('/triage_queue/<project>')
 def triage_queue(project):
@@ -247,18 +254,18 @@ def statistic_for_project_by_milestone_by_tag(project_name, milestone_name,
     if project_name == "fuel":
         milestone["id"] = data[project_name][milestone_name]
 
-    return flask.render_template("project.html",
-                                 project=project,
-                                 key_milestone=KEY_MILESTONE,
-                                 selected_overview=True,
-                                 display_subprojects=display,
-                                 prs=list(db.prs),
-                                 subprs=list(db.subprs),
-                                 page_statistic=page_statistic,
-                                 milestone=milestone,
-                                 flag=True,
-                                 tag=tag,
-                                 update_time=launchpad.get_update_time())
+    return render_template("project.html",
+                           project=project,
+                           key_milestone=KEY_MILESTONE,
+                           selected_overview=True,
+                           display_subprojects=display,
+                           prs=list(db.prs),
+                           subprs=list(db.subprs),
+                           page_statistic=page_statistic,
+                           milestone=milestone,
+                           flag=True,
+                           tag=tag,
+                           update_time=launchpad.get_update_time())
 
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/')
@@ -280,17 +287,17 @@ def statistic_for_project_by_milestone(project_name, milestone_name):
     if project_name == "fuel":
         milestone["id"] = data[project_name][milestone_name]
 
-    return flask.render_template("project.html",
-                                 key_milestone=KEY_MILESTONE,
-                                 project=project,
-                                 selected_overview=True,
-                                 display_subprojects=display,
-                                 prs=list(db.prs),
-                                 subprs=list(db.subprs),
-                                 page_statistic=page_statistic,
-                                 milestone=milestone,
-                                 flag=True,
-                                 update_time=launchpad.get_update_time())
+    return render_template("project.html",
+                           key_milestone=KEY_MILESTONE,
+                           project=project,
+                           selected_overview=True,
+                           display_subprojects=display,
+                           prs=list(db.prs),
+                           subprs=list(db.subprs),
+                           page_statistic=page_statistic,
+                           milestone=milestone,
+                           flag=True,
+                           update_time=launchpad.get_update_time())
 
 
 @app.route('/project/fuelplusmos/<milestone_name>/')
@@ -413,21 +420,21 @@ def fuel_plus_mos_overview(milestone_name):
                 milestone_name=milestone_name,
                 tags=subprojects))
 
-    return flask.render_template("project_fuelmos.html",
-                                 milestones=milestones,
-                                 key_milestone=KEY_MILESTONE,
-                                 current_milestone=milestone_name,
-                                 prs=list(db.prs),
-                                 subprs=list(db.subprs),
-                                 fuel_milestone_id=data["fuel"][
-                                     milestone_name],
-                                 mos_milestone_id=data["mos"][milestone_name],
-                                 page_statistic=page_statistic,
-                                 summary_statistic=summary_statistic,
-                                 fuel_plus_mos=fuel_plus_mos,
-                                 all_tags="+".join(db.subprs),
-                                 incomplete=incomplete,
-                                 update_time=launchpad.get_update_time())
+    return render_template("project_fuelmos.html",
+                           milestones=milestones,
+                           key_milestone=KEY_MILESTONE,
+                           current_milestone=milestone_name,
+                           prs=list(db.prs),
+                           subprs=list(db.subprs),
+                           fuel_milestone_id=data["fuel"][
+                               milestone_name],
+                           mos_milestone_id=data["mos"][milestone_name],
+                           page_statistic=page_statistic,
+                           summary_statistic=summary_statistic,
+                           fuel_plus_mos=fuel_plus_mos,
+                           all_tags="+".join(db.subprs),
+                           incomplete=incomplete,
+                           update_time=launchpad.get_update_time())
 
 
 @app.route('/project/<project_name>/')
@@ -436,8 +443,8 @@ def project_overview(project_name):
     project_name = project_name.lower()
 
     if project_name == "fuelplusmos":
-        return flask.redirect(
-            "/project/fuelplusmos/{0}/".format(KEY_MILESTONE), code=302)
+        return redirect(
+            "/project/fuelplusmos/{0}/".format(key_milestone), code=302)
 
     project = launchpad.get_project(project_name)
     project.display_name = project.display_name.capitalize()
@@ -446,15 +453,15 @@ def project_overview(project_name):
         milestone_name=project.active_milestones,
         tag=None)
 
-    return flask.render_template("project.html",
-                                 project=project,
-                                 key_milestone=KEY_MILESTONE,
-                                 selected_overview=True,
-                                 prs=list(db.prs),
-                                 subprs=list(db.subprs),
-                                 page_statistic=page_statistic,
-                                 milestone=[],
-                                 update_time=launchpad.get_update_time())
+    return render_template("project.html",
+                           project=project,
+                           key_milestone=KEY_MILESTONE,
+                           selected_overview=True,
+                           prs=list(db.prs),
+                           subprs=list(db.subprs),
+                           page_statistic=page_statistic,
+                           milestone=[],
+                           update_time=launchpad.get_update_time())
 
 
 @app.route('/project/<global_project_name>/<tag>/')
@@ -469,17 +476,17 @@ def mos_project_overview(global_project_name, tag):
         milestone_name=project.active_milestones,
         tag=tag)
 
-    return flask.render_template("project.html",
-                                 project=project,
-                                 key_milestone=KEY_MILESTONE,
-                                 tag=tag,
-                                 page_statistic=page_statistic,
-                                 selected_overview=True,
-                                 display_subprojects=True,
-                                 prs=list(db.prs),
-                                 subprs=list(db.subprs),
-                                 milestone=[],
-                                 update_time=launchpad.get_update_time())
+    return render_template("project.html",
+                           project=project,
+                           key_milestone=KEY_MILESTONE,
+                           tag=tag,
+                           page_statistic=page_statistic,
+                           selected_overview=True,
+                           display_subprojects=True,
+                           prs=list(db.prs),
+                           subprs=list(db.subprs),
+                           milestone=[],
+                           update_time=launchpad.get_update_time())
 
 
 @app.route('/')
@@ -498,11 +505,12 @@ def main_page():
             statuses=launchpad.BUG_STATUSES["NotDone"]))
         global_statistic['{0}'.format(pr)] = types
 
-    return flask.render_template("main.html",
-                                 key_milestone=KEY_MILESTONE,
-                                 statistic=global_statistic,
-                                 prs=list(db.prs),
-                                 update_time=launchpad.get_update_time())
+    return render_template("main.html",
+                           key_milestone=KEY_MILESTONE,
+                           statistic=global_statistic,
+                           prs=list(db.prs),
+                           update_time=launchpad.get_update_time())
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
