@@ -94,6 +94,14 @@ class LaunchpadData(object):
                                    modified_since=update_time,
                                    omit_duplicates=False)
 
+    @ttl_cache(minutes=5)
+    def get_bug_targets(self, bug):
+        targets = set()
+        targets.add(bug.bug_target_name.split('/')[0])
+        for task in bug.related_tasks:
+            targets.add(task.bug_target_name.split('/')[0])
+        return targets
+
     @staticmethod
     def dump_object(object):
         for name in dir(object):
