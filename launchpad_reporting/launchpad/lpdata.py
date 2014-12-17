@@ -17,7 +17,7 @@ from ttl_cache import ttl_cache
 LOG = logging.getLogger(__name__)
 
 
-class LaunchpadData(object):
+class LaunchpadAnonymousData(object):
 
     BUG_STATUSES = {"New":        ["New"],
                     "Incomplete": ["Incomplete"],
@@ -39,12 +39,11 @@ class LaunchpadData(object):
         self,
         db,
         cachedir="~/.launchpadlib/cache/",
-        credentials_filename="/etc/lp-reports/credentials.txt"
     ):
         self.db = db
-        self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
+        self.launchpad = launchpadlib.launchpad.Launchpad.login_anonymously(
             'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
-            credentials_file=credentials_filename, launchpadlib_dir=cachedir)
+            launchpadlib_dir=cachedir)
 
     def _get_project(self, project_name):
         return self.launchpad.projects[project_name]
@@ -264,3 +263,15 @@ class LaunchpadData(object):
                 team["bugs"] = newbugs
 
         return bugs
+
+
+class LaunchpadData(LaunchpadAnonymousData):
+
+    def __init__(
+        self,
+        cachedir="~/.launchpadlib/cache/",
+        credentials_filename="/etc/lp-reports/credentials.txt"
+    ):
+        self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
+            'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
+            credentials_file=credentials_filename, launchpadlib_dir=cachedir)

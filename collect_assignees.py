@@ -7,9 +7,9 @@ import os
 
 from launchpad_reporting.db import db
 
-from launchpad_reporting.launchpad.lpdata import LaunchpadData
+from launchpad_reporting.launchpad.lpdata import LaunchpadAnonymousData
 
-lpdata = LaunchpadData(db=db)
+lpdata = LaunchpadAnonymousData(db=db)
 connection = pymongo.Connection()
 db = connection["assignees"]
 

@@ -2,7 +2,8 @@
 
 import logging
 
-from launchpad_reporting.launchpad.lpdata import LaunchpadData
+from launchpad_reporting.launchpad.lpdata import (LaunchpadAnonymousData,
+                                                  LaunchpadData)
 from launchpad_reporting.launchpad.release_chart import ReleaseChart
 
 from launchpad_reporting.db import db
@@ -11,10 +12,10 @@ from launchpad_reporting.db import db
 LOG = logging.getLogger(__name__)
 
 
-class LaunchpadClient(object):
+class LaunchpadAnonymousClient(object):
 
     def __init__(self):
-        self.lpdata = LaunchpadData(db=db)
+        self.lpdata = LaunchpadAnonymousData(db=db)
 
     def __getattr__(self, item):
         return getattr(self.lpdata, item)
@@ -23,4 +24,7 @@ class LaunchpadClient(object):
         return ReleaseChart(self, project_name, milestone_name)
 
 
-launchpad = LaunchpadClient()
+class LaunchpadClient(LaunchpadAnonymousClient):
+
+    def __init__(self, credentials):
+        self.lpdata = LaunchpadData(credentials=credentials)

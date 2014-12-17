@@ -16,7 +16,7 @@ import pytz
 from datetime import datetime
 from dateutil import relativedelta, parser
 
-from launchpad_reporting.launchpad import LaunchpadClient
+from launchpad_reporting.launchpad import LaunchpadAnonymousClient
 from launchpad_reporting.db import db
 
 
@@ -157,7 +157,7 @@ def serialize_bug(bug, task=None):
 
 
 def load_project_bugs(project_name, queue, stop_event):
-    launchpad = LaunchpadClient()
+    launchpad = LaunchpadAnonymousClient()
     project = launchpad._get_project(project_name)
 
     milestone_series = {}
@@ -223,7 +223,7 @@ def process_bugs(queue, stop_events):
 
 
 if __name__ == "__main__":
-    launchpad = LaunchpadClient()
+    launchpad = LaunchpadAnonymousClient()
 
     milestones = db.bugs.milestones
     db.bugs.drop_collection(milestones)
