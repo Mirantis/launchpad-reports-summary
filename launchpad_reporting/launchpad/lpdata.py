@@ -27,8 +27,8 @@ class LaunchpadData(object):
                                    "Opinion", "Incomplete"],
                     "All":        ["New", "Incomplete", "Invalid",
                                    "Won't Fix", "Confirmed", "Triaged",
-                                   "In Progress", "Fix Released",
-                                   "Fix Committed", "Opinion", "Expired"],
+                                   "In Progress", "Fix Committed",
+                                   "Opinion", "Expired"],
                     "NotDone":    ["New", "Confirmed", "Triaged", "In Progress"],
                     "Fixed": ["Fix Committed", "Fix Released"]}
     BUG_STATUSES_ALL = []
