@@ -163,12 +163,19 @@ def load_project_bugs(project_name, queue, stop_event):
 
     counter = 0
     for bug in launchpad.get_all_bugs(project):
+        bug_id = bug.bug.id
         db.bugs[
             str(bug.bug_target_name).split('/')[0]
-        ].remove({'id': bug.bug.id})
+        ].remove({'id': bug_id})
 
         if bug.bug.duplicate_of is not None:
             continue
+
+        target_projects = launchpad.get_bug_targets(bug)
+
+        for project in PROJECTS_LIST:
+            if project not in target_projects:
+                db.bugs[project].remove({'id': bug_id})
 
         bug_milestone = str(bug.milestone)
         rts = bug.related_tasks.entries
