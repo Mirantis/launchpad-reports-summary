@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+
+
+{% block body %}
+<h2 class="page-header"><br>Bug Lifecycle Report </h2>
+<div class="col-sm-3 col-md-2 sidebar">
+    <br>
+    <ul class="nav nav-sidebar">
+
+        <li>
+            <a href="/project/fuelplusmos/">Back to FUEL/MOS statistic
+            </a>
+        </li>
+    </ul>
+</div>
+
+<ul class="tabs">
+    <li>
+        <input type="radio" checked name="tabs" id="tab6">
+        <div id="tab-content6" class="tab-content animated fadeIn">
+            <h3 class="page-header"><br>Fix Committed Bugs</h3>
+            <table class="sortable table table-striped">
+                <thead>
+                    <tr>
+                        <th>Bug #</th>
+                        <th>Title</th>
+                        <th>Milestone</th>
+                        <th>Status</th>
+                        <th>Importance</th>
+                        <th>Assignee</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for b in fix_committed_bugs %}
+                <tr class="bug_row" id="{{ b.id }}">
+                    <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
+                    <td>{{ b.title }}</td>
+                    <td>{{ b.milestone }}</td>
+                    <td>{{ b.status }}</td>
+                    <td>{{ b.importance }}</td>
+                   <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <h3 class="page-header"><br>New Bugs</h3>
+            <table class="sortable table table-striped">
+                <thead>
+                    <tr>
+                        <th>Bug #</th>
+                        <th>Title</th>
+                        <th>Milestone</th>
+                        <th>Status</th>
+                        <th>Importance</th>
+                        <th>Assignee</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for b in new_bugs %}
+                <tr class="bug_row" id="{{ b.id }}">
+                    <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
+                    <td>{{ b.title }}</td>
+                    <td>{{ b.milestone }}</td>
+                    <td>{{ b.status }}</td>
+                    <td>{{ b.importance }}</td>
+                   <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <h3 class="page-header"><br>Confirmed Bugs</h3>
+            <table class="sortable table table-striped">
+                <thead>
+                    <tr>
+                        <th>Bug #</th>
+                        <th>Title</th>
+                        <th>Milestone</th>
+                        <th>Status</th>
+                        <th>Importance</th>
+                        <th>Assignee</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for b in confirmed_bugs %}
+                <tr class="bug_row" id="{{ b.id }}">
+                    <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
+                    <td>{{ b.title }}</td>
+                    <td>{{ b.milestone }}</td>
+                    <td>{{ b.status }}</td>
+                    <td>{{ b.importance }}</td>
+                   <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <h3 class="page-header"><br>In Progress Bugs</h3>
+            <table class="sortable table table-striped">
+                <thead>
+                    <tr>
+                        <th>Bug #</th>
+                        <th>Title</th>
+                        <th>Milestone</th>
+                        <th>Status</th>
+                        <th>Importance</th>
+                        <th>Assignee</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for b in in_progress_bugs %}
+                <tr class="bug_row" id="{{ b.id }}">
+                    <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
+                    <td>{{ b.title }}</td>
+                    <td>{{ b.milestone }}</td>
+                    <td>{{ b.status }}</td>
+                    <td>{{ b.importance }}</td>
+                   <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </li>
+
+</ul>
+
+{% endblock %}

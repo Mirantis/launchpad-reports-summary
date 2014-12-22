@@ -21,7 +21,7 @@ FIELDS_TO_COPY = [
     "date_left_new",
     "date_triaged",
     "id",
-    "web_link"
+    "web_link",
     "milestone",
     "milestone_link",
     "status",

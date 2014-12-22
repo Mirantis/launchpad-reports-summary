@@ -3,11 +3,12 @@
 import copy
 import datetime
 import logging
-import pymongo
 import time
 
 import launchpadlib.launchpad
 from launchpadlib.uris import LPNET_SERVICE_ROOT
+from pandas.tseries import offsets
+import pymongo
 
 from bug import Bug
 from project import Project
@@ -15,6 +16,11 @@ from ttl_cache import ttl_cache
 
 
 LOG = logging.getLogger(__name__)
+
+
+def business_days_ago(days):
+    timedelta = datetime.datetime.now() - offsets.BDay(days)
+    return timedelta.to_datetime()
 
 
 class LaunchpadData(object):
@@ -251,10 +257,149 @@ class LaunchpadData(object):
 
     def get_update_time(self):
 
-        update_time = time.time()
         try:
             update_time = self.db.bugs.update_date.find_one()["Update_date"]
         except:
-            pass
+            update_time = time.time()
 
         return update_time
+
+    def fix_committed_bugs_lifecycle_report(self, projects_list):
+        """
+        Recommended bug lifecycle from New to Fix Committed:
+
+        For High/Critical:
+           New -> Fix Committed = 10 business days
+
+        For Medium/Low:
+           New -> Fix Committed = 40 business days
+        """
+
+        ten_days_ago = business_days_ago(10)
+        forty_days_ago = business_days_ago(40)
+
+        all_bugs = []
+        for project_name in projects_list:
+            project = self.db.bugs[project_name]
+            bugs = project.find(
+                {"$or": [
+                    {"$and": [
+                        {"status": {"$in": ["Critical", "High"]}},
+                        {"date_created": {"$lt": ten_days_ago}},
+                        {"status": {"$ne": "Fix Committed"}}
+                    ]},
+                    {"$and": [
+                        {"status": {"$in": ["Medium", "Low"]}},
+                        {"date_created": {"$lt": forty_days_ago}},
+                        {"status": {"$ne": "Fix Committed"}}
+                    ]}
+                ]}
+            )
+            all_bugs.extend([Bug(r) for r in bugs])
+
+        return all_bugs
+
+    def new_bugs_lifecycle_report(self, projects_list):
+        """
+        Working out New bugs:
+            New bug should be marked for milestone/importance/assignee
+            in 1 business day
+        """
+
+        one_days_ago = business_days_ago(1)
+
+        all_bugs = []
+        for project_name in projects_list:
+            project = self.db.bugs[project_name]
+            bugs = project.find(
+                {"$and": [
+                    {"date_created": {"$lt": one_days_ago}},
+                    {"$or": [
+                        {"milestone": None},
+                        {"importance": None},
+                        {"assignee": None}
+                    ]},
+                ]}
+            )
+            all_bugs.extend([Bug(r) for r in bugs])
+
+        return all_bugs
+
+    def confirmed_bugs_lifecycle_report(self, projects_list):
+        """
+        Working out Confirmed/Triaged bugs:
+            should stay in this condition for not MORE than 5 business day.
+
+            # TODO: clarify this one, it ignored at the moment
+            # Additional comments:
+            #     The last updated time should also be tracked.
+        """
+
+        five_days_ago = business_days_ago(5)
+
+        all_bugs = []
+        for project_name in projects_list:
+            project = self.db.bugs[project_name]
+            bugs = project.find(
+                {"$and": [
+                    {"date_triaged": {"$lt": five_days_ago}},
+                    {"status": {"$in": ["Confirmed", "Triaged"]}},
+                ]}
+            )
+            all_bugs.extend([Bug(r) for r in bugs])
+
+        return all_bugs
+
+    def in_progress_bugs_lifecycle_report(self, projects_list):
+        """
+        Working out In Progress bugs:
+            In progress+Critical+tag 'customer-found' = not more than 2 days
+            In progress+Critical = not more than 3 business days
+            In progress+High+'customer-found' = not more than 5 business days
+            In progress+High = not more than 7-10 business days
+            In progress+Others = not more than 10 business days
+        """
+
+        two_days_ago = business_days_ago(2)
+        three_days_ago = business_days_ago(3)
+        five_days_ago = business_days_ago(5)
+        seven_days_ago = business_days_ago(7)
+        ten_days_ago = business_days_ago(10)
+
+        all_bugs = []
+        for project_name in projects_list:
+            project = self.db.bugs[project_name]
+
+            bugs = project.find(
+                {"$or": [
+                    {"$and": [
+                        {"date_triaged": {"$lt": two_days_ago}},
+                        {"status": "In progress"},
+                        {"importance": "Critical"},
+                        {"tags": ["customer-found"]},
+                    ]},
+                    {"$and": [
+                        {"date_triaged": {"$lt": three_days_ago}},
+                        {"status": "In progress"},
+                        {"importance": "Critical"},
+                    ]},
+                    {"$and": [
+                        {"date_triaged": {"$lt": five_days_ago}},
+                        {"status": "In progress"},
+                        {"importance": "High"},
+                        {"tags": ["customer-found"]}
+                    ]},
+                    {"$and": [
+                        {"date_triaged": {"$lt": seven_days_ago}},
+                        {"status": "In progress"},
+                        {"importance": "High"},
+                    ]},
+                    {"$and": [
+                        {"date_triaged": {"$lt": ten_days_ago}},
+                        {"status": "In progress"},
+                    ]},
+                ]}
+            )
+            all_bugs.extend([Bug(r) for r in bugs])
+
+        return all_bugs
