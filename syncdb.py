@@ -282,7 +282,7 @@ if __name__ == "__main__":
             args=(pname, queue, stop_events[i])
         ) for i, pname in enumerate(project_names)
     ]
-    processes = map(
+    processors = map(
         lambda num: Process(
             target=process_bugs,
             args=(queue, stop_events)
@@ -290,13 +290,13 @@ if __name__ == "__main__":
         xrange(NUM_PROCESSES)
     )
 
-    print("Spawning loader processes...")
+    print("Spawning loaders...")
     map(lambda p: p.start(), loaders)
-    print("Spawning processes...")
-    map(lambda p: p.start(), processes)
+    print("Spawning processors...")
+    map(lambda p: p.start(), processors)
 
     map(lambda p: p.join(), loaders)
-    map(lambda p: p.join(), processes)
+    map(lambda p: p.join(), processors)
 
     db.bugs.drop_collection("update_date")
     db.bugs.create_collection("update_date")
