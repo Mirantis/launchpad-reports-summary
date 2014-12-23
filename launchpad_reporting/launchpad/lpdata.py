@@ -217,6 +217,16 @@ class LaunchpadData(object):
         report = dict.fromkeys(teams)
         assigners = dict.fromkeys(teams)
 
+        def get_importance(bug):
+            if bug['importance'] == 'High':
+                if 'customer-found' in bug['tags']:
+                    return 1
+                return 0
+
+            if 'customer-found' in bug['tags']:
+                return 3
+            return 2
+
         for team in teams:
             assigners[team] = []
             if team != "Unknown":
@@ -253,6 +263,7 @@ class LaunchpadData(object):
                         ]})
                 for b in bugs:
                     BUGS.append(b)
+            BUGS = sorted(BUGS, key=get_importance, reverse=True)
             report[team]["bugs"] = BUGS
             report[team]["count"] = len(BUGS)
 

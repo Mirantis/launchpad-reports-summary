@@ -31,7 +31,7 @@
         <div id="tab-content6" class="tab-content animated fadeIn">
             {% for team in teams %}
             <h3 class="page-header"><br>{{team}} : {{bugs[team]["count"]}} {% if bugs[team]["count"] == 1%}bug{%else%}bugs{%endif%}</h3>
-            <table class="sortable table table-striped" id="hcf_{{ team }}0_table">
+            <table class="sortable table" id="hcf_{{ team }}0_table">
                 <thead>
                     <tr>
                         <th>Bug #</th>
@@ -45,7 +45,7 @@
 
                 <tbody>
                 {% for b in bugs[team]["bugs"] %}
-                <tr class="bug_row" id="{{ b.id }}">
+                <tr {% if 'customer-found' in b.tags %}class="customer-found-bug" {% else %}class='bug'{% endif %}id="{{ b.id }}">
                     <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
                     <td>{{ b.title }}</td>
                     <td>{{ b.milestone }}</td>
@@ -66,7 +66,7 @@
         <label for="tab{{i}}">{{ teams[i] }}</label>
         <div id="tab-content{{i}}" class="tab-content animated fadeIn">
             <h3 class="page-header"><br>{{teams[i]}} : {{bugs[teams[i]]["count"]}} {% if bugs[teams[i]]["count"] == 1%}bug{%else%}bugs{%endif%}</h3>
-                <table class="sortable table table-striped" id="hcf_{{i}}_table">
+                <table class="sortable table" id="hcf_{{i}}_table">
                     <thead>
                         <tr>
                             <th>Bug #</th>
@@ -80,7 +80,7 @@
                     <tbody>
 
                     {% for b in bugs[teams[i]]["bugs"] %}
-                    <tr class="bug_row" id="{{ b.id }}">
+                    <tr {% if 'customer-found' in b.tags %}class="customer-found-bug" {% else %}class='bug'{% endif %}id="{{ b.id }}">
                         <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
                         <td>{{ b.title }}</td>
                         <td>{{ b.milestone }}</td>
