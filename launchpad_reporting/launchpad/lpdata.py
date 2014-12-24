@@ -5,9 +5,17 @@ import datetime
 import logging
 import pymongo
 import time
+import os
+
+from urlparse import urlsplit, urljoin
 
 import launchpadlib.launchpad
-from launchpadlib.uris import LPNET_SERVICE_ROOT
+from launchpadlib.credentials import Consumer
+from launchpadlib.credentials import authorize_token_page
+from launchpadlib.uris import (LPNET_SERVICE_ROOT, STAGING_SERVICE_ROOT,
+                               lookup_service_root)
+from lazr.restfulclient.authorize.oauth import SystemWideConsumer
+from lazr.restfulclient.resource import ServiceRoot
 
 from bug import Bug
 from project import Project
@@ -15,6 +23,104 @@ from ttl_cache import ttl_cache
 
 
 LOG = logging.getLogger(__name__)
+
+
+def authorization_url(web_root, request_token, allow_access_levels=["DESKTOP_INTEGRATION"]):
+    """Return the authorization URL for a request token.
+
+    This is the URL the end-user must visit to authorize the
+    token. How exactly does this happen? That depends on the
+    subclass implementation.
+    """
+    allow_access_levels = allow_access_levels or []
+    page = "%s?oauth_token=%s" % (authorize_token_page, request_token)
+    allow_permission = "&allow_permission="
+    if len(allow_access_levels) > 0:
+        page += (
+            allow_permission
+            + allow_permission.join(allow_access_levels))
+    return urljoin(web_root, page)
+
+
+class SimpleLaunchpad(ServiceRoot):
+    """Custom Launchpad API class.
+
+    Provides simplified launchpad authentication way,
+    without using complex RequestTokenAuthorizationEngine machinery.
+    """
+
+    DEFAULT_VERSION = '1.0'
+
+    RESOURCE_TYPE_CLASSES = {
+            'bugs': launchpadlib.launchpad.BugSet,
+            'distributions': launchpadlib.launchpad.DistributionSet,
+            'people': launchpadlib.launchpad.PersonSet,
+            'project_groups': launchpadlib.launchpad.ProjectGroupSet,
+            'projects': launchpadlib.launchpad.ProjectSet,
+            }
+    RESOURCE_TYPE_CLASSES.update(ServiceRoot.RESOURCE_TYPE_CLASSES)
+
+    def __init__(self, credentials, service_root=STAGING_SERVICE_ROOT,
+                 cache=None, timeout=None, proxy_info=None,
+                 version=DEFAULT_VERSION):
+        service_root = lookup_service_root(service_root)
+        if (service_root.endswith(version) or service_root.endswith(version + '/')):
+            error = ("It looks like you're using a service root that "
+                     "incorporates the name of the web service version "
+                     '("%s"). Please use one of the constants from '
+                     "launchpadlib.uris instead, or at least remove "
+                     "the version name from the root URI." % version)
+            raise ValueError(error)
+        super(SimpleLaunchpad, self).__init__(
+            credentials, service_root, cache, timeout, proxy_info, version)
+
+    @classmethod
+    def set_credentials_consumer(cls, credentials, consumer_name):
+        if isinstance(consumer_name, Consumer):
+            consumer = consumer_name
+        else:
+            # Create a system-wide consumer. lazr.restfulclient won't
+            # do this automatically, but launchpadlib's default is to
+            # do a desktop-wide integration.
+            consumer = SystemWideConsumer(consumer_name)
+        credentials.consumer = consumer
+
+    @classmethod
+    def login_with(cls, credentials, application_name=None,
+                   service_root=STAGING_SERVICE_ROOT,
+                   launchpadlib_dir=None, timeout=None, proxy_info=None,
+                   allow_access_levels=None, max_failed_attempts=None,
+                   version=DEFAULT_VERSION, consumer_name=None):
+        (service_root, launchpadlib_dir, cache_path,
+         service_root_dir) = cls._get_paths(service_root, launchpadlib_dir)
+        if (application_name is None and consumer_name is None):
+            raise ValueError("At least one of application_name or"
+                             "consumer_name must be provided.")
+        cls.set_credentials_consumer(credentials, consumer_name)
+        return cls(credentials, service_root, cache_path, timeout, proxy_info,
+                   version)
+
+    @classmethod
+    def _get_paths(cls, service_root, launchpadlib_dir=None):
+        if launchpadlib_dir is None:
+            launchpadlib_dir = os.path.join('~', '.launchpadlib')
+        launchpadlib_dir = os.path.expanduser(launchpadlib_dir)
+        if launchpadlib_dir[:1] == '~':
+            raise ValueError("Must set $HOME or pass 'launchpadlib_dir' to "
+                "indicate location to store cached data")
+        if not os.path.exists(launchpadlib_dir):
+            os.makedirs(launchpadlib_dir, 0700)
+        os.chmod(launchpadlib_dir, 0700)
+        # Determine the real service root.
+        service_root = lookup_service_root(service_root)
+        # Each service root has its own cache and credential dirs.
+        scheme, host_name, path, query, fragment = urlsplit(
+            service_root)
+        service_root_dir = os.path.join(launchpadlib_dir, host_name)
+        cache_path = os.path.join(service_root_dir, 'cache')
+        if not os.path.exists(cache_path):
+            os.makedirs(cache_path, 0700)
+        return (service_root, launchpadlib_dir, cache_path, service_root_dir)
 
 
 class LaunchpadAnonymousData(object):
@@ -269,9 +375,8 @@ class LaunchpadData(LaunchpadAnonymousData):
 
     def __init__(
         self,
-        cachedir="~/.launchpadlib/cache/",
-        credentials_filename="/etc/lp-reports/credentials.txt"
+        credentials
     ):
-        self.launchpad = launchpadlib.launchpad.Launchpad.login_with(
-            'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
-            credentials_file=credentials_filename, launchpadlib_dir=cachedir)
+        self.launchpad = SimpleLaunchpad.login_with(
+            credentials, 'launchpad-reporting-www',
+            service_root=LPNET_SERVICE_ROOT)
