@@ -50,7 +50,8 @@
             "mos-sahara",
             "mos-heat",
             "mos-murano",
-            "mos-keystone"
+            "mos-keystone",
+            "mos-glance"
         ],
         "people": [
             "e0ne",
