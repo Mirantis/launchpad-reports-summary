@@ -25,7 +25,8 @@ from ttl_cache import ttl_cache
 LOG = logging.getLogger(__name__)
 
 
-def authorization_url(web_root, request_token, allow_access_levels=["DESKTOP_INTEGRATION"]):
+def authorization_url(web_root, request_token,
+                      allow_access_levels=["DESKTOP_INTEGRATION"]):
     """Return the authorization URL for a request token.
 
     This is the URL the end-user must visit to authorize the
@@ -64,7 +65,8 @@ class SimpleLaunchpad(ServiceRoot):
                  cache=None, timeout=None, proxy_info=None,
                  version=DEFAULT_VERSION):
         service_root = lookup_service_root(service_root)
-        if (service_root.endswith(version) or service_root.endswith(version + '/')):
+        if (service_root.endswith(version) or
+           service_root.endswith(version + '/')):
             error = ("It looks like you're using a service root that "
                      "incorporates the name of the web service version "
                      '("%s"). Please use one of the constants from '
