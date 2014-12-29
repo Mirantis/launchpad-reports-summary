@@ -1,6 +1,7 @@
 {
     "Fuel": {
         "teams": [
+            "fuel",
             "fuel-python",
             "fuel-ui",
             "fuel-library",
@@ -29,7 +30,8 @@
             "andreika-mail",
             "ekozhemyakin",
             "akolesnikov",
-            "fsoppelsa"
+            "fsoppelsa",
+            "romcheg"
         ]
     },
     "mos-linux": {
@@ -51,7 +53,8 @@
             "mos-heat",
             "mos-murano",
             "mos-keystone",
-            "mos-glance"
+            "mos-glance",
+            "mos-sustaining"
         ],
         "people": [
             "e0ne",
@@ -60,7 +63,8 @@
             "mmaxur",
             "yorik-sar",
             "maxmazurenka",
-            "myatsenko"
+            "myatsenko",
+            "akhivin"
         ]
     },
     "Partners": {
