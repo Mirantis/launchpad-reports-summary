@@ -75,6 +75,8 @@ launchpad_user = None
 
 def process_launchpad_authorization():
     global launchpad_user
+    # FIXME: store keys in session for every user (probably uuids)
+    # then retrieve launchpad instance from App-level dict
     credentials = Credentials()
     SimpleLaunchpad.set_credentials_consumer(credentials,
                                              "launchpad-reporting-www")

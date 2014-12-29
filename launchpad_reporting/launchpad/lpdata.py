@@ -377,8 +377,108 @@ class LaunchpadData(LaunchpadAnonymousData):
 
     def __init__(
         self,
-        credentials
+        db,
+        credentials,
     ):
         self.launchpad = SimpleLaunchpad.login_with(
             credentials, 'launchpad-reporting-www',
             service_root=LPNET_SERVICE_ROOT)
+
+    def get_bugs(self, project_name, statuses, milestone_name=None,
+                 tags=[], importance=[], **kwargs):
+        project = self.launchpad.projects[project_name]
+        result_bugs = self.get_all_bugs(project)
+        result_bugs = [task for task in result_bugs
+                       if task.status in statuses]
+        if milestone_name:
+            result_bugs = [task for task in result_bugs
+                           if task.milestone.name == milestone_name]
+        if importance:
+            result_bugs = [task for task in result_bugs
+                           if task.importance in importance]
+        if tags:
+            if kwargs.get("condition"):
+                result_bugs = [task for task in result_bugs
+                               if len(set(task.bug.tags).difference(set(tags))) > 0]
+            else:
+                result_bugs = [task for task in result_bugs
+                               if len(set(task.bug.tags).intersection(set(tags))) > 0]
+        return [Bug(r) for r in result_bugs]
+
+    @ttl_cache(minutes=5)
+    def get_all_bugs(self, project):
+        project_tasks = project.searchTasks(status=self.BUG_STATUSES["All"],
+                                            milestone=[
+                                                i.self_link
+                                                for i in project.active_milestones])
+        private_tasks = [task for task
+                         in project_tasks
+                         if "Private" in task.bug.information_type]
+        return private_tasks
+
+    @ttl_cache(minutes=5)
+    def get_all_bugs_by_pname(self, project_name):
+        project = self.launchpad.projects[project_name]
+        project_tasks = project.searchTasks(status=self.BUG_STATUSES["All"],
+                                            milestone=[
+                                                i.self_link
+                                                for i in project.active_milestones])
+        private_tasks = [task for task
+                         in project_tasks
+                         if "Private" in task.bug.information_type]
+        return private_tasks
+
+
+    def code_freeze_statistic(self, milestone, teams, exclude_tags):
+        connection = pymongo.Connection()
+        assignees_db = connection["assignees"]
+
+        report = dict.fromkeys(teams)
+        assigners = dict.fromkeys(teams)
+
+        for team in teams:
+            assigners[team] = []
+            if team != "Unknown":
+                for b in assignees_db.assignees.find({"Team": team}):
+                    assigners[team].extend(b["Members"])
+
+        all_assigners = []
+        for t in teams:
+            if t != "Unknown":
+                all_assigners.extend(assigners[t])
+
+        for team in teams:
+            report[team] = dict.fromkeys(["bugs", "count"])
+            BUGS = []
+
+            for pr in ["fuel", "mos"]:
+                bugs = self.get_all_bugs_by_pname(pr)
+                if team != "Unknown":
+                    # FIXME: code duplication
+                    bugs = [bug for bug in bugs
+                            if bug.status in self.BUG_STATUSES["NotDone"]]
+                    bugs = [bug for bug in bugs
+                            if bug.milestone.name == milestone]
+                    bugs = [bug for bug in bugs
+                            if len(set(bug.bug.tags).difference(set(exclude_tags))) > 0]
+                    bugs = [bug for bug in bugs
+                            if bug.importance in ["High", "Critical"]]
+                    bugs = [bug for bug in bugs
+                            if bug.assignee in assigners[team]]
+                else:
+                    bugs = [bug for bug in bugs
+                            if bug.status in self.BUG_STATUSES["NotDone"]]
+                    bugs = [bug for bug in bugs
+                            if bug.milestone.name == milestone]
+                    bugs = [bug for bug in bugs
+                            if len(set(bug.bug.tags).difference(set(exclude_tags))) > 0]
+                    bugs = [bug for bug in bugs
+                            if bug.importance in ["High", "Critical"]]
+                    bugs = [bug for bug in bugs
+                            if bug.assignee not in all_assigners]
+                for b in bugs:
+                    BUGS.append(b)
+            report[team]["bugs"] = BUGS
+            report[team]["count"] = len(BUGS)
+
+        return report

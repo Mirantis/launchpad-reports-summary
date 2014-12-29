@@ -27,4 +27,4 @@ class LaunchpadAnonymousClient(object):
 class LaunchpadClient(LaunchpadAnonymousClient):
 
     def __init__(self, credentials):
-        self.lpdata = LaunchpadData(credentials=credentials)
+        self.lpdata = LaunchpadData(db=db, credentials=credentials)
