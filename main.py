@@ -5,6 +5,7 @@ import argparse
 import collections
 import json
 import os
+import time
 
 import flask
 
@@ -89,7 +90,7 @@ def process_launchpad_authorization():
         except:
             auth_url = authorization_url(LPNET_WEB_ROOT,
                                          request_token=request_token_key)
-            return (True, auth_url)
+            return (True, auth_url, False)
         launchpad_user = LaunchpadClient(credentials)
         session['access_token_parts'] = {
             'oauth_token': credentials.access_token.key,
@@ -97,13 +98,13 @@ def process_launchpad_authorization():
             'lp.context': credentials.access_token.context
         }
         del session['request_token_parts']
-        return (False, None)
+        return (False, None, True)
     elif 'access_token_parts' in session:
         if launchpad_user is None:
             credentials.access_token = AccessToken.from_params(
                 session['access_token_parts'])
             launchpad_user = LaunchpadClient(credentials)
-        return (False, None)
+        return (False, None, True)
     else:
         credentials.get_request_token(
             web_root=LPNET_WEB_ROOT)
@@ -117,13 +118,13 @@ def process_launchpad_authorization():
         }
         auth_url = authorization_url(LPNET_WEB_ROOT,
                                      request_token=request_token_key)
-        return (True, auth_url)
+        return (True, auth_url, False)
 
 
 @app.route('/project/<project_name>/bug_table_for_status/<bug_type>/'
            '<milestone_name>/bug_list/')
 def bug_list(project_name, bug_type, milestone_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     project = launchpad.get_project(project_name)
@@ -154,7 +155,7 @@ def bug_list(project_name, bug_type, milestone_name):
 @app.route('/project/<project_name>/bug_list_for_sbpr/<milestone_name>/'
            '<bug_type>/<sbpr>')
 def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     subprojects = [sbpr]
@@ -205,7 +206,7 @@ def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr):
 @app.route('/project/<project_name>/api/release_chart_trends/'
            '<milestone_name>/get_data')
 def bug_report_trends_data(project_name, milestone_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     data = launchpad.release_chart(
@@ -219,7 +220,7 @@ def bug_report_trends_data(project_name, milestone_name):
 @app.route('/project/<project_name>/api/release_chart_incoming_outgoing/'
            '<milestone_name>/get_data')
 def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     data = launchpad.release_chart(
@@ -232,7 +233,7 @@ def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
 @app.route('/project/<project_name>/bug_table_for_status/'
            '<bug_type>/<milestone_name>')
 def bug_table_for_status(project_name, bug_type, milestone_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     project = launchpad.get_project(project_name)
@@ -250,7 +251,7 @@ def bug_table_for_status(project_name, bug_type, milestone_name):
 
 @app.route('/project/<project_name>/bug_trends/<milestone_name>/')
 def bug_trends(project_name, milestone_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     project = launchpad.get_project(project_name)
@@ -287,7 +288,6 @@ def bugs_lifecycle_report(milestone_name):
                                         milestone_name)
 
     bugs, filters = filter(request, bugs)
-
     return render_template(
         "bugs_lifecycle_report.html",
         report="sla",
@@ -316,7 +316,7 @@ def triage_queue(project):
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>/')
 def statistic_for_project_by_milestone_by_tag(project_name, milestone_name,
                                               tag):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     display = True
@@ -351,7 +351,7 @@ def statistic_for_project_by_milestone_by_tag(project_name, milestone_name,
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/')
 def statistic_for_project_by_milestone(project_name, milestone_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     display = False
@@ -386,7 +386,7 @@ def statistic_for_project_by_milestone(project_name, milestone_name):
 
 @app.route('/project/fuelplusmos/<milestone_name>/')
 def fuel_plus_mos_overview(milestone_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     milestones = db.bugs.milestones.find_one()["Milestone"]
@@ -526,7 +526,7 @@ def fuel_plus_mos_overview(milestone_name):
 
 @app.route('/project/<project_name>/')
 def project_overview(project_name):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     project_name = project_name.lower()
@@ -555,7 +555,7 @@ def project_overview(project_name):
 
 @app.route('/project/<global_project_name>/<tag>/')
 def mos_project_overview(global_project_name, tag):
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     global_project_name = global_project_name.lower()
@@ -591,7 +591,7 @@ def logout():
 
 @app.route('/')
 def main_page():
-    should_redirect, lp_url = process_launchpad_authorization()
+    should_redirect, lp_url, is_authorized = process_launchpad_authorization()
     if should_redirect:
         return redirect(lp_url)
     global_statistic = dict.fromkeys(db.prs)
