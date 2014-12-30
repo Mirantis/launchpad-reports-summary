@@ -132,9 +132,9 @@ def launchpad_auth_required(f):
             kwargs.update({'is_authorized': is_authorized})
             return f(*args, **kwargs)
         except Exception as e:
-            if 'access_token_parts' in session:
-                del session['access_token_parts']
             if hasattr(e, "content") and "Expired token" in e.content:
+                if 'access_token_parts' in session:
+                    del session['access_token_parts']
                 should_redirect, lp_url, is_authorized = process_launchpad_authorization()
                 print should_redirect, lp_url, is_authorized
                 if should_redirect:
