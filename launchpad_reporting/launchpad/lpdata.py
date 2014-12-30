@@ -20,6 +20,7 @@ from lazr.restfulclient.resource import ServiceRoot
 from bug import Bug
 from project import Project
 from ttl_cache import ttl_cache
+from launchpad_reporting.db.util import serialize_bug
 
 
 LOG = logging.getLogger(__name__)
@@ -477,6 +478,9 @@ class LaunchpadData(LaunchpadAnonymousData):
                     bugs = [bug for bug in bugs
                             if bug.assignee.name not in all_assigners]
                 for b in bugs:
+                    visibility = b.bug.information_type
+                    b = serialize_bug(b)
+                    b['visibility'] = visibility
                     BUGS.append(b)
             report[team]["bugs"] = BUGS
             report[team]["count"] = len(BUGS)
