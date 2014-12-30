@@ -83,7 +83,13 @@ def process_launchpad_authorization():
     if 'request_token_parts' in session:
         credentials._request_token = AccessToken.from_params(
             session['request_token_parts'])
-        credentials.exchange_request_token_for_access_token(LPNET_WEB_ROOT)
+        request_token_key = credentials._request_token.key
+        try:
+            credentials.exchange_request_token_for_access_token(LPNET_WEB_ROOT)
+        except:
+            auth_url = authorization_url(LPNET_WEB_ROOT,
+                                         request_token=request_token_key)
+            return (True, auth_url)
         launchpad_user = LaunchpadClient(credentials)
         session['access_token_parts'] = {
             'oauth_token': credentials.access_token.key,
@@ -576,8 +582,10 @@ def mos_project_overview(global_project_name, tag):
 
 @app.route('/logout')
 def logout():
-    del session['request_token_parts']
-    del session['access_token_parts']
+    if 'request_token_parts' in session:
+        del session['request_token_parts']
+    if 'access_token_parts' in session:
+        del session['access_token_parts']
     return redirect(url_for('main_page'))
 
 
