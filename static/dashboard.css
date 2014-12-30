@@ -163,7 +163,14 @@ th {
 }
 tr.private-bugs {
   color: green !important
+}
 
+tr.private-security-bugs {
+  color: #009999 !important
+}
+
+tr.proprietary-bugs {
+  color: #660066 !important
 }
 
 th.headerSortUp {
