@@ -375,6 +375,8 @@ class LaunchpadAnonymousData(object):
 
 class LaunchpadData(LaunchpadAnonymousData):
 
+    PRIVATE_BUG_TYPES = ['Private', 'Private Security', 'Proprietary']
+
     def __init__(
         self,
         db,
@@ -417,17 +419,16 @@ class LaunchpadData(LaunchpadAnonymousData):
         return private_tasks
 
     @ttl_cache(minutes=5)
-    def get_all_bugs_by_pname(self, project_name):
+    def get_all_bugs_by(self, project_name, milestone):
         project = self.launchpad.projects[project_name]
-        project_tasks = project.searchTasks(status=self.BUG_STATUSES["All"],
-                                            milestone=[
-                                                i.self_link
-                                                for i in project.active_milestones])
-        private_tasks = [task for task
-                         in project_tasks
-                         if "Private" in task.bug.information_type]
-        return private_tasks
-
+        try:
+            milestone = [unicode('https://api.launchpad.net/1.0/{0}/+milestone/{1!s}').format(
+                project_name, ms) for ms in milestone]
+            return project.searchTasks(status=self.BUG_STATUSES["All"],
+                                       milestone=milestone,
+                                       information_type=self.PRIVATE_BUG_TYPES)
+        except Exception as e:
+            print e
 
     def code_freeze_statistic(self, milestone, teams, exclude_tags):
         connection = pymongo.Connection()
@@ -435,6 +436,8 @@ class LaunchpadData(LaunchpadAnonymousData):
 
         report = dict.fromkeys(teams)
         assigners = dict.fromkeys(teams)
+
+        project_names = ["fuel", "mos"]
 
         for team in teams:
             assigners[team] = []
@@ -447,35 +450,32 @@ class LaunchpadData(LaunchpadAnonymousData):
             if t != "Unknown":
                 all_assigners.extend(assigners[t])
 
+        projects_private_bugs = dict.fromkeys(project_names)
+        # prefetch and preprocess private bugs
+        for pr in project_names:
+            bugs = self.get_all_bugs_by(pr, milestone)
+            bugs = [bug for bug in bugs
+                    if bug.status in self.BUG_STATUSES["NotDone"]]
+            bugs = [bug for bug in bugs
+                    if bug.milestone.name == milestone[0]]
+            bugs = [bug for bug in bugs
+                    if len(set(bug.bug.tags).difference(set(exclude_tags))) > 0]
+            bugs = [bug for bug in bugs
+                    if bug.importance in ["High", "Critical"]]
+            projects_private_bugs[pr] = bugs
+
         for team in teams:
             report[team] = dict.fromkeys(["bugs", "count"])
             BUGS = []
 
-            for pr in ["fuel", "mos"]:
-                bugs = self.get_all_bugs_by_pname(pr)
+            for pr in project_names:
+                bugs = projects_private_bugs[pr]
                 if team != "Unknown":
-                    # FIXME: code duplication
                     bugs = [bug for bug in bugs
-                            if bug.status in self.BUG_STATUSES["NotDone"]]
-                    bugs = [bug for bug in bugs
-                            if bug.milestone.name == milestone]
-                    bugs = [bug for bug in bugs
-                            if len(set(bug.bug.tags).difference(set(exclude_tags))) > 0]
-                    bugs = [bug for bug in bugs
-                            if bug.importance in ["High", "Critical"]]
-                    bugs = [bug for bug in bugs
-                            if bug.assignee in assigners[team]]
+                            if bug.assignee.name in assigners[team]]
                 else:
                     bugs = [bug for bug in bugs
-                            if bug.status in self.BUG_STATUSES["NotDone"]]
-                    bugs = [bug for bug in bugs
-                            if bug.milestone.name == milestone]
-                    bugs = [bug for bug in bugs
-                            if len(set(bug.bug.tags).difference(set(exclude_tags))) > 0]
-                    bugs = [bug for bug in bugs
-                            if bug.importance in ["High", "Critical"]]
-                    bugs = [bug for bug in bugs
-                            if bug.assignee not in all_assigners]
+                            if bug.assignee.name not in all_assigners]
                 for b in bugs:
                     BUGS.append(b)
             report[team]["bugs"] = BUGS
