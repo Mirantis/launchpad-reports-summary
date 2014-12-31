@@ -72,13 +72,11 @@ KEY_MILESTONE = "6.1"
 MILESTONES = db.bugs.milestones.find_one()["Milestone"]
 flag = False
 
-launchpad_user = None
+user_agents = {}
 
 
 def process_launchpad_authorization():
-    global launchpad_user
-    # FIXME: store keys in session for every user (probably uuids)
-    # then retrieve launchpad instance from App-level dict
+    global user_agents
     credentials = Credentials()
     SimpleLaunchpad.set_credentials_consumer(credentials,
                                              "launchpad-reporting-www")
@@ -92,7 +90,7 @@ def process_launchpad_authorization():
             auth_url = authorization_url(LPNET_WEB_ROOT,
                                          request_token=request_token_key)
             return (True, auth_url, False)
-        launchpad_user = LaunchpadClient(credentials)
+        user_agents[credentials.access_token.key] = LaunchpadClient(credentials)
         session['access_token_parts'] = {
             'oauth_token': credentials.access_token.key,
             'oauth_token_secret': credentials.access_token.secret,
@@ -101,10 +99,10 @@ def process_launchpad_authorization():
         del session['request_token_parts']
         return (False, None, True)
     elif 'access_token_parts' in session:
-        if launchpad_user is None:
+        if not session['access_token_parts']['oauth_token'] in user_agents:
             credentials.access_token = AccessToken.from_params(
                 session['access_token_parts'])
-            launchpad_user = LaunchpadClient(credentials)
+            user_agents[credentials.access_token.key] = LaunchpadClient(credentials)
         return (False, None, True)
     else:
         credentials.get_request_token(
@@ -335,6 +333,7 @@ def triage_queue(project, is_authorized):
         teams=teams_data,
         filters=filters,
     )
+
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>/')
 @launchpad_auth_required
