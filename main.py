@@ -218,6 +218,24 @@ def bug_trends(project_name, milestone_name):
                                  update_time=launchpad.get_update_time())
 
 
+@app.route('/project/bugs_lifecycle_report/')
+def bugs_lifecycle_report():
+    projects_list = list(db.prs)
+
+    fix_committed_bugs = launchpad.fix_committed_bugs_lifecycle_report(
+        projects_list)
+    new_bugs = launchpad.new_bugs_lifecycle_report(projects_list)
+    confirmed_bugs = launchpad.confirmed_bugs_lifecycle_report(projects_list)
+    in_progress_bugs = launchpad.in_progress_bugs_lifecycle_report(
+        projects_list)
+
+    return flask.render_template("bugs_lifecycle_report.html",
+                                 fix_committed_bugs=fix_committed_bugs,
+                                 new_bugs=new_bugs,
+                                 confirmed_bugs=confirmed_bugs,
+                                 in_progress_bugs=in_progress_bugs)
+
+
 @app.route('/project/code_freeze_report/<milestone_name>/')
 def code_freeze_report(milestone_name):
     milestones = db.bugs.milestones.find_one()["Milestone"]
