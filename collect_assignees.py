@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-import pymongo
+from pymongo import MongoClient
 import os
 
 from launchpad_reporting.db import db
@@ -10,7 +10,7 @@ from launchpad_reporting.db import db
 from launchpad_reporting.launchpad.lpdata import LaunchpadAnonymousData
 
 lpdata = LaunchpadAnonymousData(db=db)
-connection = pymongo.Connection()
+connection = MongoClient()
 db = connection["assignees"]
 
 assignees = db.assignees

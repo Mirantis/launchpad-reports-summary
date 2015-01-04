@@ -3,7 +3,7 @@
 import copy
 import datetime
 import logging
-import pymongo
+from pymongo import MongoClient
 import time
 import os
 
@@ -20,7 +20,6 @@ from lazr.restfulclient.resource import ServiceRoot
 from bug import Bug
 from project import Project
 from ttl_cache import ttl_cache
-from launchpad_reporting.db.util import serialize_bug
 
 
 LOG = logging.getLogger(__name__)
@@ -431,58 +430,3 @@ class LaunchpadData(LaunchpadAnonymousData):
         except Exception as e:
             print e
 
-    def code_freeze_statistic(self, milestone, teams, exclude_tags):
-        connection = pymongo.Connection()
-        assignees_db = connection["assignees"]
-
-        report = dict.fromkeys(teams)
-        assigners = dict.fromkeys(teams)
-
-        project_names = ["fuel", "mos"]
-
-        for team in teams:
-            assigners[team] = []
-            if team != "Unknown":
-                for b in assignees_db.assignees.find({"Team": team}):
-                    assigners[team].extend(b["Members"])
-
-        all_assigners = []
-        for t in teams:
-            if t != "Unknown":
-                all_assigners.extend(assigners[t])
-
-        projects_private_bugs = dict.fromkeys(project_names)
-        # prefetch and preprocess private bugs
-        for pr in project_names:
-            bugs = self.get_all_bugs_by(pr, milestone)
-            bugs = [bug for bug in bugs
-                    if bug.status in self.BUG_STATUSES["NotDone"]]
-            bugs = [bug for bug in bugs
-                    if bug.milestone.name == milestone[0]]
-            bugs = [bug for bug in bugs
-                    if len(set(bug.bug.tags).difference(set(exclude_tags))) > 0]
-            bugs = [bug for bug in bugs
-                    if bug.importance in ["High", "Critical"]]
-            projects_private_bugs[pr] = bugs
-
-        for team in teams:
-            report[team] = dict.fromkeys(["bugs", "count"])
-            BUGS = []
-
-            for pr in project_names:
-                bugs = projects_private_bugs[pr]
-                if team != "Unknown":
-                    bugs = [bug for bug in bugs
-                            if bug.assignee.name in assigners[team]]
-                else:
-                    bugs = [bug for bug in bugs
-                            if bug.assignee.name not in all_assigners]
-                for b in bugs:
-                    visibility = b.bug.information_type
-                    b = serialize_bug(b)
-                    b['visibility'] = visibility
-                    BUGS.append(b)
-            report[team]["bugs"] = BUGS
-            report[team]["count"] = len(BUGS)
-
-        return report

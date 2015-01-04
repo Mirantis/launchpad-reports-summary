@@ -2,13 +2,13 @@
 
 import os
 import json
-import pymongo
+from pymongo import MongoClient
 
 
 class DB(object):
 
     def __init__(self, host="0.0.0.0", port=27017):
-        self.connection = pymongo.Connection(host=host, port=port)
+        self.connection = MongoClient(host=host, port=port)
         self.bugs = self.connection["bugs"]
         self.assignees = self.connection["assignees"]
         self.mos = self.connection["mos"]
