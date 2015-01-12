@@ -10,6 +10,7 @@ import flask
 
 from launchpad_reporting.launchpad import launchpad
 from launchpad_reporting.db import db
+from launchpad_reporting import sla_reports
 
 
 path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
@@ -216,6 +217,32 @@ def bug_trends(project_name, milestone_name):
                                  prs=list(db.prs),
                                  key_milestone=key_milestone,
                                  update_time=launchpad.get_update_time())
+
+
+@app.route('/project/bugs_lifecycle_report/<milestone_name>')
+def bugs_lifecycle_report(milestone_name):
+    return flask.render_template(
+        "bugs_lifecycle_report.html",
+        milestone_name=milestone_name,
+        all_bugs=sla_reports.get_reports_data('sla-report', ['mos', 'fuel'],
+                                              milestone_name),
+    )
+
+
+@app.route('/project/triage_queue_mos/')
+def triage_queue_mos():
+    return flask.render_template(
+        "bugs_lifecycle_report.html",
+        all_bugs=sla_reports.get_reports_data('non-triaged-in-time', ['mos']),
+    )
+
+
+@app.route('/project/triage_queue_fuel/')
+def triage_queue_fuel():
+    return flask.render_template(
+        "bugs_lifecycle_report.html",
+        all_bugs=sla_reports.get_reports_data('non-triaged-in-time', ['fuel']),
+    )
 
 
 @app.route('/project/code_freeze_report/<milestone_name>/')
