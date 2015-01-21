@@ -99,8 +99,9 @@ def serialize_bug(bug, task=None):
             if bug.assignee_link else None
         bug_assignee_link = bug.assignee_link \
             if bug.assignee_link else None
-        bug_milestone = str(bug.milestone_link).split("/")[-1]
-        bug_milestone_link = bug.milestone_link
+        bug_milestone_link = bug.milestone_link if bug.milestone_link else None
+        bug_milestone = str(bug_milestone_link).split("/")[-1] \
+            if bug_milestone_link else None
         bug_owner = str(bug.owner_link).split("~")[1]
         bug_owner_link = bug.owner_link
     else:
@@ -108,8 +109,9 @@ def serialize_bug(bug, task=None):
         bug_assignee = bug.assignee.name if bug.assignee else None
         bug_assignee_link = bug.assignee.web_link \
             if bug.assignee else None
-        bug_milestone = bug.milestone.name
-        bug_milestone_link = bug.milestone.web_link
+        milestone = bug.milestone
+        bug_milestone = milestone.name if milestone else None
+        bug_milestone_link = milestone.web_link if milestone else None
         bug_owner = bug.owner.name
         bug_owner_link = bug.owner.web_link
 
@@ -161,6 +163,8 @@ def load_project_bugs(project_name, queue, stop_event):
     for m in project.active_milestones:
         milestone_series[str(m)] = str(m.series_target)
 
+    milestone_series[None] = None
+
     counter = 0
     for bug in launchpad.get_all_bugs(project):
         bug_id = bug.bug.id
@@ -177,17 +181,15 @@ def load_project_bugs(project_name, queue, stop_event):
             if project not in target_projects:
                 db.bugs[project].remove({'id': bug_id})
 
-        bug_milestone = str(bug.milestone)
-        rts = bug.related_tasks.entries
+        bug_milestone = str(bug.milestone) if bug.milestone else None
+        related_tasks = bug.related_tasks.entries
+        related_tasks_milestones = [rt["target_link"] for rt in related_tasks]
 
-        if rts:
-            rts_milestones = []
-            for rt in rts:
-                rts_milestones.append(rt["target_link"])
-            if milestone_series[bug_milestone] not in rts_milestones:
+        if related_tasks:
+            if milestone_series[bug_milestone] not in related_tasks_milestones:
                 queue.put(serialize_bug(bug))
 
-            for rt in rts:
+            for rt in related_tasks:
                 counter += 1
                 rt = Bug(rt)
                 queue.put(serialize_bug(rt, task=bug))

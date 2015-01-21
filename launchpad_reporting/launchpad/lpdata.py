@@ -27,8 +27,8 @@ class LaunchpadData(object):
                                    "Opinion", "Incomplete"],
                     "All":        ["New", "Incomplete", "Invalid",
                                    "Won't Fix", "Confirmed", "Triaged",
-                                   "In Progress", "Fix Released",
-                                   "Fix Committed", "Opinion", "Expired"],
+                                   "In Progress", "Fix Committed",
+                                   "Opinion", "Expired"],
                     "NotDone":    ["New", "Confirmed", "Triaged", "In Progress"],
                     "Fixed": ["Fix Committed", "Fix Released"]}
     BUG_STATUSES_ALL = []
@@ -74,7 +74,7 @@ class LaunchpadData(object):
         return [Bug(r) for r in project.find({"$and": search})]
 
     @ttl_cache(minutes=5)
-    def get_all_bugs(self, project):
+    def get_all_bugs(self, project, milestone=None):
 
         def timestamp_to_utc_date(timestamp):
             return (datetime.datetime.fromtimestamp(timestamp).
@@ -88,9 +88,7 @@ class LaunchpadData(object):
             pass
 
         return project.searchTasks(status=self.BUG_STATUSES["All"],
-                                   milestone=[
-                                       i.self_link
-                                       for i in project.active_milestones],
+                                   milestone=milestone,
                                    modified_since=update_time,
                                    omit_duplicates=False)
 
