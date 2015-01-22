@@ -186,7 +186,7 @@ def load_project_bugs(project_name, queue, stop_event):
         related_tasks_milestones = [rt["target_link"] for rt in related_tasks]
 
         if related_tasks:
-            if milestone_series[bug_milestone] not in related_tasks_milestones:
+            if milestone_series.get(bug_milestone) not in related_tasks_milestones:
                 queue.put(serialize_bug(bug))
 
             for rt in related_tasks:
