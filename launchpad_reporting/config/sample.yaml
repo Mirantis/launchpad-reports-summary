@@ -1,0 +1,127 @@
+criterias:
+    # implements criteria #4 from requirements:
+    # New bug should be marked for milestone/importance/assignee in 1 business day
+    - name: sla-non-triaged
+      implementation: criterias.NonTriaged
+      text: Criteria for non triaged bugs
+      short-text: non-triaged
+      hint-text: Bug was not triaged properly in {threshold} days
+      config:
+          # Bug not triaged in that number of days is considered
+          # to be violating triage SLA
+          - name: threshold
+            default: 1
+            text: Threshould to consider bug non-triaged in time, in days
+
+      # implements criteria #3 from requirements:
+      # Recommended bug lifecycle from New to Fix Committed:
+      #  - For High/Critical: New -> Fix Committed = 10 business days
+      #  - For Medium/Low: New -> Fix Committed = 40 business days
+    - name: sla-full-lifecycle
+      implementation: criterias.SLAFullLifecycle
+      text: Lifecycle criteria
+      short-text: lifetime
+      hint-text: Bug of severity {importance} {with_customer_found} must be fixed in {threshold} days
+      config:
+          # Pick bug if it is critical and wasn't fixed in that
+          # number of days
+          - name: critical_threshold
+            default: 10
+            text: threshold for Critical bugs, in days
+          # Pick bug if it is high and wasn't fixed in that
+          # number of days
+          - name: high_threshold
+            default: 40
+            text: threshold for High bugs, in days
+
+      # implements criteria #5 from requirements:
+      # Confirmed/Triaged bugs should stay in this condition for not MORE than 5 business day.
+      # The last updated time should also be tracked.
+    - name: sla-confirmed-triaged
+      implementation: criterias.SLAConfirmedTriaged
+      text: Criteria for Confirmed/Triaged bugs
+      short-text: conf/tri
+      hint-text: The bug is hanging in 'Confirmed/Triaged' status for more than {threshold} days
+      config:
+          - name: threshold
+            default: 5
+            text: threshold, in days
+
+      # implements criteria #6 from requirements:
+      # In Progress bugs should be fixed according to the following requirements:
+      # - In progress+Critical+customer-found = not more than 2 days
+      # - In progress+Critical = not more than 3 business days 
+      # - In progress+High+customer-found = not more than 5 business days
+      # - In progress+High = not more than 7-10 business days
+      # - In progress+Others = not more than 10 business days
+    - name: sla-in-progress
+      implementation: criterias.SLAInProgress
+      text: Criteria for In Progress bugs
+      short-text: in-progress
+      hint-text: Bug of severity {importance} {with_customer_found} is hanging in 'In Progress' status for more than {threshold} days
+      config:
+          - name: critical_customer_found_threshold
+            default: 2
+            text: threshold for Critical customer-found bugs, in days
+          - name: critical_threshold
+            default: 3
+            text: threshold for Critical bugs, in days
+          - name: high_customer_found_threshold
+            default: 5
+            text: threshold for High customer-found bugs, in days
+          - name: high_threshold
+            default: 7
+            text: threshold for High bugs, in days
+          - name: others_threshold
+            default: 11
+            text: threshold for all other bugs, in days
+
+      # implements criteria for current HCF report
+      # (bug is either critical or high)
+    - name: hcf-affecting
+      implementation: criterias.HCFAffecting
+
+reports:
+
+    - name: non-triaged-in-time
+      text: Non-Triaged in Time Bugs
+      parameter: project
+      criterias:
+            - name: sla-non-triaged
+      # do not implement frequent-polling in current scope
+      frequent-polling: true
+      display-trigger-criterias: true
+        
+    - name: sla-report
+      text: SLA Report
+      parameter: milestone
+      group-by: team
+      display-trigger-criterias: true
+      criterias:
+            - name: sla-full-lifecycle
+              importance: 1
+              config-override:
+                    6.1_critical_threshold: 5
+                    6.1_high_threshold: 10
+            - name: sla-confirmed-triaged
+              importance: 3
+            - name: sla-in-progress
+              importance: 1
+
+    # - name: hcf-status
+    #   text: HCF Status
+    #   parameter: milestone
+    #   group-by: team
+    #   criterias:
+    #         - name: hcf-affecting
+
+# do not implement menu in current scope
+menu:
+    - name: Triage
+      submenu:
+        - report-name: non-triaged-in-time
+        
+    - name: Release
+      submenu:
+        - report-name: sla-report
+          report-name: hcf-status

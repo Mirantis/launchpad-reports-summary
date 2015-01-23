@@ -10,9 +10,11 @@ launchpadlib==1.6.0
 lazr.restfulclient==0.13.1
 lazr.uri==1.0.3
 oauth==1.0.1
+pandas
 pymongo==2.7.2
 python-dateutil==2.2
 pytz==2014.9
+PyYaml
 requests==2.4.3
 simplejson==3.6.5
 six==1.8.0

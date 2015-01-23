@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+
+{% block body %}
+<h2 class="page-header"><br>SLA Report {{ milestone_name }} </h2>
+<div class="col-sm-3 col-md-2 sidebar">
+    <br>
+    <ul class="nav nav-sidebar">
+
+        <li>
+            <a href="/project/fuelplusmos/">Back to FUEL/MOS statistic
+            </a>
+        </li>
+    </ul>
+</div>
+
+<input type="radio" checked name="tabs" id="tab1">
+<div id="tab-content" class="tab-content animated fadeIn">
+
+    {% for bug_data in all_bugs %}
+    {% if loop.index == 1 %}
+    <pre>
+{{ bug_data['report_legend'] }} 
+    </pre>
+    {% endif %}
+    <h3 class="page-header"><br>{{ bug_data['display_name'] }} : {{ bug_data.bugs|length }} bugs </h3>
+        <table class="sortable table">
+            <thead>
+                <tr>
+                    <th>Bug #</th>
+                    <th>Title</th>
+                    <th>Milestone</th>
+                    <th>Status</th>
+                    <th>Importance</th>
+                    <th>Assignee</th>
+                    {% if bug_data['display_criterias'] %} <th>Criteria</th> {% endif %}
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for b in bug_data.bugs %}
+            <tr {% if 'customer-found' in b.tags %}class="customer-found-bug" {% else %}class='bug'{% endif %} id="{{ b.id }}">
+                <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
+                <td><span title="{{ b.criteria_hint_text }}"> {{ b.title }}</span></td>
+                <td>{{ b.milestone }}</td>
+                <td>{{ b.status }}</td>
+                <td>{{ b.importance }}</td>
+                <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+                {% if bug_data['display_criterias'] %} <td>{{ b.criteria_short_text }}</td>  {% endif %}
+              </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+
+</div>
+
+{% endblock %}

@@ -148,6 +148,7 @@ def serialize_bug(bug, task=None):
         'date_left_closed': bug_dates["date_left_closed"],
         'date_left_new': bug_dates["date_left_new"],
         'date_triaged': bug_dates["date_triaged"],
+        'date_last_updated': process_date(bug_item.date_last_updated),
         'created less than week': younger_than(bug_dates["date_created"], weeks=1),
         'created less than month': younger_than(bug_dates["date_created"], months=1),
         'fixed less than week': younger_than(bug_dates["date_fix_committed"], weeks=1),
