@@ -208,11 +208,14 @@ class LaunchpadData(object):
 
         return page_statistic
 
-    def code_freeze_statistic(self, milestone, teams, exclude_tags):
+    def code_freeze_statistic(self, milestone, teams, exclude_tags,filters={},
+                              teams_data=[]):
+
         connection = pymongo.Connection()
         assignees_db = connection["assignees"]
 
         report = dict.fromkeys(teams)
+        report["total_count"] = 0
         assigners = dict.fromkeys(teams)
 
         def get_importance(bug):
@@ -236,6 +239,7 @@ class LaunchpadData(object):
             if t != "Unknown":
                 all_assigners.extend(assigners[t])
 
+        total_count = 0
         for team in teams:
             report[team] = dict.fromkeys(["bugs", "count"])
             BUGS = []
@@ -262,8 +266,48 @@ class LaunchpadData(object):
                 for b in bugs:
                     BUGS.append(b)
             BUGS = sorted(BUGS, key=get_importance, reverse=True)
+
+            if filters and filters['status']:
+                newbugs = []
+                for x in BUGS:
+                    if x['status'] in filters['status']:
+                        newbugs.append(x)
+                BUGS = newbugs
+
+            if filters and filters['importance']:
+                newbugs = []
+                for x in BUGS:
+                    if x['importance'] in filters['importance']:
+                        newbugs.append(x)
+                BUGS = newbugs
+
+            if filters and filters['assignee']:
+                new_teams_data = {}
+                for x in teams_data.values():
+                    new_teams_data.update(x)
+
+                all_people = new_teams_data.keys()
+                for vals in new_teams_data.values():
+                    all_people.extend(vals)
+
+                newbugs = []
+                for x in BUGS:
+                    found = False
+
+                    for name, lst in new_teams_data.items():
+                        if (name in filters['assignee'] and
+                            (x['assignee'] == name or x['assignee'] in lst)):
+                                found = True
+
+                    if found or ('unknown' in filters['assignee'] and x['assignee'] not in all_people):
+                        newbugs.append(x)
+
+                BUGS = newbugs
+
+
             report[team]["bugs"] = BUGS
             report[team]["count"] = len(BUGS)
+            report["total_count"] += len(BUGS)
 
         return report
 
