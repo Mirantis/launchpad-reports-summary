@@ -34,7 +34,7 @@ def print_select(dct, param, val):
 
 app.jinja_env.globals.update(print_select=print_select)
 
-key_milestone = "6.0"
+key_milestone = "6.1"
 
 flag = False
 

@@ -54,17 +54,15 @@
             "mos-murano",
             "mos-keystone",
             "mos-glance",
-            "mos-sustaining"
+            "mos-sustaining",
+            "mos-platform-components",
+            "mos-core-components"
         ],
         "people": [
-            "e0ne",
-            "vrovachev",
             "alexei-kornienko",
             "mmaxur",
             "yorik-sar",
-            "maxmazurenka",
-            "myatsenko",
-            "akhivin"
+            "maxmazurenka"
         ]
     },
     "Partners": {
