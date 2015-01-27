@@ -7,16 +7,17 @@
     <br>
     {% for m in milestones|sort %}
     {% if m != "5.0.3" %}
-    <ul class="nav nav-sidebar">
-        <li {% if current_milestone == m %}class="active"{% endif %}>
-            <a href="/project/code_freeze_report/{{ m }}">MOS HCF Status {{ m }}</a>
-        </li>
+    <ul class="nav nav-pills nav-stacked">
+        {% if current_milestone == m %}
+        <li class="active"><a href="/project/code_freeze_report/{{ m }}">MOS HCF Status {{ m }}</a></li>
+        {% else %}
+        <li><a href="/project/code_freeze_report/{{ m }}">MOS HCF Status {{ m }}</a></li>
+        {% endif %}
     </ul>
     {% endif %}
     {% endfor %}
     
-    <ul class="nav nav-sidebar">
-
+    <ul class="nav nav-pills nav-stacked">
         <li>
             <a href="/project/fuelplusmos/{{ key_milestone }}">Back to FUEL/MOS statistic
             </a>
@@ -24,48 +25,149 @@
     </ul>
 </div>
 
-<ul class="tabs">
-    <li>
-        <input type="radio" checked name="tabs" id="tab6">
-        <label for="tab6">All</label>
-        <div id="tab-content6" class="tab-content animated fadeIn">
-            {% for team in teams %}
-            <h3 class="page-header"><br>{{team}} : {{bugs[team]["count"]}} {% if bugs[team]["count"] == 1%}bug{%else%}bugs{%endif%}</h3>
-            <table class="sortable table" id="hcf_{{ team }}0_table">
-                <thead>
-                    <tr>
-                        <th>Bug #</th>
-                        <th>Title</th>
-                        <th>Milestone</th>
-                        <th>Status</th>
-                        <th>Importance</th>
-                        <th>Assignee</th>
-                    </tr>
-                </thead>
+<div role="tabpanel">
 
-                <tbody>
-                {% for b in bugs[team]["bugs"] %}
-                <tr {% if 'customer-found' in b.tags %}class="customer-found-bug" {% else %}class='bug'{% endif %}id="{{ b.id }}">
-                    <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
-                    <td>{{ b.title }}</td>
-                    <td>{{ b.milestone }}</td>
-                    <td>{{ b.status }}</td>
-                    <td>{{ b.importance }}</td>
-                   <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
-                  </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            {% endfor %}
+    <ul class="nav nav-pills" role="tablist" id="TeamTabs">
+        <li role="presentation"><a onclick="onTabClick('All')" aria-controls="all" role="tab" data-toggle="tab">All<span class="badge pull-right">{{bugs["total_count"]}}</span></a></li>
+        {% for team in list_teams %}
+        <li role="presentation" >
+            <a onclick="onTabClick('{{team}}')" aria-controls="{{team}}" role="tab" data-toggle="tab">
+                {{ team }}<span class="badge pull-right">{{bugs[team]["count"]}}</span>
+            </a></li>
+        {% endfor %}
+
+        <a onclick="go_to_csv()" title="Get current page in comma-separated CSV format! You can process it later using awk like that:&#13;awk&nbsp;-F&nbsp;&quot;,&quot;&nbsp;'{&nbsp;print&nbsp;$1&nbsp;&quot;&nbsp;&quot;&nbsp;$2&nbsp;}'&nbsp;output.txt">GET CSV</a>
+    </ul>
+
+
+
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade in active" id="all">
+            <h3 class="page-header"><br>All Bugs: {{bugs["total_count"]}} {% if bugs["total_count"] == 1%}bug{%else%}bugs{%endif%}</h3>
+            <div class="panel panel-default">
+                <div class="panel-heading" id="panel_head">
+                    <em>Status</em>
+                    <select id="111" data-placeholder="Choose status..." class="chzn-select" multiple style="width: 350px; " tabindex="-1" title>
+                        <option value=""></option>
+                            <option value="" {{ print_select(filters, 'status', 'Confirmed') }}>Confirmed</option>
+                            <option value="" {{ print_select(filters, 'status', 'Triaged') }}>Triaged</option>
+                            <option value="" {{ print_select(filters, 'status', 'In Progress') }}>In Progress</option>
+                    </select>
+                    <em>Importance</em>
+                    <select id="222" data-placeholder="Choose importance..." class="chzn-select" multiple style="width: 350px; " tabindex="-1" title>
+                        <option value=""></option>
+                            <option value="" {{ print_select(filters, 'importance', 'Critical') }} >Critical</option>
+                            <option value="" {{ print_select(filters, 'importance', 'High') }} >High</option>
+                    </select>
+                    <em>Assignee</em>
+                    <select id="333" data-placeholder="Choose assignee..." class="chzn-select" multiple style="width: 350px; " tabindex="-1" title>
+                        {% for group in teams %}
+                        <optgroup label="{{group}}">{{group}}
+                            {% for i in teams[group] %}
+                            <option value="" {{ print_select(filters, 'assignee', i) }}>{{i}}</option>
+                            {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-default" onclick="filters()">Submit</button>
+                    <script>
+                        function get_current_url() {
+                            var current_url = document.URL;
+                            if (current_url.indexOf("?")>-1) {
+                                current_url = current_url.substr(0, current_url.indexOf("?"));
+                            }
+                            return current_url
+                        }
+
+                        function go_to_url(base_url, assignee_str, tab_name) {
+                            var query_str = "";
+                            $( "#111 option:selected" ).each(function() {
+                                query_str += "&status=" + $(this).text();
+                            });
+
+                            $( "#222 option:selected" ).each(function() {
+                                query_str += "&importance=" + $(this).text();
+                            });
+
+                            query_str += assignee_str
+
+                            if (tab_name != "") {
+                                query_str += "&tab_name=" + tab_name
+                            }
+
+                            query_str = query_str.substr(1, query_str.length);
+                            window.location.href = base_url + "?" + query_str;
+                        }
+
+                        function onTabClick(team_name) {
+                            go_to_url(get_current_url(), "", team_name)
+                        }
+
+                        function go_to_csv() {
+                            assignee_str = "";
+                            $( "#333 option:selected" ).each(function() {
+                                 assignee_str += "&assignee=" + $(this).text();
+                            });
+
+                            url = get_current_url().replace("code_freeze_report", "code_freeze_report_csv")
+
+                            go_to_url(url, assignee_str, "");
+                        }
+
+                        function filters() {
+
+                            assignee_str = "";
+                            $( "#333 option:selected" ).each(function() {
+                                 assignee_str += "&assignee=" + $(this).text();
+                            });
+
+                            go_to_url(get_current_url(), assignee_str, "");
+                        }
+                    </script>
+                </div>
+
+                <div class="CSSTableGenerator">
+                <table class="sortable table" id="hcf_0_table">
+                    <thead>
+                        <tr>
+                            <th>Bug #</th>
+                            <th>Title</th>
+                            <th>Milestone</th>
+                            <th>Status</th>
+                            <th>Importance</th>
+                            <th>Assignee</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for t in list_teams %}
+                    	{% for b in bugs[t]["bugs"] %}
+                   	<tr id="{{ b.id }}">
+                            <td><a href="{{ b.web_link }}">{{ b.id }}<br> {% if 'customer-found' in b.tags %}<span class="label label-primary">customer-found</span>{%endif%}</a></td>
+                            <td>{{ b.title }}</td>
+                            <td>{{ b.milestone }}</td>
+                            <td>{{ b.status }}</td>
+                            <td>{{ b.importance }}</td>
+                            <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+
         </div>
-    </li>
 
-    {% for i in range(5) %}
-    <li>
-        <input type="radio" name="tabs" id="tab{{i}}">
-        <label for="tab{{i}}">{{ teams[i] }}</label>
-        <div id="tab-content{{i}}" class="tab-content animated fadeIn">
-            <h3 class="page-header"><br>{{teams[i]}} : {{bugs[teams[i]]["count"]}} {% if bugs[teams[i]]["count"] == 1%}bug{%else%}bugs{%endif%}</h3>
+        {% for i in range(5) %}
+        <div role="tabpanel" class="tab-pane active fade" id="{{list_teams[i]}}">
+            <select data-placeholder="Choose a Country..." class="chzn-select" multiple style="width: 350px; " tabindex="-1" title>
+                <option value=""></option>
+                {% for t in teams[list_teams[i]] %}
+                    <option value="">{{t}}</option>
+                {% endfor %}
+            </select>
+            <h3 class="page-header"><br>{{list_teams[i]}} : {{bugs[list_teams[i]]["count"]}} {% if bugs[list_teams[i]]["count"] == 1%}bug{%else%}bugs{%endif%}</h3>
                 <table class="sortable table" id="hcf_{{i}}_table">
                     <thead>
                         <tr>
@@ -79,7 +181,7 @@
                     </thead>
                     <tbody>
 
-                    {% for b in bugs[teams[i]]["bugs"] %}
+                    {% for b in bugs[list_teams[i]]["bugs"] %}
                     <tr {% if 'customer-found' in b.tags %}class="customer-found-bug" {% else %}class='bug'{% endif %}id="{{ b.id }}">
                         <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
                         <td>{{ b.title }}</td>
@@ -87,13 +189,19 @@
                         <td>{{ b.status }}</td>
                         <td>{{ b.importance }}</td>
                         <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
-                      </tr>
+                    </tr>
                     {% endfor %}
                   </tbody>
                 </table>
         </div>
-    </li>
-    {% endfor %}
-</ul>
+        {% endfor %}
+    </div>
+    <script>
+      $(function () {
+        $('#TeamTabs a:first').tab('show')
+      })
+    </script>
+</div>
+
 
 {% endblock %}

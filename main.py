@@ -196,7 +196,7 @@ def bug_report_trends_data(project_name, milestone_name):
 
 @app.route('/project/<project_name>/api/release_chart_incoming_outgoing/'
            '<milestone_name>/get_data')
-def bug_report_get_incotab_nameming_outgoing_data(project_name, milestone_name):
+def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
     data = launchpad.release_chart(
         project_name,
         milestone_name
@@ -222,7 +222,7 @@ def bug_table_for_status(project_name, bug_type, milestone_name):
 
 @app.route('/project/<project_name>/bug_trends/<milestone_name>/')
 def bug_trends(project_name, milestone_name):
-    project = launchpatab_named.get_project(project_name)
+    project = launchpad.get_project(project_name)
     return flask.render_template("bug_trends.html",
                                  project=project,
                                  milestone_name=milestone_name,
@@ -312,9 +312,30 @@ def code_freeze_report_csv(milestone_name):
 
     return resp
 
+@app.route('/project/bugs_lifecycle_report/<milestone_name>')
+def bugs_lifecycle_report(milestone_name):
+    return flask.render_template(
+        "bugs_lifecycle_report.html",
+        milestone_name=milestone_name,
+        all_bugs=sla_reports.get_reports_data('sla-report', ['mos', 'fuel'],
+                                              milestone_name),
+    )
 
 
+@app.route('/project/triage_queue_mos/')
+def triage_queue_mos():
+    return flask.render_template(
+        "bugs_lifecycle_report.html",
+        all_bugs=sla_reports.get_reports_data('non-triaged-in-time', ['mos']),
+    )
 
+
+@app.route('/project/triage_queue_fuel/')
+def triage_queue_fuel():
+    return flask.render_template(
+        "bugs_lifecycle_report.html",
+        all_bugs=sla_reports.get_reports_data('non-triaged-in-time', ['fuel']),
+    )
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>/')
 def statistic_for_project_by_milestone_by_tag(project_name, milestone_name,

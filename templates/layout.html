@@ -15,6 +15,10 @@
 
         <!-- D3 & NVD3  CSS -->
         <link href="{{ url_for('static', filename='nvd3/nv.d3.css') }}" rel="stylesheet">
+
+        <!-- Chosen  CSS -->
+        <link href="{{ url_for('static', filename='chosen/chosen.css') }}" rel="stylesheet">
+
         <script src="/static/jquery/jquery.min.js"></script>
         <script>
             $(function() {
@@ -32,66 +36,68 @@
 
         </script>
         <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-        <script type="text/javascript" src="http://www.tablesorter.ru/jquery.tablesorter.js"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='jquery/jquery.tablesorter.min.js') }}"></script>
         <script type="text/javascript">
             $(document).ready(function(){
                 $("table.sortable").tablesorter();
             });
         </script>
-
-
+        <script src="{{ url_for('static', filename='chosen/chosen.jquery.min.js') }}"></script>
+        <script type="text/javascript">
+            $(function() {
+                $(".chzn-select").chosen();
+                $(".chzn-select-deselect").chosen({allow_single_deselect:true});
+            });
+        </script>
+        <script type="text/javascript" src="{{ url_for('static', filename='jquery/jquery.dataTables.min.js') }}"></script>
   </head>
   <body>
-      <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
           <div class="container-fluid">
-              <img src="http://www.mirantis.com/id/RasterMirantisLogo_HiRes_Tagline_Inverted.png" height="70" align="left" alt="Mirantis Logo">
               <div class="navbar-header">
-
-                  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                   </button>
+                  <img src="https://www.mirantis.com/id/RasterMirantisLogo_HiRes_Standard.png" height="50" align="left" alt="Mirantis Logo">
+              </div>
 
-                  <div class="navbar-collapse collapse">
-                      <ul class="nav navbar-nav navbar-left">
-                            <ul id="menu">
-                                <li><a class="navbar-brand" href="/">Summary Reports</a></li>
-                                <li>
-                                    <a class="navbar-brand" href="#">MOS Reports</a>
-                                    <ul>
-                                        {% for p in prs %}
-                                            {% if p in ("fuel", "mos")%}
-                                                <li><a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: uppercase;">{{ p }}</font></p></a></li>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <li><a class="navbar-brand" href="/project/fuelplusmos/{{ key_milestone }}">FUEL+MOS</a></li>
-                                        <li><a class="navbar-brand" href="/mos_images/Test">MOS images</a></li>
+              <div class="navbar-collapse collapse" id="navbar-collapse">
+                      <ul class="nav navbar-nav">
+                            <ul id="menu" class="nav nav-pills" role="tablist">
+                                <li><a href="/" role="button"><span class="glyphicon glyphicon-home"></span> Summary Reports</a></li>
+                                <li class="dropdown">
+                                    <a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-lock"></span> Deprecated reports<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/project/fuel">FUEL</a></li>
+                                        <li><a href="/project/mos">MOS</a></li>
+                                        <li><a href="/project/fuelplusmos/{{ key_milestone }}">FUEL+MOS</a></li>
+                                        <li class="divider"></li>
+                                        <li><a href="/project/ceilometer">Ceilometer</a></li>
+                                        <li><a href="/project/mistral">Mistral</a></li>
+                                        <li><a href="/project/murano">Murano</a></li>
+                                        <li><a href="/project/sahara">Sahara</a></li>
+                                    </ul>
+                                </li>
+                                <li><a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> Release<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="project/code_freeze_report/6.1/" class="dropdown-toggle" data-toggle="dropdown">HCF report</a></li>
+                                        <li><a href="/project/bugs_lifecycle_report/6.1">SLA report</a></li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <a class="navbar-brand" href="">OS Reports</a>
-                                    <ul>
-                                       {% for p in prs %}
-                                           {% if p not in ("fuel", "mos")%}
-                                               <li><a class="navbar-brand" href="/project/{{ p }}"><p><font style="text-transform: capitalize;">{{ p }}</font></p></a></li>
-                                           {% endif %}
-                                       {% endfor %}
+                                    <a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> Triage<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/project/code_freeze_report/6.0/"></a></li>
+                                        <li><a href="/project/mos">MOS</a></li>
                                     </ul>
                                 </li>
                             </ul>
                       </ul>
-
-                      <ul class="nav navbar-nav navbar-right">
-                          <li>
-                              <a id="toggler" href="/">Last update<div id="clock">{{t}}</div></a>
-                          </li>
-                          <li><a href="/"></a></li>
-                      </ul>
-                  </div>
               </div>
           </div>
-    </div>
+    </nav>
 
     <div class="container-fluid">
       <div class="row">

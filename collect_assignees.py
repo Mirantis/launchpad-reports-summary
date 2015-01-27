@@ -44,7 +44,6 @@ for team in teams:
         if member in people:
             people.remove(member)
 
-    #f.write('{0}: {1}'.format(team, people))
     global_team_list[team] = team_list
     assignees.insert({"Team": "{0}".format(team),
                       "Members": people})

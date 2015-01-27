@@ -1,0 +1,4 @@
+Bug #,Title,Milestone,Status,Importance,Assignee
+{% for t in list_teams %} {% for b in bugs[t]["bugs"] %}
+{{ b.id }},{{ b.title }},{{ b.milestone }},{{ b.status }},{{ b.importance }},{{ b.assignee }}{% endfor %}{% endfor %}
+
