@@ -15,7 +15,7 @@
         </ul>
 
         {% for m in project.active_milestones|sort %}
-        <ul class="nav nav-sidebar">
+        <ul class="nav nav-pills nav-stacked">
             <li {% if milestone["name"] == m and not selected_bug_trends and not selected_bug_table %}class="active"{% endif %}>
                 <a href="{{ url_for('statistic_for_project_by_milestone', project_name=project.name, milestone_name=m) }}">{{ m }}: Milestone Common Statistic</a>
             </li>

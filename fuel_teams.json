@@ -6,40 +6,14 @@
             "fuel-ui",
             "fuel-library",
             "fuel-astute",
-            "fuel-osci"
-        ],
-        "people": [
-            "tzn",
-            "salmon",
-            "loles",
-            "longgeek",
-            "berendt",
-            "jesse-pretorius",
-            "sammiestoel",
-            "zynzel",
-            "vpleshakov",
-            "vdenisov",
-            "nikishov-da",
-            "atarasov",
-            "dtyzhnenko",
-            "manashkin",
-            "lux-place",
-            "a-gordeev",
-            "sbogatkin",
-            "xdeller",
-            "andreika-mail",
-            "ekozhemyakin",
-            "akolesnikov",
-            "fsoppelsa",
-            "romcheg"
+            "fuel-osci",
+            "fuel-devops",
+            "fuel-qa"
         ]
     },
     "mos-linux": {
         "teams": [
             "mos-linux"
-        ],
-        "people": [
-            "asyriy"
         ]
     },
     "mos-openstack": {
@@ -56,45 +30,14 @@
             "mos-glance",
             "mos-sustaining",
             "mos-platform-components",
-            "mos-core-components"
-        ],
-        "people": [
-            "alexei-kornienko",
-            "mmaxur",
-            "yorik-sar",
-            "maxmazurenka"
+            "mos-core-components",
+            "mos-cinder"
         ]
     },
     "Partners": {
         "teams": [
-            "fuel-partner"
-        ],
-        "people": [
-            "eshumakher",
-            "izinovik",
-            "gcon-monolake",
-            "igajsin",
-            "moshele",
-            "aviramb",
-            "srogov"
-        ]
-    },
-    "excludes": {
-        "teams": [
-            "fuel-devops",
-            "fuel-qa"
-        ],
-        "people": [
-            "afedorova",
-            "teran",
-            "acharykov",
-            "dreidellhasa",
-            "apalkina",
-            "aurlapova",
-            "tatyana-leontovich",
-            "asledzinskiy",
-            "apanchenko-8",
-            "ykotko"
+            "fuel-partner",
+            "fuel-partner-core"
         ]
     }
 }

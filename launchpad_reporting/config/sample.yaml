@@ -78,8 +78,14 @@ criterias:
 
       # implements criteria for current HCF report
       # (bug is either critical or high)
-    - name: hcf-affecting
-      implementation: criterias.HCFAffecting
+    - name: hcf
+      text: Criteria for HCF report
+      short-text: hcf
+      implementation: criterias.HCFReport
+      config:
+          - name: exclude_tags
+            default: ["devops", "docs", "fuel-devops", "experimental", "system-tests"]
+            text: bugs with its tags are not present in report
 
 reports:
 
@@ -87,7 +93,7 @@ reports:
       text: Non-Triaged in Time Bugs
       parameter: project
       criterias:
-            - name: sla-non-triaged
+          - name: sla-non-triaged
       # do not implement frequent-polling in current scope
       frequent-polling: true
       display-trigger-criterias: true
@@ -108,12 +114,16 @@ reports:
             - name: sla-in-progress
               importance: 1
 
-    # - name: hcf-status
-    #   text: HCF Status
-    #   parameter: milestone
-    #   group-by: team
-    #   criterias:
-    #         - name: hcf-affecting
+    - name: hcf-report
+      text: HCF Status
+      parameter: milestone
+      group-by: team
+      criterias:
+          - name: hcf
+      options:
+        status: ["New", "Confirmed", "Triaged", "In Progress"]
+        importance: ["High", "Critical"]
+      display-trigger-criterias: true
 
 # do not implement menu in current scope
 menu:

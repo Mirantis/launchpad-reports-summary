@@ -12,6 +12,9 @@ TEAMS = ["Fuel", "Partners", "mos-linux", "mos-openstack", "Unknown"]
 BUG_IMPORTANCE = ["Essential", "Critical", "High", "Medium",
                   "Low", "Wishlist", "Unknown", "Undecided"]
 
+BUG_STATUSES = ["New", "Incomplete", "Invalid", "Won't Fix", "Confirmed",
+                "Triaged", "In Progress", "Opinion", "Expired"]
+
 CUSTOMER_FOUND_TAG = "customer-found"
 
 
@@ -51,8 +54,8 @@ def get_criteria_implementation(config_criteria, milestone_name):
     gets class - realization of this criteria - and returns an instance
     of this class.
     """
-    criteria = get_criteria_by_name(config_criteria['name'])
 
+    criteria = get_criteria_by_name(config_criteria['name'])
     class_name = criteria['implementation'].split('.')[-1]
     try:
         ImplClass = getattr(criterias_realization, class_name)
@@ -102,19 +105,30 @@ def get_criteria_description(criterias, milestone_name):
                     kwargs[detailed_name] = conf['default']
 
         criteria_name = criteria.get('text', criteria['name'])
-        description += "%s (%s):\n" % (criteria_name, criteria['short-text'])
+        description += "%s (%s):\n" % (criteria_name, criteria['name'])
         description += "\n".join("\t%s: %s" % (k, v) for (k, v) in kwargs.items())
         description += "\n"
 
     return description.strip()
 
 
-def get_bugs_by_criteria(criterias, projects, milestone_name, team=None):
+def filter_bugs_by_report_parameters():
+    pass
+
+
+def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options={}):
 
     # Create filters, based on incoming data, to get bugs from db
 
-    # Hide "Fix Committed/Released" bugs
-    filters = [{"status": {"$nin": ["Fix Committed", "Fix Released"]}}]
+    filters = []
+
+    if not options:
+        options["status"] = BUG_STATUSES
+        options["importance"] = BUG_IMPORTANCE
+
+    filters.append({"status": {"$in": options["status"]}})
+    filters.append({"importance": {"$in": options["importance"]}})
+
     if milestone_name is not None:
         filters.append({'milestone': milestone_name})
     if team is not None and team != "Unknown":
@@ -129,12 +143,15 @@ def get_bugs_by_criteria(criterias, projects, milestone_name, team=None):
         all_bugs.extend([Bug(b) for b in db.bugs[pr].find({"$and": filters})])
 
     result = []
+
     for crit in criterias:
+
         impl = get_criteria_implementation(crit, milestone_name)
         criteria = get_criteria_by_name(crit['name'])
 
         # TODO (viktors): refactor this loop
         for bug in all_bugs:
+
             if impl.is_satisfied(bug):
                 try:
                     hint_text = impl.get_hint_text(
@@ -144,14 +161,14 @@ def get_bugs_by_criteria(criterias, projects, milestone_name, team=None):
                     hint_text = ""
 
                 if hint_text:
-                    hint_text += " (%s)" % criteria['short-text']
+                    hint_text += " (%s)" % criteria['name']
 
                 if bug in result:
                     bug_idx = result.index(bug)
-                    result[bug_idx].criteria_short_text += "\n" + criteria['short-text']
+                    result[bug_idx].criteria += "\n" + criteria['name']
                     result[bug_idx].criteria_hint_text += "\n" + hint_text
                 else:
-                    bug.criteria_short_text = criteria['short-text']
+                    bug.criteria = criteria['name']
                     bug.criteria_hint_text = hint_text
                     result.append(bug)
 
@@ -172,6 +189,11 @@ def get_reports_data(report_name, projects, milestone_name=None):
 
     all_res = []
 
+    criterias = [cr['name'] for cr in report['criterias']]
+
+    if not 'options' in report.keys():
+        report['options'] = {}
+
     if report.get('group-by') == "team":
         # returns a list of dictionaries
         for team in TEAMS:
@@ -180,10 +202,13 @@ def get_reports_data(report_name, projects, milestone_name=None):
                 'display_name': team,
                 'parameter': report['parameter'],
                 'display_criterias': report.get('display-trigger-criterias', False),
-                'bugs': get_bugs_by_criteria(report['criterias'], projects,
-                                             milestone_name, team),
+                'bugs': get_bugs_by_criteria(criterias=report['criterias'],
+                                             projects=projects,
+                                             milestone_name=milestone_name,
+                                             team=team,
+                                             options=report['options']),
                 'report_legend': get_criteria_description(report['criterias'],
-                                                          milestone_name)
+                                                          milestone_name),
             }
             all_res.append(result)
     else:
@@ -193,11 +218,19 @@ def get_reports_data(report_name, projects, milestone_name=None):
             'display_name': report['text'],
             'parameter': report['parameter'],
             'display_criterias': report.get('display-trigger-criterias', False),
-            'bugs': get_bugs_by_criteria(report['criterias'], projects,
-                                         milestone_name),
+            'bugs': get_bugs_by_criteria(criterias=report['criterias'],
+                                         projects=projects,
+                                         milestone_name=milestone_name,
+                                         options=report['options']),
             'report_legend': get_criteria_description(report['criterias'],
-                                                      milestone_name)
+                                                      milestone_name),
         }
         all_res.append(result)
 
-    return all_res
+    result = {}
+    result["DATA"] = all_res
+    report["options"]["criterias"] = criterias
+    result["PROPERTIES"] = report["options"]
+
+
+    return result

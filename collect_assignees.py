@@ -28,7 +28,6 @@ global_team_list = {}
 for team in teams:
     people = []
     people.extend(data[team]["teams"])
-    people.extend(data[team]["people"])
 
     team_list = {}
 
@@ -39,10 +38,6 @@ for team in teams:
         for member in members:
             people.append(member.member.name)
             team_list[t].append(member.member.name)
-
-    for member in data["excludes"]["people"]:
-        if member in people:
-            people.remove(member)
 
     global_team_list[team] = team_list
     assignees.insert({"Team": "{0}".format(team),

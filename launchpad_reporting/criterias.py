@@ -116,3 +116,16 @@ class SLAInProgress(BugCriteria):
         if bug.importance == HIGH_IMPORTANCE:
             return bug.date_in_progress < business_days_ago(self.high_threshold)
         return bug.date_in_progress < business_days_ago(self.others_threshold)
+
+
+class HCFReport(BugCriteria):
+    """Implementation for `hcf-report` criteria"""
+
+    def __init__(self, exclude_tags):
+        self.exclude_tags = exclude_tags
+
+    def is_satisfied(self, bug):
+        if bool(set(self.exclude_tags) & set(bug.tags)):
+            return False
+
+        return True

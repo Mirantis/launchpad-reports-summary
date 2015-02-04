@@ -5,22 +5,12 @@
 <div class="col-sm-3 col-md-2 sidebar">
     <br>
     {% for m in milestones|sort %}
-    <ul class="nav nav-sidebar">
-
+    <ul class="nav nav-pills nav-stacked">
         <li>
             <a href="/project/fuelplusmos/{{ m }}">FUEL/MOS {{ m }} </a>
-            <a href="/project/bugs_lifecycle_report/{{ m }}">FUEL/MOS SLA {{ m }} </a>
         </li>
     </ul>
-
     {% endfor %}
-    <ul class="nav nav-sidebar">
-
-        <li>
-            <a href="/project/code_freeze_report/{{ key_milestone }}">MOS HCF Status </a>
-            <a href="/project/triage_queue_mos">Triage queue MOS </a>
-            <a href="/project/triage_queue_fuel">Triage queue Fuel </a>
-        </li>
     </ul>
 </div>
 

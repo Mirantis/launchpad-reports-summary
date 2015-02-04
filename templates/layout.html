@@ -19,6 +19,9 @@
         <!-- Chosen  CSS -->
         <link href="{{ url_for('static', filename='chosen/chosen.css') }}" rel="stylesheet">
 
+        <!-- Multiselect CSS -->
+        <link href="{{ url_for('static', filename='multiselect.css') }}" rel="stylesheet">
+
         <script src="/static/jquery/jquery.min.js"></script>
         <script>
             $(function() {
@@ -42,14 +45,17 @@
                 $("table.sortable").tablesorter();
             });
         </script>
-        <script src="{{ url_for('static', filename='chosen/chosen.jquery.min.js') }}"></script>
-        <script type="text/javascript">
-            $(function() {
-                $(".chzn-select").chosen();
-                $(".chzn-select-deselect").chosen({allow_single_deselect:true});
-            });
-        </script>
+
         <script type="text/javascript" src="{{ url_for('static', filename='jquery/jquery.dataTables.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='jquery/jquery.multiple.select.js') }}"></script>
+        <script>
+            $(function() {
+                $("select").multipleSelect({
+                    filter: true
+                });
+                $("#assignee_select").next().find("li:not('.group')").each(function(i, val) {$(this).addClass('multiple').css('width', '200px')});
+            });
+    </script>
   </head>
   <body>
       <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -60,7 +66,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                   </button>
-                  <img src="https://www.mirantis.com/id/RasterMirantisLogo_HiRes_Standard.png" height="50" align="left" alt="Mirantis Logo">
+                  <img src="https://www.mirantis.com/id/RasterMirantisLogo_HiRes_Standard.png" height="40" align="left" alt="Mirantis Logo">
               </div>
 
               <div class="navbar-collapse collapse" id="navbar-collapse">
@@ -82,15 +88,15 @@
                                 </li>
                                 <li><a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> Release<b class="caret"></b></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="/project/code_freeze_report/6.1" class="dropdown-toggle" data-toggle="dropdown">HCF report</a></li>
-                                        <li><a href="/project/bugs_lifecycle_report/6.1">SLA report</a></li>
+                                        <li><a href="/hcf_report/6.1">HCF report</a></li>
+                                        <li><a href="/sla_report/6.1">SLA report</a></li>
                                     </ul>
                                 </li>
                                 <li>
                                     <a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> Triage<b class="caret"></b></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="/project/triage_queue_mos/">MOS Queue</a></li>
-                                        <li><a href="/project/triage_queue_fuel/">FUEL Queue</a></li>
+                                        <li><a href="/triage_queue/mos">MOS Queue</a></li>
+                                        <li><a href="/triage_queue/fuel">FUEL Queue</a></li>
                                     </ul>
                                 </li>
                             </ul>

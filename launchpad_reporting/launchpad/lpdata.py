@@ -208,109 +208,6 @@ class LaunchpadData(object):
 
         return page_statistic
 
-    def code_freeze_statistic(self, milestone, teams, exclude_tags,filters={},
-                              teams_data=[]):
-
-        connection = pymongo.Connection()
-        assignees_db = connection["assignees"]
-
-        report = dict.fromkeys(teams)
-        report["total_count"] = 0
-        assigners = dict.fromkeys(teams)
-
-        def get_importance(bug):
-            if bug['importance'] == 'High':
-                if 'customer-found' in bug['tags']:
-                    return 1
-                return 0
-
-            if 'customer-found' in bug['tags']:
-                return 3
-            return 2
-
-        for team in teams:
-            assigners[team] = []
-            if team != "Unknown":
-                for b in assignees_db.assignees.find({"Team": team}):
-                    assigners[team].extend(b["Members"])
-
-        all_assigners = []
-        for t in teams:
-            if t != "Unknown":
-                all_assigners.extend(assigners[t])
-
-        total_count = 0
-        for team in teams:
-            report[team] = dict.fromkeys(["bugs", "count"])
-            BUGS = []
-
-            for pr in ["fuel", "mos"]:
-                if team != "Unknown":
-                    bugs = self.db.bugs["{0}".format(pr)].find(
-                        {"$and": [
-                            {"status": {"$in": self.BUG_STATUSES["NotDone"]}},
-                            {"milestone": {"$in": milestone}},
-                            {"tags": {"$nin": exclude_tags}},
-                            {"importance": {"$in": ["High", "Critical"]}},
-                            {"assignee": {"$in": assigners[team]}}
-                        ]})
-                else:
-                    bugs = self.db.bugs["{0}".format(pr)].find(
-                        {"$and": [
-                            {"status": {"$in": self.BUG_STATUSES["NotDone"]}},
-                            {"milestone": {"$in": milestone}},
-                            {"tags": {"$nin": exclude_tags}},
-                            {"importance": {"$in": ["High", "Critical"]}},
-                            {"assignee": {"$nin": all_assigners}}
-                        ]})
-                for b in bugs:
-                    BUGS.append(b)
-            BUGS = sorted(BUGS, key=get_importance, reverse=True)
-
-            if filters and filters['status']:
-                newbugs = []
-                for x in BUGS:
-                    if x['status'] in filters['status']:
-                        newbugs.append(x)
-                BUGS = newbugs
-
-            if filters and filters['importance']:
-                newbugs = []
-                for x in BUGS:
-                    if x['importance'] in filters['importance']:
-                        newbugs.append(x)
-                BUGS = newbugs
-
-            if filters and filters['assignee']:
-                new_teams_data = {}
-                for x in teams_data.values():
-                    new_teams_data.update(x)
-
-                all_people = new_teams_data.keys()
-                for vals in new_teams_data.values():
-                    all_people.extend(vals)
-
-                newbugs = []
-                for x in BUGS:
-                    found = False
-
-                    for name, lst in new_teams_data.items():
-                        if (name in filters['assignee'] and
-                            (x['assignee'] == name or x['assignee'] in lst)):
-                                found = True
-
-                    if found or ('unknown' in filters['assignee'] and x['assignee'] not in all_people):
-                        newbugs.append(x)
-
-                BUGS = newbugs
-
-
-            report[team]["bugs"] = BUGS
-            report[team]["count"] = len(BUGS)
-            report["total_count"] += len(BUGS)
-
-        return report
-
     def get_update_time(self):
 
         update_time = time.time()
@@ -320,3 +217,50 @@ class LaunchpadData(object):
             pass
 
         return update_time
+
+    def filter_bugs(self, bugs, filters, teams_data):
+
+        def _filter(bugs, parameter):
+            filtered_bugs = []
+            for b in bugs:
+                if getattr(b, parameter) in filters[parameter]:
+                    filtered_bugs.append(b)
+
+            return filtered_bugs
+
+        for team in bugs["DATA"]:
+            if filters['status']:
+                team["bugs"] = _filter(team["bugs"], 'status')
+
+            if filters['importance']:
+                team["bugs"] = _filter(team["bugs"], 'importance')
+
+            if filters['criteria']:
+                team["bugs"] = _filter(team["bugs"], 'criteria')
+
+            if filters['assignee']:
+                new_teams_data = {}
+
+                for x in teams_data.values():
+                    new_teams_data.update(x)
+
+                all_people = new_teams_data.keys()
+                for vals in new_teams_data.values():
+                    all_people.extend(vals)
+
+                newbugs = []
+                for b in team["bugs"]:
+
+                    if ('unknown' in filters['assignee'] and b.assignee
+                            not in all_people):
+                        newbugs.append(b)
+
+                    for name, lst in new_teams_data.items():
+                        if (name in filters['assignee'] and
+                            (b.assignee == name or b.assignee in lst)):
+                                if b not in newbugs:
+                                    newbugs.append(b)
+
+                team["bugs"] = newbugs
+
+        return bugs

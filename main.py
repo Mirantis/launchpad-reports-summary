@@ -12,7 +12,7 @@ from flask import request
 
 from launchpad_reporting.launchpad import launchpad
 from launchpad_reporting.db import db
-
+from launchpad_reporting import sla_reports
 
 path_to_data = "/".join(os.path.abspath(__file__).split('/')[:-1])
 
@@ -25,17 +25,35 @@ app = flask.Flask(__name__)
 
 
 def print_select(dct, param, val):
-
     if param not in dct or val not in dct[param]:
         return ""
-
     return "selected=\"selected\""
+
+
+def filter(request, bugs):
+
+    filters = {
+        'status': request.args.getlist('status'),
+        'importance': request.args.getlist('importance'),
+        'assignee': request.args.getlist('assignee'),
+        'criteria': request.args.getlist('criteria')
+    }
+
+    teams_data['Unknown'] = {'unknown': []}
+
+    if 'tab_name' in request.args and request.args['tab_name'] in teams_data:
+        filters['assignee'] = teams_data[request.args['tab_name']]
+
+
+    bugs = launchpad.lpdata.filter_bugs(bugs, filters, teams_data)
+
+    return bugs, filters
 
 
 app.jinja_env.globals.update(print_select=print_select)
 
-key_milestone = "6.1"
-
+KEY_MILESTONE = "6.1"
+MILESTONES = db.bugs.milestones.find_one()["Milestone"]
 flag = False
 
 
@@ -62,7 +80,7 @@ def bug_list(project_name, bug_type, milestone_name):
                                  milestone_name=milestone_name,
                                  selected_bug_table=True,
                                  prs=list(db.prs),
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  update_time=launchpad.get_update_time())
 
 
@@ -73,8 +91,6 @@ def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr):
 
     if sbpr == 'all':
         subprojects = list(db.subprs)
-
-    milestones = db.bugs.milestones.find_one()["Milestone"]
 
     bug_importance = []
     bug_statuses = ""
@@ -109,78 +125,11 @@ def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr):
                                  prs=list(db.prs),
                                  bugs=bugs,
                                  sbpr=sbpr,
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  milestone_name=milestone_name,
-                                 milestones=milestones,
+                                 milestones=MILESTONES,
                                  update_time=launchpad.get_update_time(),
                                  bugs_type_to_print=bugs_type_to_print)
-
-
-@app.route("/iso_build/<version>/<iso_number>/<result>")
-def iso_build_result(version, iso_number, result):
-    data = {"version": version, "iso_number": iso_number,
-            "build_date": time.strftime("%d %b %Y %H:%M:%S", time.gmtime()),
-            "build_status": result, "tests_results": {}}
-    db.mos.images.insert(data)
-
-    need_add = True
-    for v in db.mos.images_versions.find():
-        if v["version"] == version:
-            need_add = False
-    if need_add:
-        db.mos.images_versions.insert({"version": version})
-
-    return flask.json.dumps({"result": "OK"})
-
-
-@app.route("/iso_tests/<version>/<iso_number>/<tests_name>/<result>")
-def iso_tests_result(version, iso_number, tests_name, result):
-    status = "FAIL"
-
-    need_add = True
-    for t in db.mos.tests_types.find():
-        if t["name"] == tests_name:
-            need_add = False
-    if need_add:
-        db.mos.tests_types.insert({"name": tests_name})
-
-    for image in db.mos.images.find():
-        if (image["version"] == version and
-                image["iso_number"] == iso_number):
-            image["tests_results"][tests_name] = result
-
-            db.mos.images.update(
-                {"version": version, "iso_number": iso_number},
-                {"$set": {"tests_results": image["tests_results"]}}
-            )
-
-            status = "OK"
-
-    return flask.json.dumps({"result": status})
-
-
-@app.route('/mos_images/<version>/')
-def mos_images_status(version):
-    images = list(db.mos.images.find())
-    tests_types = list(db.mos.tests_types.find())
-    images_versions = list(db.mos.images_versions.find())
-
-    return flask.render_template("iso_status.html", version=version,
-                                 project="mos_images", images=images,
-                                 images_versions=images_versions,
-                                 prs=list(db.prs), tests_types=tests_types)
-
-
-@app.route('/mos_images_auto/<version>/')
-def mos_images_status_auto(version):
-    images = list(db.mos.images.find())
-    tests_types = list(db.mos.tests_types.find())
-    images_versions = list(db.mos.images_versions.find())
-
-    return flask.render_template("iso_status_auto.html", version=version,
-                                 project="mos_images", images=images,
-                                 images_versions=images_versions,
-                                 tests_types=tests_types)
 
 
 @app.route('/project/<project_name>/api/release_chart_trends/'
@@ -215,7 +164,7 @@ def bug_table_for_status(project_name, bug_type, milestone_name):
     return flask.render_template("bug_table.html",
                                  project=project,
                                  prs=list(db.prs),
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  milestone_name=milestone_name,
                                  update_time=launchpad.get_update_time())
 
@@ -228,113 +177,54 @@ def bug_trends(project_name, milestone_name):
                                  milestone_name=milestone_name,
                                  selected_bug_trends=True,
                                  prs=list(db.prs),
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  update_time=launchpad.get_update_time())
 
+@app.route('/hcf_report/<milestone_name>')
+def bugs_hcf_report(milestone_name):
+    bugs = sla_reports.get_reports_data('hcf-report', ['mos', 'fuel'],
+                                        milestone_name)
+    bugs, filters = filter(request, bugs)
 
-@app.route('/project/code_freeze_report/<milestone_name>/')
-def code_freeze_report(milestone_name):
-
-    milestones = db.bugs.milestones.find_one()["Milestone"]
-    teams = ["Fuel", "Partners", "mos-linux", "mos-openstack", "Unknown"]
-    exclude_tags = ["devops", "docs", "fuel-devops", "experimental", "system-tests"]
-
-    filters = {
-        'status': request.args.getlist('status'),
-        'importance': request.args.getlist('importance'),
-        'assignee': request.args.getlist('assignee')
-    }
-
-    teams_data['Unknown'] = {'unknown': []}
-
-    if 'tab_name' in request.args and request.args['tab_name'] in teams_data:
-        filters['assignee'] = teams_data[request.args['tab_name']]
-
-    bugs = launchpad.code_freeze_statistic(
-            milestone=[milestone_name],
-            teams=teams,
-            exclude_tags=exclude_tags,
-            filters=filters,
-            teams_data=teams_data)
-
-
-    return flask.render_template("code_freeze_report.html",
-                                 milestones=milestones,
-                                 current_milestone=milestone_name,
-                                 prs=list(db.prs),
-                                 list_teams=teams,
-                                 bugs=bugs,
-                                 key_milestone=key_milestone,
-                                 update_time=launchpad.get_update_time(),
-                                 teams=teams_data,
-                                 filters=filters)
-
-@app.route('/project/code_freeze_report_csv/<milestone_name>/')
-def code_freeze_report_csv(milestone_name):
-
-    milestones = db.bugs.milestones.find_one()["Milestone"]
-    teams = ["Fuel", "Partners", "mos-linux", "mos-openstack", "Unknown"]
-    exclude_tags = ["devops", "docs", "fuel-devops", "experimental", "system-tests"]
-
-    filters = {
-        'status': request.args.getlist('status'),
-        'importance': request.args.getlist('importance'),
-        'assignee': request.args.getlist('assignee')
-    }
-
-    teams_data['Unknown'] = {'unknown': []}
-
-    if 'tab_name' in request.args and request.args['tab_name'] in teams_data:
-        filters['assignee'] = teams_data[request.args['tab_name']]
-
-    bugs = launchpad.code_freeze_statistic(
-            milestone=[milestone_name],
-            teams=teams,
-            exclude_tags=exclude_tags,
-            filters=filters,
-            teams_data=teams_data)
-
-
-    resp = flask.render_template("code_freeze_report.csv",
-                                 milestones=milestones,
-                                 current_milestone=milestone_name,
-                                 prs=list(db.prs),
-                                 list_teams=teams,
-                                 bugs=bugs,
-                                 key_milestone=key_milestone,
-                                 update_time=launchpad.get_update_time(),
-                                 teams=teams_data,
-                                 filters=filters)
-
-    resp = flask.make_response(resp)
-
-    resp.headers["Content-Type"] = "text/plain"
-
-    return resp
-
-@app.route('/project/bugs_lifecycle_report/<milestone_name>')
-def bugs_lifecycle_report(milestone_name):
     return flask.render_template(
         "bugs_lifecycle_report.html",
+        report="hcf",
         milestone_name=milestone_name,
-        all_bugs=sla_reports.get_reports_data('sla-report', ['mos', 'fuel'],
-                                              milestone_name),
+        milestones=MILESTONES,
+        all_bugs=bugs,
+        teams=teams_data,
+        filters=filters,
     )
 
+@app.route('/sla_report/<milestone_name>')
+def bugs_lifecycle_report(milestone_name):
+    bugs = sla_reports.get_reports_data('sla-report', ['mos', 'fuel'],
+                                        milestone_name)
 
-@app.route('/project/triage_queue_mos/')
-def triage_queue_mos():
+    bugs, filters = filter(request, bugs)
+
     return flask.render_template(
         "bugs_lifecycle_report.html",
-        all_bugs=sla_reports.get_reports_data('non-triaged-in-time', ['mos']),
+        report="sla",
+        milestone_name=milestone_name,
+        milestones=MILESTONES,
+        all_bugs=bugs,
+        teams=teams_data,
+        filters=filters,
     )
 
+@app.route('/triage_queue/<project>')
+def triage_queue(project):
+    bugs = sla_reports.get_reports_data('non-triaged-in-time', [project])
 
-@app.route('/project/triage_queue_fuel/')
-def triage_queue_fuel():
+    bugs, filters = filter(request, bugs)
+
     return flask.render_template(
         "bugs_lifecycle_report.html",
-        all_bugs=sla_reports.get_reports_data('non-triaged-in-time', ['fuel']),
+        report="triage",
+        all_bugs=bugs,
+        teams=teams_data,
+        filters=filters,
     )
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>/')
@@ -359,7 +249,7 @@ def statistic_for_project_by_milestone_by_tag(project_name, milestone_name,
 
     return flask.render_template("project.html",
                                  project=project,
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  selected_overview=True,
                                  display_subprojects=display,
                                  prs=list(db.prs),
@@ -391,7 +281,7 @@ def statistic_for_project_by_milestone(project_name, milestone_name):
         milestone["id"] = data[project_name][milestone_name]
 
     return flask.render_template("project.html",
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  project=project,
                                  selected_overview=True,
                                  display_subprojects=display,
@@ -525,7 +415,7 @@ def fuel_plus_mos_overview(milestone_name):
 
     return flask.render_template("project_fuelmos.html",
                                  milestones=milestones,
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  current_milestone=milestone_name,
                                  prs=list(db.prs),
                                  subprs=list(db.subprs),
@@ -547,12 +437,7 @@ def project_overview(project_name):
 
     if project_name == "fuelplusmos":
         return flask.redirect(
-            "/project/fuelplusmos/{0}/".format(key_milestone), code=302)
-
-    if project_name == "code_freeze_report":
-        return flask.redirect(
-            "/project/code_freeze_report/{0}/".format(key_milestone),
-            code=302)
+            "/project/fuelplusmos/{0}/".format(KEY_MILESTONE), code=302)
 
     project = launchpad.get_project(project_name)
     project.display_name = project.display_name.capitalize()
@@ -563,7 +448,7 @@ def project_overview(project_name):
 
     return flask.render_template("project.html",
                                  project=project,
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  selected_overview=True,
                                  prs=list(db.prs),
                                  subprs=list(db.subprs),
@@ -586,7 +471,7 @@ def mos_project_overview(global_project_name, tag):
 
     return flask.render_template("project.html",
                                  project=project,
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  tag=tag,
                                  page_statistic=page_statistic,
                                  selected_overview=True,
@@ -614,7 +499,7 @@ def main_page():
         global_statistic['{0}'.format(pr)] = types
 
     return flask.render_template("main.html",
-                                 key_milestone=key_milestone,
+                                 key_milestone=KEY_MILESTONE,
                                  statistic=global_statistic,
                                  prs=list(db.prs),
                                  update_time=launchpad.get_update_time())
