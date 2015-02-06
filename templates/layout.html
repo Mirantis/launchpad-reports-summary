@@ -99,6 +99,17 @@
                                         <li><a href="/triage_queue/fuel">FUEL Queue</a></li>
                                     </ul>
                                 </li>
+                                <li>
+                                    {% if not is_authorized %}
+                                        <form method="post" action="/login">
+                                            <input type="submit" name="auth" value="Authorize">
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="/logout">
+                                            <input type="submit" name="auth" value="Unauthorize">
+                                        </form>
+                                    {% endif %}
+                                </li>
                             </ul>
                       </ul>
               </div>

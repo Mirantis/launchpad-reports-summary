@@ -624,7 +624,7 @@ def mos_project_overview(global_project_name, tag, is_authorized=False):
                            update_time=launchpad.get_update_time())
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     if 'request_token_parts' in session:
         del session['request_token_parts']
