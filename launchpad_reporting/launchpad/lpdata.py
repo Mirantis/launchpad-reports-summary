@@ -18,6 +18,7 @@ from lazr.restfulclient.authorize.oauth import SystemWideConsumer
 from lazr.restfulclient.resource import ServiceRoot
 
 from bug import Bug
+from launchpad_reporting.db.util import serialize_bug
 from project import Project
 from ttl_cache import ttl_cache
 
@@ -386,15 +387,18 @@ class LaunchpadData(LaunchpadAnonymousData):
             credentials, 'launchpad-reporting-www',
             service_root=LPNET_SERVICE_ROOT)
 
+    @ttl_cache(minutes=5)
+    def serialize_private(self, task):
+        return serialize_bug(task)
+
     def get_bugs(self, project_name, statuses, milestone_name=None,
                  tags=[], importance=[], **kwargs):
-        project = self.launchpad.projects[project_name]
-        result_bugs = self.get_all_bugs(project)
+        result_bugs = self.get_all_bugs_by(project_name, milestone_name)
         result_bugs = [task for task in result_bugs
                        if task.status in statuses]
         if milestone_name:
             result_bugs = [task for task in result_bugs
-                           if task.milestone.name == milestone_name]
+                           if task.milestone_link.split('/')[-1] in milestone_name]
         if importance:
             result_bugs = [task for task in result_bugs
                            if task.importance in importance]
@@ -405,7 +409,7 @@ class LaunchpadData(LaunchpadAnonymousData):
             else:
                 result_bugs = [task for task in result_bugs
                                if len(set(task.bug.tags).intersection(set(tags))) > 0]
-        return [Bug(r) for r in result_bugs]
+        return [Bug(self.serialize_private(bug)) for bug in result_bugs]
 
     @ttl_cache(minutes=5)
     def get_all_bugs(self, project):
@@ -429,4 +433,3 @@ class LaunchpadData(LaunchpadAnonymousData):
                                        information_type=self.PRIVATE_BUG_TYPES)
         except Exception as e:
             print e
-

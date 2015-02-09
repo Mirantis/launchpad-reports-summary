@@ -307,8 +307,12 @@ def bug_trends(project_name, milestone_name, is_authorized=False):
 @app.route('/hcf_report/<milestone_name>')
 @handle_launchpad_auth
 def bugs_hcf_report(milestone_name, is_authorized):
+    user_agent = None
+    if is_authorized:
+        oauth_token = session['access_token_parts']['oauth_token']
+        user_agent = user_agents[oauth_token]
     bugs = sla_reports.get_reports_data('hcf-report', ['mos', 'fuel'],
-                                        milestone_name)
+                                        milestone_name, user_agent)
     bugs, filters = filter(request, bugs)
 
     return render_template(
