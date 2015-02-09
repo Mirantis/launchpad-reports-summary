@@ -91,7 +91,10 @@
                     <tbody>
                     {% for b in bug_data.bugs %}
                     <tr >
-                        <td><a href="{{ b.web_link }}">{{ b.id }}<br>{% if 'customer-found' in b.tags %}<span class="label label-primary">customer-found</span>{%endif%}</a></td>
+                        <td><a href="{{ b.web_link }}">{{ b.id }}<br>
+                            {% if 'customer-found' in b.tags %}<span class="label label-primary">customer-found</span>{%endif%}
+                            {% if b.information_type == 'Private' %}<span class="label label-primary">Private</span>{%endif%}
+                        </a></td>
                         <td><span title="{{ b.criteria_hint_text }}"> {{ b.title }}</span></td>
                         <td>{{ b.milestone }}</td>
                         <td>{{ b.status }}</td>

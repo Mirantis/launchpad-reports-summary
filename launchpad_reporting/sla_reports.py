@@ -116,7 +116,23 @@ def filter_bugs_by_report_parameters():
     pass
 
 
-def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options={}):
+def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options={}, user_agent=None):
+
+    private_bugs = []
+    if user_agent is not None:
+        for pr in projects:
+            private_bugs.extend(user_agent.get_bugs(
+                pr,
+                statuses=options['status'],
+                milestone_name=[milestone_name],
+                importance=options["importance"]))
+
+    # NOTE(ochuprykov): at this moment it is impossible to know information
+    #                   type of the bug without making call to l-api. Manually
+    #                   setting type to private for visual distinction from
+    #                   other bugs.
+    for bug in private_bugs:
+        bug.information_type = "Private"
 
     # Create filters, based on incoming data, to get bugs from db
 
@@ -133,12 +149,16 @@ def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options
         filters.append({'milestone': milestone_name})
     if team is not None and team != "Unknown":
         filters.append({"assignee": {"$in": get_team_members(team)}})
+        private_bugs = [bug for bug in private_bugs
+                        if bug.assignee in get_team_members(team)]
     if team is not None and team == "Unknown":
         all_assigners = [get_team_members(t) for t in TEAMS if t != "Unknown"]
         all_assigners = list(itertools.chain(*all_assigners))
         filters.append({"assignee": {"$nin": all_assigners}})
+        private_bugs = [bug for bug in private_bugs if bug.assignee not in all_assigners]
 
     all_bugs = []
+    all_bugs.extend(private_bugs)
     for pr in projects:
         all_bugs.extend([Bug(b) for b in db.bugs[pr].find({"$and": filters})])
 
@@ -180,7 +200,7 @@ def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options
     return result
 
 
-def get_reports_data(report_name, projects, milestone_name=None):
+def get_reports_data(report_name, projects, milestone_name=None, user_agent=None):
     config = read_config_file()
     try:
         report = [r for r in config['reports'] if r['name'] == report_name][0]
@@ -206,7 +226,8 @@ def get_reports_data(report_name, projects, milestone_name=None):
                                              projects=projects,
                                              milestone_name=milestone_name,
                                              team=team,
-                                             options=report['options']),
+                                             options=report['options'],
+                                             user_agent=user_agent),
                 'report_legend': get_criteria_description(report['criterias'],
                                                           milestone_name),
             }

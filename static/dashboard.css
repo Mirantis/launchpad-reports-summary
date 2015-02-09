@@ -153,13 +153,24 @@ tr.customer-found-bug {
     background-color:#FFFFCC !important;
 }
 
-th{
-	background-color:#428bca;
-	border:0px solid #ccc5c5;
-	text-align:center;
-	border-width:0px 0px 1px 1px;
-	font-size:14px;
-	font-family:Helvetica;
+th {
+    background-color: #428bca;
+    border: 0px solid #ccc5c5;
+    text-align: center;
+    border-width: 0px 0px 1px 1px;
+    font-size: 14px;
+    font-family: Helvetica;
+}
+tr.private-bugs {
+  color: green !important
+}
+
+tr.private-security-bugs {
+  color: #009999 !important
+}
+
+tr.proprietary-bugs {
+  color: #660066 !important
 }
 
 th.headerSortUp {
