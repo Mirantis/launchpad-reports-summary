@@ -36,7 +36,7 @@ with open('{0}/file.json'.format(path_to_data)) as teams_file:
 launchpad = LaunchpadAnonymousClient()
 
 app = Flask(__name__)
-
+app_config = sla_reports.read_config_file()
 app.secret_key = "lei3raighuequic3Pephee8duwohk8"
 
 
@@ -45,6 +45,13 @@ def print_select(dct, param, val):
         return ""
     return "selected=\"selected\""
 
+
+def get_report_by_name(name):
+    for report in app_config['reports']:
+        if report['name'] == name:
+            return report
+
+    raise RuntimeError('Can not find report %s!' % name)
 
 def filter(request, bugs):
 
@@ -65,14 +72,16 @@ def filter(request, bugs):
 
     return bugs, filters
 
-
-app.jinja_env.globals.update(print_select=print_select)
-
 KEY_MILESTONE = "6.1"
 MILESTONES = db.bugs.milestones.find_one()["Milestone"]
 flag = False
-
 user_agents = {}
+
+
+app.jinja_env.globals.update(print_select=print_select,
+                             get_report_by_name=get_report_by_name,
+                             app_config=app_config,
+                             key_milestone=KEY_MILESTONE)
 
 
 def get_access_token(credentials):
@@ -192,7 +201,6 @@ def bug_list(project_name, bug_type, milestone_name, is_authorized=False):
                            milestone_name=milestone_name,
                            selected_bug_table=True,
                            prs=list(db.prs),
-                           key_milestone=KEY_MILESTONE,
                            update_time=launchpad.get_update_time())
 
 
@@ -241,7 +249,6 @@ def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr, is_authorize
                            prs=list(db.prs),
                            bugs=bugs,
                            sbpr=sbpr,
-                           key_milestone=KEY_MILESTONE,
                            milestone_name=milestone_name,
                            milestones=MILESTONES,
                            update_time=launchpad.get_update_time(),
@@ -284,7 +291,6 @@ def bug_table_for_status(project_name, bug_type, milestone_name, is_authorized=F
                            is_authorized=is_authorized,
                            project=project,
                            prs=list(db.prs),
-                           key_milestone=KEY_MILESTONE,
                            milestone_name=milestone_name,
                            update_time=launchpad.get_update_time())
 
@@ -300,67 +306,67 @@ def bug_trends(project_name, milestone_name, is_authorized=False):
                            milestone_name=milestone_name,
                            selected_bug_trends=True,
                            prs=list(db.prs),
-                           key_milestone=KEY_MILESTONE,
                            update_time=launchpad.get_update_time())
 
 
-@app.route('/hcf_report/<milestone_name>')
-@handle_launchpad_auth
-def bugs_hcf_report(milestone_name, is_authorized):
-    user_agent = None
-    if is_authorized:
-        oauth_token = session['access_token_parts']['oauth_token']
-        user_agent = user_agents[oauth_token]
-    bugs = sla_reports.get_reports_data('hcf-report', ['mos', 'fuel'],
-                                        milestone_name, user_agent)
-    bugs, filters = filter(request, bugs)
+def milestone_based_report(report):
+    @handle_launchpad_auth
+    def handle_report(milestone_name, is_authorized):
+        user_agent = None
+        if is_authorized:
+            oauth_token = session['access_token_parts']['oauth_token']
+            user_agent = user_agents[oauth_token]
+        bugs = sla_reports.get_reports_data(report['name'], ['mos', 'fuel'],
+                                            milestone_name, user_agent)
 
-    return render_template(
-        "bugs_lifecycle_report.html",
-        is_authorized=is_authorized,
-        report="hcf",
-        milestone_name=milestone_name,
-        milestones=MILESTONES,
-        all_bugs=bugs,
-        teams=teams_data,
-        filters=filters,
-    )
+        bugs, filters = filter(request, bugs)
 
-
-@app.route('/sla_report/<milestone_name>')
-@handle_launchpad_auth
-def bugs_lifecycle_report(milestone_name, is_authorized):
-    bugs = sla_reports.get_reports_data('sla-report', ['mos', 'fuel'],
-                                        milestone_name)
-
-    bugs, filters = filter(request, bugs)
-    return render_template(
-        "bugs_lifecycle_report.html",
-        is_authorized=is_authorized,
-        report="sla",
-        milestone_name=milestone_name,
-        milestones=MILESTONES,
-        all_bugs=bugs,
-        teams=teams_data,
-        filters=filters,
-    )
+        return flask.render_template(
+            "bugs_lifecycle_report.html",
+            is_authorized=is_authorized,
+            report=report,
+            milestone_name=milestone_name,
+            milestones=MILESTONES,
+            all_bugs=bugs,
+            teams=teams_data,
+            filters=filters,
+        )
+    return handle_report
 
 
-@app.route('/triage_queue/<project>')
-@handle_launchpad_auth
-def triage_queue(project, is_authorized):
-    bugs = sla_reports.get_reports_data('non-triaged-in-time', [project])
+def project_based_report(report):
+    @handle_launchpad_auth
+    def handle_report(project, is_authorized):
+        user_agent = None
+        if is_authorized:
+            oauth_token = session['access_token_parts']['oauth_token']
+            user_agent = user_agents[oauth_token]
+        bugs = sla_reports.get_reports_data(report['name'], [project], user_agent)
 
-    bugs, filters = filter(request, bugs)
+        bugs, filters = filter(request, bugs)
 
-    return flask.render_template(
-        "bugs_lifecycle_report.html",
-        is_authorized=is_authorized,
-        report="triage",
-        all_bugs=bugs,
-        teams=teams_data,
-        filters=filters,
-    )
+        return flask.render_template(
+            "bugs_lifecycle_report.html",
+            is_authorized=is_authorized,
+            report=report,
+            all_bugs=bugs,
+            teams=teams_data,
+            filters=filters,
+        )
+    return handle_report
+
+
+for report in app_config['reports']:
+    if report['parameter'] == 'milestone':
+        handler = milestone_based_report(report)
+        url = '/%s/<milestone_name>' % report['name']
+    elif report['parameter'] == 'project':
+        handler = project_based_report(report)
+        url = '/%s/<project>' % report['name']
+    else:
+        raise RuntimeError('Invalid report parameter: %s' % report['parameter'])
+
+    app.add_url_rule(url, report['name'], handler)
 
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/<tag>/')
@@ -386,7 +392,6 @@ def statistic_for_project_by_milestone_by_tag(project_name, milestone_name,
     return render_template("project.html",
                            is_authorized=is_authorized,
                            project=project,
-                           key_milestone=KEY_MILESTONE,
                            selected_overview=True,
                            display_subprojects=display,
                            prs=list(db.prs),
@@ -419,7 +424,6 @@ def statistic_for_project_by_milestone(project_name, milestone_name, is_authoriz
         milestone["id"] = data[project_name][milestone_name]
 
     return render_template("project.html",
-                           key_milestone=KEY_MILESTONE,
                            is_authorized=is_authorized,
                            project=project,
                            selected_overview=True,
@@ -556,7 +560,6 @@ def fuel_plus_mos_overview(milestone_name, is_authorized=False):
     return render_template("project_fuelmos.html",
                            is_authorized=is_authorized,
                            milestones=milestones,
-                           key_milestone=KEY_MILESTONE,
                            current_milestone=milestone_name,
                            prs=list(db.prs),
                            subprs=list(db.subprs),
@@ -593,7 +596,6 @@ def project_overview(project_name, is_authorized=False):
     return render_template("project.html",
                            is_authorized=is_authorized,
                            project=project,
-                           key_milestone=KEY_MILESTONE,
                            selected_overview=True,
                            prs=list(db.prs),
                            subprs=list(db.subprs),
@@ -617,7 +619,6 @@ def mos_project_overview(global_project_name, tag, is_authorized=False):
     return render_template("project.html",
                            is_authorized=is_authorized,
                            project=project,
-                           key_milestone=KEY_MILESTONE,
                            tag=tag,
                            page_statistic=page_statistic,
                            selected_overview=True,

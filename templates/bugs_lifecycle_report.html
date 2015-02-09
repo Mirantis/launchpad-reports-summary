@@ -2,15 +2,15 @@
 
 {% block body %}
 
-<h2 class="page-header"><br><font style="text-transform: uppercase;">{{ report }}</font> Status {% if milestone_name %} Milestone {{ milestone_name }}{% endif %}</h2>
+<h2 class="page-header"><br>{{ report['text'] }} {% if milestone_name %} Milestone {{ milestone_name }}{% endif %}</h2>
 <div class="col-sm-3 col-md-2 sidebar">
     <br>
     {% for m in milestones|sort %}
     <ul class="nav nav-pills nav-stacked">
         {% if milestone_name == m %}
-        <li class="active"><a href="/{{ report }}_report/{{ m }}">MOS <font style="text-transform: uppercase;">{{ report }}</font> Status {{ m }}</a></li>
+        <li class="active"><a href="/{{ report['name'] }}/{{ m }}">{{ report['text'] }} {{ m }}</a></li>
         {% else %}
-        <li><a href="/{{ report }}_report/{{ m }}">MOS <font style="text-transform: uppercase;">{{ report }}</font> Status {{ m }}</a></li>
+        <li><a href="/{{ report['name'] }}/{{ m }}">{{ report['text'] }} {{ m }}</a></li>
         {% endif %}
     </ul>
     {% endfor %}
@@ -49,7 +49,7 @@
                 </select>
                 <select id="importance_select" data-placeholder="Choose importance..." multiple="multiple" style="width: 10%; " tabindex="-1" title>
                     {% for im in all_bugs['PROPERTIES']['importance'] %}
-                    <option value="" {{ print_select(filters, 'importance', im) }}>{{im}}</option>
+                    <option value="{{im}}" {{ print_select(filters, 'importance', im) }}>{{im}}</option>
                     {% endfor %}
                 </select>
                 <select id="assignee_select" data-placeholder="Choose assignee..." multiple="multiple" style="width: 50%" tabindex="-1" title>
@@ -93,7 +93,7 @@
                     <tr >
                         <td><a href="{{ b.web_link }}">{{ b.id }}<br>
                             {% if 'customer-found' in b.tags %}<span class="label label-primary">customer-found</span>{%endif%}
-                            {% if b.information_type == 'Private' %}<span class="label label-primary">Private</span>{%endif%}
+                            {% if b.information_type == 'Private' %}<span class="label label-warning">private</span>{%endif%}
                         </a></td>
                         <td><span title="{{ b.criteria_hint_text }}"> {{ b.title }}</span></td>
                         <td>{{ b.milestone }}</td>

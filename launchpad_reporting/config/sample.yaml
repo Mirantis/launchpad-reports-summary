@@ -89,8 +89,8 @@ criterias:
 
 reports:
 
-    - name: non-triaged-in-time
-      text: Non-Triaged in Time Bugs
+    - name: triage_queue
+      text: Triage Queue
       parameter: project
       criterias:
           - name: sla-non-triaged
@@ -98,7 +98,7 @@ reports:
       frequent-polling: true
       display-trigger-criterias: true
         
-    - name: sla-report
+    - name: sla_report
       text: SLA Report
       parameter: milestone
       group-by: team
@@ -114,7 +114,7 @@ reports:
             - name: sla-in-progress
               importance: 1
 
-    - name: hcf-report
+    - name: hcf_status
       text: HCF Status
       parameter: milestone
       group-by: team
@@ -127,11 +127,11 @@ reports:
 
 # do not implement menu in current scope
 menu:
-    - name: Triage
-      submenu:
-        - report-name: non-triaged-in-time
-        
     - name: Release
-      submenu:
-        - report-name: sla-report
-          report-name: hcf-status
+      submenu: [sla_report, hcf_status]
+
+    - name: Triage
+      submenu: [triage_queue]
+
+        
+

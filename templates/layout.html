@@ -86,19 +86,25 @@
                                         <li><a href="/project/sahara">Sahara</a></li>
                                     </ul>
                                 </li>
-                                <li><a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> Release<b class="caret"></b></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="/hcf_report/6.1">HCF report</a></li>
-                                        <li><a href="/sla_report/6.1">SLA report</a></li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> Triage<b class="caret"></b></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="/triage_queue/mos">MOS Queue</a></li>
-                                        <li><a href="/triage_queue/fuel">FUEL Queue</a></li>
-                                    </ul>
-                                </li>
+                                {% for menu in app_config['menu'] %}
+
+                                     <li>
+                                        <a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> {{ menu['name'] }}<b class="caret"></b></a>
+                                        <ul class="dropdown-menu">
+                                            {% for submenu in menu['submenu'] %}
+
+                                                {% set report = get_report_by_name(submenu) %}
+                                                {% if report['parameter'] == 'milestone' %}
+                                                    <li><a href="/{{ submenu }}/{{ key_milestone }}">{{ report['text'] }}</a></li>
+                                                {% elif report['parameter'] == 'project' %}
+                                                    <li><a href="/{{ submenu }}/mos">MOS {{ report['text'] }}</a></li>
+                                                    <li><a href="/{{ submenu }}/fuel">Fuel {{ report['text'] }}</a></li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+
+                                {% endfor %}
                                 <li>
                                     {% if not is_authorized %}
                                         <form method="post" action="/login">
