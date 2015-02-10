@@ -118,6 +118,14 @@ def filter_bugs_by_report_parameters():
 
 def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options={}, user_agent=None):
 
+    # Create filters, based on incoming data, to get bugs from db
+
+    filters = []
+
+    if not options:
+        options["status"] = BUG_STATUSES
+        options["importance"] = BUG_IMPORTANCE
+
     private_bugs = []
     if user_agent is not None:
         for pr in projects:
@@ -133,14 +141,6 @@ def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options
     #                   other bugs.
     for bug in private_bugs:
         bug.information_type = "Private"
-
-    # Create filters, based on incoming data, to get bugs from db
-
-    filters = []
-
-    if not options:
-        options["status"] = BUG_STATUSES
-        options["importance"] = BUG_IMPORTANCE
 
     filters.append({"status": {"$in": options["status"]}})
     filters.append({"importance": {"$in": options["importance"]}})

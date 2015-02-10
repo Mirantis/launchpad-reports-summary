@@ -341,7 +341,7 @@ def project_based_report(report):
         if is_authorized:
             oauth_token = session['access_token_parts']['oauth_token']
             user_agent = user_agents[oauth_token]
-        bugs = sla_reports.get_reports_data(report['name'], [project], user_agent)
+        bugs = sla_reports.get_reports_data(report['name'], [project], None, user_agent)
 
         bugs, filters = filter(request, bugs)
 

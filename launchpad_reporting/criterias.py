@@ -2,6 +2,8 @@ import datetime
 
 from pandas.tseries import offsets
 
+from launchpad_reporting.db.util import process_date
+
 CRITICAL_IMPORTANCE = "Critical"
 HIGH_IMPORTANCE = "High"
 
@@ -14,7 +16,7 @@ CUSTOMER_FOUND_TAG = "customer-found"
 
 def business_days_ago(days):
     timedelta = datetime.datetime.now() - offsets.BDay(days)
-    return timedelta.to_datetime()
+    return process_date(timedelta.to_datetime())
 
 
 class BugCriteria(object):
@@ -55,7 +57,7 @@ class NonTriaged(BugCriteria):
         self.threshold = threshold
 
     def is_satisfied(self, bug):
-        return (bug.date_created < business_days_ago(self.threshold)
+        return (process_date(bug.date_created) < business_days_ago(self.threshold)
                 and (bug.milestone is None or bug.importance is None
                      or bug.assignee is None)
                 )
@@ -70,9 +72,9 @@ class SLAFullLifecycle(BugCriteria):
 
     def is_satisfied(self, bug):
         if bug.importance == HIGH_IMPORTANCE:
-            return bug.date_created < business_days_ago(self.high_threshold)
+            return process_date(bug.date_created) < business_days_ago(self.high_threshold)
         if bug.importance == CRITICAL_IMPORTANCE:
-            return (bug.date_created <
+            return (process_date(bug.date_created) <
                     business_days_ago(self.critical_threshold))
         else:
             # False for all other bugs
@@ -87,7 +89,7 @@ class SLAConfirmedTriaged(BugCriteria):
 
     def is_satisfied(self, bug):
         if bug.status in [CONFIRMED_STATUS, TRIAGED_STATUS]:
-            return bug.date_last_updated < business_days_ago(self.threshold)
+            return process_date(bug.date_last_updated) < business_days_ago(self.threshold)
         return False
 
 
@@ -108,14 +110,14 @@ class SLAInProgress(BugCriteria):
             return False
 
         if bug.importance == CRITICAL_IMPORTANCE and CUSTOMER_FOUND_TAG in bug.tags:
-            return bug.date_in_progress < business_days_ago(self.critical_customer_found_threshold)
+            return process_date(bug.date_in_progress) < business_days_ago(self.critical_customer_found_threshold)
         if bug.importance == CRITICAL_IMPORTANCE:
-            return bug.date_in_progress < business_days_ago(self.critical_threshold)
+            return process_date(bug.date_in_progress) < business_days_ago(self.critical_threshold)
         if bug.importance == HIGH_IMPORTANCE and CUSTOMER_FOUND_TAG in bug.tags:
-            return bug.date_in_progress < business_days_ago(self.high_customer_found_threshold)
+            return process_date(bug.date_in_progress) < business_days_ago(self.high_customer_found_threshold)
         if bug.importance == HIGH_IMPORTANCE:
-            return bug.date_in_progress < business_days_ago(self.high_threshold)
-        return bug.date_in_progress < business_days_ago(self.others_threshold)
+            return process_date(bug.date_in_progress) < business_days_ago(self.high_threshold)
+        return process_date(bug.date_in_progress) < business_days_ago(self.others_threshold)
 
 
 class HCFReport(BugCriteria):
