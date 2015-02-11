@@ -91,10 +91,8 @@ def get_access_token(credentials):
     request_token_key = credentials._request_token.key
     try:
         credentials.exchange_request_token_for_access_token(LPNET_WEB_ROOT)
-    except:
-        auth_url = authorization_url(LPNET_WEB_ROOT,
-                                     request_token=request_token_key)
-        return (True, auth_url, False)
+    except Exception as e:
+        return (False, None, False)
     user_agents[credentials.access_token.key] = LaunchpadClient(credentials)
     session['access_token_parts'] = {
         'oauth_token': credentials.access_token.key,
@@ -152,7 +150,6 @@ def process_launchpad_authorization():
         return (False, None, False)
 
 
-
 def handle_launchpad_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -166,10 +163,9 @@ def handle_launchpad_auth(f):
             if hasattr(e, "content") and "Expired token" in e.content:
                 if 'access_token_parts' in session:
                     del session['access_token_parts']
-                should_redirect, lp_url, is_authorized = process_launchpad_authorization()
-                print should_redirect, lp_url, is_authorized
-                if should_redirect:
-                    return redirect(lp_url)
+                session['should_authorize'] = False
+                kwargs.update({'is_authorized': False})
+                return f(*args, **kwargs)
             else:
                 raise e
 
@@ -641,6 +637,8 @@ def logout():
 
 @app.route('/login', methods=["GET", "POST"])
 def login(is_authorized=False):
+    if 'request_token_parts' in session:
+        del session['request_token_parts']
     session['should_authorize'] = True
     return redirect(url_for('main_page'))
 
