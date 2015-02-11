@@ -57,10 +57,11 @@ class NonTriaged(BugCriteria):
         self.threshold = threshold
 
     def is_satisfied(self, bug):
-        return (process_date(bug.date_created) < business_days_ago(self.threshold)
-                and (bug.milestone is None or bug.importance is None
-                     or bug.assignee is None)
-                )
+        if bug.status not in ['Invalid', "Won't Fix"]:
+            return (process_date(bug.date_created) < business_days_ago(self.threshold)
+                    and (bug.milestone is None or bug.importance is None
+                         or bug.assignee is None)
+                    )
 
 
 class SLAFullLifecycle(BugCriteria):
