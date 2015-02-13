@@ -87,6 +87,12 @@ criterias:
             default: ["devops", "docs", "fuel-devops", "experimental", "system-tests"]
             text: bugs with its tags are not present in report
 
+    - name: all
+      text: Criteria including all the bugs
+      short-text: all
+      implementation: criterias.All
+
+
 reports:
 
     - name: triage_queue
@@ -94,6 +100,9 @@ reports:
       parameter: project
       criterias:
           - name: sla-non-triaged
+      options:
+        status: ["New", "Incomplete", "Confirmed",
+                "Triaged", "In Progress", "Opinion", "Expired"]
       # do not implement frequent-polling in current scope
       frequent-polling: true
       display-trigger-criterias: true
@@ -113,6 +122,9 @@ reports:
               importance: 3
             - name: sla-in-progress
               importance: 1
+      options:
+        status: ["New", "Incomplete", "Confirmed",
+                "Triaged", "In Progress", "Opinion", "Expired"]
 
     - name: hcf_status
       text: HCF Status
@@ -125,10 +137,19 @@ reports:
         importance: ["High", "Critical"]
       display-trigger-criterias: true
 
+    - name: custom_report
+      text: Custom Report
+      parameter: milestone
+      group-by: team
+      criterias:
+          - name: all
+
+
+
 # do not implement menu in current scope
 menu:
     - name: Release
-      submenu: [sla_report, hcf_status]
+      submenu: [sla_report, hcf_status, custom_report]
 
     - name: Triage
       submenu: [triage_queue]

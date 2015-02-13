@@ -1,115 +1,134 @@
 {% extends "layout.html" %}
 
 {% block body %}
+<div id="wrapper" class="active">
 
-<h2 class="page-header"><br>{{ report['text'] }} {% if milestone_name %} Milestone {{ milestone_name }}{% endif %}</h2>
-<div class="col-sm-3 col-md-2 sidebar">
-    <br>
-    {% for m in milestones|sort %}
-    <ul class="nav nav-pills nav-stacked">
-        {% if milestone_name == m %}
-        <li class="active"><a href="/{{ report['name'] }}/{{ m }}">{{ report['text'] }} {{ m }}</a></li>
-        {% else %}
-        <li><a href="/{{ report['name'] }}/{{ m }}">{{ report['text'] }} {{ m }}</a></li>
-        {% endif %}
-    </ul>
-    {% endfor %}
-</div>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul id="sidebar_menu" class="sidebar-nav">
+            <li class="sidebar-brand"><a id="menu-toggle" href="#">Milestones<span id="main_icon" class="glyphicon glyphicon-align-justify"></span></a></li>
+        </ul>
+        <ul class="sidebar-nav" id="sidebar">
+            {% for m in milestones|sort %}
+                {% if milestone_name == m %}
+                <li><a href="/{{ report['name'] }}/{{ m }}">
+                    {{ m }}<span class="sub_icon glyphicon glyphicon-link"></span>
+                </a></li>
+                {% else %}
+                <li><a href="/{{ report['name'] }}/{{ m }}">
+                    {{ m }}<span class="sub_icon glyphicon glyphicon-link"></span>
+                </a></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
 
-<div role="tabpanel">
+    <!-- Page content -->
+    <div id="page-content-wrapper">
+        <!-- Keep all page content within the page-content inset div! -->
+        <div class="page-content inset">
+             <div class="row">
+                  <div class="col-md-12">
+                      <h2 class="page-header"><br>{{ report['text'] }} {% if milestone_name %} Milestone {{ milestone_name }}{% endif %}</h2>
 
-    <ul class="nav nav-pills" role="tablist" id="TeamTabs">
-        <li role="presentation"><a onclick="onTabClick('All')" aria-controls="all" role="tab" data-toggle="tab">All</a></li>
-        {% for group in all_bugs["DATA"] %}
-        <li role="presentation" >
-            <a onclick="onTabClick('{{group.display_name}}')" aria-controls="{{group.display_name}}" role="tab" data-toggle="tab">
-                {{ group.display_name }}<span class="badge pull-right">{{group.bugs|length}}</span>
-            </a></li>
-        {% endfor %}
+                      <div role="tabpanel">
+                          <ul class="nav nav-pills" role="tablist" id="TeamTabs">
+                              <li role="presentation"><a onclick="onTabClick('All')" aria-controls="all" role="tab" data-toggle="tab">All</a></li>
+                              {% for group in all_bugs["DATA"] %}
+                              <li role="presentation" >
+                                  <a onclick="onTabClick('{{group.display_name}}')" aria-controls="{{group.display_name}}" role="tab" data-toggle="tab">
+                                      {{ group.display_name }}<span class="badge pull-right">{{group.bugs|length}}</span>
+                                  </a></li>
+                              {% endfor %}
+                          </ul>
 
-    </ul>
-
-    <div class="panel">
-    {% for bug_data in all_bugs["DATA"] %}
-        {% if loop.index == 1 %}
-        <pre>
+                          <div class="panel">
+                          {% for bug_data in all_bugs["DATA"] %}
+                              {% if loop.index == 1 %}
+                              <pre>
 {{ bug_data['report_legend'] }}
-        </pre>
-        {% endif %}
-    {% endfor %}
-    </div>
+                              </pre>
+                              {% endif %}
+                          {% endfor %}
+                          </div>
 
-    <div id="tab-content" class="tab-content animated fadeIn">
-        <div class="panel panel-default">
-            <div class="panel-heading" id="panel_head">
-                <select id="status_select" data-placeholder="Choose status..." multiple="multiple" style="width: 10%;" tabindex="-1" title>
-                    {% for st in all_bugs['PROPERTIES']['status'] %}
-                    <option value="{{st}}" {{ print_select(filters, 'status', st) }}>{{st}}</option>
-                    {% endfor %}
-                </select>
-                <select id="importance_select" data-placeholder="Choose importance..." multiple="multiple" style="width: 10%; " tabindex="-1" title>
-                    {% for im in all_bugs['PROPERTIES']['importance'] %}
-                    <option value="{{im}}" {{ print_select(filters, 'importance', im) }}>{{im}}</option>
-                    {% endfor %}
-                </select>
-                <select id="assignee_select" data-placeholder="Choose assignee..." multiple="multiple" style="width: 50%" tabindex="-1" title>
-                    {% for group in teams %}
-                    <optgroup label="{{group}}">{{group}}
-                        {% for i in teams[group] %}
-                            <option value="{{i}}" {{ print_select(filters, 'assignee', i) }}>{{i}}</option>
-                        {% endfor %}
-                    </optgroup>
-                   {% endfor %}
-                </select>
-                <select id="criteria_select" data-placeholder="Choose criteria..." multiple style="width: 20%; " tabindex="-1" title>
-                    {% for cr in all_bugs['PROPERTIES']['criterias'] %}
-                    <option value="{{cr}}" {{ print_select(filters, 'criteria', cr ) }}>{{cr}}</option>
-                    {% endfor %}
-                </select>
-                <button type="button" class="btn btn-default" onclick="filters()"><span class="glyphicon glyphicon-ok"></span> Submit</button>
-            </div>
-        </div>
 
-        {% for bug_data in all_bugs["DATA"] %}
+                         <div id="tab-content" class="tab-content animated fadeIn">
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="panel_head">
+                                    <select id="status_select" data-placeholder="Choose status..." multiple="multiple" style="width: 10%;" tabindex="-1" title>
+                                        {% for st in all_bugs['PROPERTIES']['status'] %}
+                                        <option value="{{st}}" {{ print_select(filters, 'status', st) }}>{{st}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select id="importance_select" data-placeholder="Choose importance..." multiple="multiple" style="width: 10%; " tabindex="-1" title>
+                                        {% for im in all_bugs['PROPERTIES']['importance'] %}
+                                        <option value="{{im}}" {{ print_select(filters, 'importance', im) }}>{{im}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select id="assignee_select" data-placeholder="Choose assignee..." multiple="multiple" style="width: 50%" tabindex="-1" title>
+                                        {% for group in teams %}
+                                        <optgroup label="{{group}}">{{group}}
+                                            {% for i in teams[group] %}
+                                                <option value="{{i}}" {{ print_select(filters, 'assignee', i) }}>{{i}}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                       {% endfor %}
+                                    </select>
+                                    <select id="criteria_select" data-placeholder="Choose criteria..." multiple style="width: 20%; " tabindex="-1" title>
+                                        {% for cr in all_bugs['PROPERTIES']['criterias'] %}
+                                        <option value="{{cr}}" {{ print_select(filters, 'criteria', cr ) }}>{{cr}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn btn-default" onclick="filters()"><span class="glyphicon glyphicon-ok"></span> Submit</button>
+                                </div>
+                            </div>
 
-            <h3 class="page-header"><br>{{ bug_data['display_name'] }} : {{ bug_data.bugs|length }} bugs </h3>
+                            {% for bug_data in all_bugs["DATA"] %}
 
-            <div class="CSSTableGenerator">
-                <table class="sortable table">
-                    <thead>
-                        <tr>
-                            <th>Bug #</th>
-                            <th>Title</th>
-                            <th>Milestone</th>
-                            <th>Status</th>
-                            <th>Importance</th>
-                            <th>Assignee</th>
-                            {% if bug_data['display_criterias'] %} <th>Criteria</th> {% endif %}
-                        </tr>
-                    </thead>
+                                <h3 class="page-header"><br>{{ bug_data['display_name'] }} : {{ bug_data.bugs|length }} bugs </h3>
 
-                    <tbody>
-                    {% for b in bug_data.bugs %}
-                    <tr >
-                        <td><a href="{{ b.web_link }}">{{ b.id }}<br>
-                            {% if 'customer-found' in b.tags %}<span class="label label-primary">customer-found</span>{%endif%}
-                            {% if b.information_type == 'Private' %}<span class="label label-warning">private</span>{%endif%}
-                        </a></td>
-                        <td><span title="{{ b.criteria_hint_text }}"> {{ b.title }}</span></td>
-                        <td>{{ b.milestone }}</td>
-                        <td>{{ b.status }}</td>
-                        <td>{{ b.importance }}</td>
-                        <td><a href="http://launchpad.net/~{{ b.assignee }}">{{ b.assignee }}</a></td>
-                        {% if bug_data['display_criterias'] %} <td>{{ b.criteria }}</td>  {% endif %}
-                      </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endfor %}
-    </div>
-</div>
+                                <div class="CSSTableGenerator">
+                                    <table class="sortable table">
+                                        <thead>
+                                            <tr>
+                                                <th>Bug #</th>
+                                                <th>Title</th>
+                                                <th>Milestone</th>
+                                                <th>Status</th>
+                                                <th>Importance</th>
+                                                <th>Assignee</th>
+                                                {% if bug_data['display_criterias'] %} <th>Criteria</th> {% endif %}
+                                            </tr>
+                                        </thead>
 
+                                        <tbody>
+                                        {% for b in bug_data.bugs %}
+                                        <tr >
+                                            <td><a href="{{ b.web_link }}">{{ b.id }}<br>
+                                                {% if 'customer-found' in b.tags %}<span class="label label-primary">customer-found</span>{%endif%}
+                                                {% if b.information_type == 'Private' %}<span class="label label-warning">private</span>{%endif%}
+                                            </a></td>
+                                            <td><span title="{{ b.criteria_hint_text }}"> {{ b.title }}</span></td>
+                                            <td>{{ b.milestone }}</td>
+                                            <td>{{ b.status }}</td>
+                                            <td>{{ b.importance }}</td>
+                                            <td><a href="http://launchpad.net/~{{ b.assignee }}">{{ b.assignee }}</a></td>
+                                            {% if bug_data['display_criterias'] %} <td>{{ b.criteria }}</td>  {% endif %}
+                                          </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endfor %}
+                         </div>
+                     </div>
+                  </div> <!--col-md-12-->
+              </div> <!--row-->
+          </div> <!--page-content inset-->
+      </div> <!--page-content-wrapper-->
+
+</div> <!--wrapper-->
 <script>
     function filters() {
 
@@ -170,5 +189,10 @@
     }
 
 </script>
-
+<script type="text/javascript">
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("active");
+});
+</script>
 {% endblock %}

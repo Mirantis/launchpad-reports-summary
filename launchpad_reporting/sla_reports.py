@@ -13,7 +13,8 @@ BUG_IMPORTANCE = ["Essential", "Critical", "High", "Medium",
                   "Low", "Wishlist", "Unknown", "Undecided"]
 
 BUG_STATUSES = ["New", "Incomplete", "Invalid", "Won't Fix", "Confirmed",
-                "Triaged", "In Progress", "Opinion", "Expired"]
+                "Triaged", "In Progress", "Opinion", "Expired",
+                "Fix Committed", "Fix Released"]
 
 CUSTOMER_FOUND_TAG = "customer-found"
 
@@ -122,8 +123,9 @@ def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options
 
     filters = []
 
-    if not options:
+    if not options.get("status"):
         options["status"] = BUG_STATUSES
+    if not options.get("importance"):
         options["importance"] = BUG_IMPORTANCE
 
     private_bugs = []

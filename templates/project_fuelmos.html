@@ -1,113 +1,131 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<h2 class="page-header"><br>Milestone {{ current_milestone }}</h2>
-<div class="col-sm-3 col-md-2 sidebar">
-    <br>
-    {% for m in milestones|sort %}
-    <ul class="nav nav-pills nav-stacked">
-        <li>
-            <a href="/project/fuelplusmos/{{ m }}">FUEL/MOS {{ m }} </a>
-        </li>
-    </ul>
-    {% endfor %}
-    </ul>
-</div>
-
-
-<div class="links_for_launchpad">
-    <img src=http://png-4.findicons.com/files/icons/2232/wireframe_mono/16/bug.png><a href="https://launchpad.net/fuel/+milestone/{{ current_milestone }}#milestone_bugtasks">   FUEL {{ current_milestone }} bugs </a><br>
-    <img src=http://png-4.findicons.com/files/icons/2232/wireframe_mono/16/bug.png><a href="https://launchpad.net/mos/+milestone/{{ current_milestone }}#milestone_bugtasks">   MOS {{ current_milestone }} bugs </a>
-</div>
-
-<br>
-
-<div>
-    <table class="sortable">
-        <thead>
-            <tr>
-                <th rowspan="2">Subproject</th>
-                <td colspan="3">FUEL</td>
-                <td colspan="3">MOS</td>
-                <td colspan="3">FUEL + MOS</td>
-                <tr>
-                  {% for i in range(3) %}
-                      <th>done</th>
-                      <th>total</th>
-                      <th>high, critical<br>(not done)</th>
-
-                  {% endfor %}
-                </tr>
-            </tr>
-        </thead>
-        <tbody>
-            {% for i in page_statistic %}
-                <tr>
-                    <td>{{i}}</td>
-
-                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/done/{{i}}">{{ page_statistic[i]["fuel"]["done"] }}</a></td>
-                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/total/{{i}}">{{ page_statistic[i]["fuel"]["total"] }}</a></td>
-                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/high/{{i}}">{{ page_statistic[i]["fuel"]["high"] }}</a></td>
-
-                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/done/{{i}}">{{ page_statistic[i]["mos"]["done"] }}</a></td>
-                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/total/{{i}}">{{ page_statistic[i]["mos"]["total"] }}</a></td>
-                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/high/{{i}}">{{ page_statistic[i]["mos"]["high"] }}</a></td>
-
-                    <td>{{ fuel_plus_mos[i]["done"] }}</td>
-                    <td>{{ fuel_plus_mos[i]["total"] }}</td>
-                    <td>{{ fuel_plus_mos[i]["high"] }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td><b>Summary by tags:</b></td>
-                <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/done/all">{{ summary_statistic["summary"]["tags"]["fuel"]["done"] }}</a></td>
-                <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/total/all">{{ summary_statistic["summary"]["tags"]["fuel"]["total"] }}</a></td>
-                <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/high/all">{{ summary_statistic["summary"]["tags"]["fuel"]["high"] }}</a></td>
-
-                <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/done/all">{{ summary_statistic["summary"]["tags"]["mos"]["done"] }}</a></td>
-                <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/total/all">{{ summary_statistic["summary"]["tags"]["mos"]["total"] }}</a></td>
-                <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/high/all">{{ summary_statistic["summary"]["tags"]["mos"]["high"] }}</a></td>
-
-                <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["done"]}}</b></td>
-                <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["total"]}}</b></td>
-                <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["high"]}}</b></td>
-            </tr>
-            <tr>
-                <td><b>Summary (others):</b></td>
-                <td>{{ summary_statistic["summary"]["others"]["fuel"]["done"] }}</td>
-                <td>{{ summary_statistic["summary"]["others"]["fuel"]["total"] }}</td>
-                <td>{{summary_statistic["summary"]["others"]["fuel"]["high"]}}</td>
-                <td>{{summary_statistic["summary"]["others"]["mos"]["done"]}}</td>
-                <td>{{summary_statistic["summary"]["others"]["mos"]["total"]}}</td>
-                <td>{{summary_statistic["summary"]["others"]["mos"]["high"]}}</td>
-                <td><b>{{summary_statistic["summary"]["others"]["fuel_mos"]["done"]}}</b></td>
-                <td><b>{{summary_statistic["summary"]["others"]["fuel_mos"]["total"]}}</b></td>
-                <td><b>{{summary_statistic["summary"]["others"]["fuel_mos"]["high"]}}</b></td>
-            </tr>
-        </tfoot>
-    </table>
-    <br><br>
-    <img src="https://cdn2.iconfinder.com/data/icons/seo-web-optomization-ultimate-set/512/checkmark_comleted_tasks-32.png" alt="*">
-     "Not Done" is considered bugs with following statuses: "New", "Confirmed", "Triaged", "In Progress".
-    <br>
-    <img src="https://cdn2.iconfinder.com/data/icons/seo-web-optomization-ultimate-set/512/checkmark_comleted_tasks-32.png" alt="*">
-    "Done" is considered bugs with following statuses: "Fix Committed", "Won't Fix", "Invalid", "Expired", "Opinion", "Incomplete".
-
-    {% if incomplete["fuel"] > 0 or incomplete["mos"] > 0 %}
-    <br>
-    <img src="https://cdn2.iconfinder.com/data/icons/seo-web-optomization-ultimate-set/512/checkmark_comleted_tasks-32.png" alt="*">
-    Aslo please note that "Done" includes bugs with "Incomplete" status.
-    {% endif %}
-        <ul>
-             <li>"Incomplete" {% if incomplete["fuel"] == 1 %}bug{% else %}bugs{% endif %} in FUEL:
-                <a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/incomplete/all"><b>{{ incomplete["fuel"]}} </b></a>
-             </li>
-            <li>"Incomplete" {% if incomplete["mos"] == 1 %}bug{% else %}bugs{% endif %} in MOS:
-                <a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/incomplete/all"><b>{{ incomplete["mos"]}} </b></a>
-            </li>
+<div id="wrapper" class="active">
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul id="sidebar_menu" class="sidebar-nav">
+            <li class="sidebar-brand " ><a id="menu-toggle" href="#" >Milestones<span id="main_icon" class="glyphicon glyphicon-align-justify"></span></a></li>
         </ul>
-</div>
+        <ul class="sidebar-nav" id="sidebar">
+            {% for m in milestones|sort %}
+                <li>
+                    <a href="/project/fuelplusmos/{{ m }}">FUEL/MOS {{ m }} </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Page content -->
+    <div id="page-content-wrapper">
+        <!-- Keep all page content within the page-content inset div! -->
+        <div class="page-content inset">
+             <div class="row">
+                  <div class="col-md-12">
+                      <h2 class="page-header"><br>Milestone {{ current_milestone }}</h2>
+
+                      <div class="links_for_launchpad">
+                           <img src=http://png-4.findicons.com/files/icons/2232/wireframe_mono/16/bug.png><a href="https://launchpad.net/fuel/+milestone/{{ current_milestone }}#milestone_bugtasks">   FUEL {{ current_milestone }} bugs </a><br>
+                           <img src=http://png-4.findicons.com/files/icons/2232/wireframe_mono/16/bug.png><a href="https://launchpad.net/mos/+milestone/{{ current_milestone }}#milestone_bugtasks">   MOS {{ current_milestone }} bugs </a>
+                      </div>
+
+                      <table class="sortable">
+                          <thead>
+                              <tr>
+                                    <th rowspan="2">Subproject</th>
+                                    <td colspan="3">FUEL</td>
+                                    <td colspan="3">MOS</td>
+                                    <td colspan="3">FUEL + MOS</td>
+                                    <tr>
+                                      {% for i in range(3) %}
+                                          <th>done</th>
+                                          <th>total</th>
+                                          <th>high, critical<br>(not done)</th>
+
+                                      {% endfor %}
+                                    </tr>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in page_statistic %}
+                                    <tr>
+                                        <td>{{i}}</td>
+
+                                        <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/done/{{i}}">{{ page_statistic[i]["fuel"]["done"] }}</a></td>
+                                        <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/total/{{i}}">{{ page_statistic[i]["fuel"]["total"] }}</a></td>
+                                        <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/high/{{i}}">{{ page_statistic[i]["fuel"]["high"] }}</a></td>
+
+                                        <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/done/{{i}}">{{ page_statistic[i]["mos"]["done"] }}</a></td>
+                                        <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/total/{{i}}">{{ page_statistic[i]["mos"]["total"] }}</a></td>
+                                        <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/high/{{i}}">{{ page_statistic[i]["mos"]["high"] }}</a></td>
+
+                                        <td>{{ fuel_plus_mos[i]["done"] }}</td>
+                                        <td>{{ fuel_plus_mos[i]["total"] }}</td>
+                                        <td>{{ fuel_plus_mos[i]["high"] }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td><b>Summary by tags:</b></td>
+                                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/done/all">{{ summary_statistic["summary"]["tags"]["fuel"]["done"] }}</a></td>
+                                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/total/all">{{ summary_statistic["summary"]["tags"]["fuel"]["total"] }}</a></td>
+                                    <td><a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/high/all">{{ summary_statistic["summary"]["tags"]["fuel"]["high"] }}</a></td>
+
+                                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/done/all">{{ summary_statistic["summary"]["tags"]["mos"]["done"] }}</a></td>
+                                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/total/all">{{ summary_statistic["summary"]["tags"]["mos"]["total"] }}</a></td>
+                                    <td><a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/high/all">{{ summary_statistic["summary"]["tags"]["mos"]["high"] }}</a></td>
+
+                                    <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["done"]}}</b></td>
+                                    <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["total"]}}</b></td>
+                                    <td><b>{{summary_statistic["summary"]["tags"]["fuel_mos"]["high"]}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td><b>Summary (others):</b></td>
+                                    <td>{{ summary_statistic["summary"]["others"]["fuel"]["done"] }}</td>
+                                    <td>{{ summary_statistic["summary"]["others"]["fuel"]["total"] }}</td>
+                                    <td>{{summary_statistic["summary"]["others"]["fuel"]["high"]}}</td>
+                                    <td>{{summary_statistic["summary"]["others"]["mos"]["done"]}}</td>
+                                    <td>{{summary_statistic["summary"]["others"]["mos"]["total"]}}</td>
+                                    <td>{{summary_statistic["summary"]["others"]["mos"]["high"]}}</td>
+                                    <td><b>{{summary_statistic["summary"]["others"]["fuel_mos"]["done"]}}</b></td>
+                                    <td><b>{{summary_statistic["summary"]["others"]["fuel_mos"]["total"]}}</b></td>
+                                    <td><b>{{summary_statistic["summary"]["others"]["fuel_mos"]["high"]}}</b></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <br><br>
+                        <img src="https://cdn2.iconfinder.com/data/icons/seo-web-optomization-ultimate-set/512/checkmark_comleted_tasks-32.png" alt="*">
+                         "Not Done" is considered bugs with following statuses: "New", "Confirmed", "Triaged", "In Progress".
+                        <br>
+                        <img src="https://cdn2.iconfinder.com/data/icons/seo-web-optomization-ultimate-set/512/checkmark_comleted_tasks-32.png" alt="*">
+                        "Done" is considered bugs with following statuses: "Fix Committed", "Won't Fix", "Invalid", "Expired", "Opinion", "Incomplete".
+
+                        {% if incomplete["fuel"] > 0 or incomplete["mos"] > 0 %}
+                        <br>
+                        <img src="https://cdn2.iconfinder.com/data/icons/seo-web-optomization-ultimate-set/512/checkmark_comleted_tasks-32.png" alt="*">
+                        Aslo please note that "Done" includes bugs with "Incomplete" status.
+                        {% endif %}
+                            <ul>
+                                 <li>"Incomplete" {% if incomplete["fuel"] == 1 %}bug{% else %}bugs{% endif %} in FUEL:
+                                    <a href="/project/fuel/bug_list_for_sbpr/{{ current_milestone }}/incomplete/all"><b>{{ incomplete["fuel"]}} </b></a>
+                                 </li>
+                                <li>"Incomplete" {% if incomplete["mos"] == 1 %}bug{% else %}bugs{% endif %} in MOS:
+                                    <a href="/project/mos/bug_list_for_sbpr/{{ current_milestone }}/incomplete/all"><b>{{ incomplete["mos"]}} </b></a>
+                                </li>
+                            </ul>
+
+                  </div> <!--col-md-12-->
+              </div> <!--row-->
+          </div> <!--page-content inset-->
+      </div> <!--page-content-wrapper-->
+
+</div> <!--wrapper-->
+<script type="text/javascript">
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("active");
+});
+</script>
 
 {% endblock %}

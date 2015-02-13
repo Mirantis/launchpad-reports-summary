@@ -1,58 +1,78 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<h2 class="page-header"><br>{{ milestone_name }} Release Bug Trends</h2>
 
-        <div class="col-sm-3 col-md-2 sidebar">
-    <ul class="nav nav-sidebar">
-        <li {% if selected_bug_table and bug_type == 'New' %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='New', milestone_name='None') }}">New bugs
-            </a>
-        </li>
-    </ul>
+<div id="wrapper" class="active">
 
-    {% for m in project.active_milestones|sort %}
-    <ul class="nav nav-sidebar">
-        <li {% if milestone_name == m and not selected_bug_trends and not selected_bug_table%}class="active"{% endif %}>
-            <a href="{{ url_for('statistic_for_project_by_milestone', project_name=project.name, milestone_name=m) }}">{{ m }}: Milestone Common Statistic</a>
-        </li>
-        <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
-            </a>
-        </li>
-        <li {% if selected_bug_table and bug_type == 'Open' and milestone_name == m %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">{{ m }}: Open Bugs
-            </a>
-        </li>
-        <li {% if selected_bug_table and bug_type == 'Closed' and milestone_name == m %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">{{ m }}: Closed Bugs
-            </a>
-        </li>
-    </ul>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul id="sidebar_menu" class="sidebar-nav">
+            <li class="sidebar-brand " ><a id="menu-toggle" href="#" >Milestones<span id="main_icon" class="glyphicon glyphicon-align-justify"></span></a></li>
+        </ul>
+        <ul class="sidebar-nav">
+            <li {% if selected_bug_table and bug_type == 'New' %}class="active"{% endif %}>
+                <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='New', milestone_name='None') }}">New bugs
+                </a>
+            </li>
+        </ul>
+        {% for m in project.active_milestones|sort %}
+        <ul class="sidebar-nav">
+            <li class="dropdown">
+                <a class="dropdown-toggle"  data-toggle="dropdown">{{ m }}<i class="fa fa-sort-down pull-right" style="padding-right: 30px; padding-top: 15px;"></i></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{ url_for('statistic_for_project_by_milestone', project_name=project.name, milestone_name=m) }}">Statistic</a>
+                        </li>
+                        <li >
+                            <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">{{ m }}: Open Bugs
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">{{ m }}: Closed Bugs
+                            </a>
+                        </li>
+                    </ul>
+            </li>
+        </ul>
 
-    {% endfor %}
+        {% endfor %}
+    </div>
 
-</div>
+    <!-- Page content -->
+    <div id="page-content-wrapper">
+        <!-- Keep all page content within the page-content inset div! -->
+        <div class="page-content inset">
+             <div class="row">
+                  <div class="col-md-12">
+                      <h2 class="page-header"><br>{{ milestone_name }} Release Bug Trends</h2>
+                      <div class="row placeholders">
+                          <div id="bug-report-chart">
+                              <img src="{{ url_for('static', filename='loader.gif') }}" />
+                              <svg></svg>
+                          </div>
+                      </div>
 
-<div class="row placeholders">
-  <div id="bug-report-chart">
-    <img src="{{ url_for('static', filename='loader.gif') }}" />
-    <svg></svg>
-  </div>
-</div>
+                    <h2 class="page-header">{{ milestone_name }} Incoming/Outgoing Bugs (Weekly)</h2>
+                    <div class="row placeholders">
+                      <div id="bug-incoming-outgoing-chart">
+                        <img src="{{ url_for('static', filename='loader.gif') }}" />
+                        <svg></svg>
+                      </div>
+                    </div>
 
-<h2 class="page-header">{{ milestone_name }} Incoming/Outgoing Bugs (Weekly)</h2>
-<div class="row placeholders">
-  <div id="bug-incoming-outgoing-chart">
-    <img src="{{ url_for('static', filename='loader.gif') }}" />
-    <svg></svg>
-  </div>
-</div>
+                  </div> <!--col-md-12-->
+             </div> <!--row-->
+        </div> <!--page-content inset-->
+    </div> <!--page-content-wrapper-->
 
+</div> <!--wrapper-->
 
 <script src="{{ url_for('static', filename='d3/d3.v3.js') }}"></script>
 <script src="{{ url_for('static', filename='nvd3/nv.d3.js') }}"></script>
-
 <script>
 
   <!-- Release bug trend chart -->
@@ -137,5 +157,10 @@
   })
 
 </script>
-
+<script type="text/javascript">
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("active");
+});
+</script>
 {% endblock %}

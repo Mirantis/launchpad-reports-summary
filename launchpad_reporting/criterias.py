@@ -131,3 +131,13 @@ class HCFReport(BugCriteria):
             return False
 
         return True
+
+
+class All(BugCriteria):
+    """Implementation for `all` criteria"""
+
+    def __init__(self):
+        pass
+
+    def is_satisfied(self, bug):
+        return True
