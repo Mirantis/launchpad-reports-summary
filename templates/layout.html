@@ -34,6 +34,9 @@
                     if (minutesPassed > 60){
                         minutesPassed = minutesPassed - 60;
                     }
+                    if (minutesPassed < 0){
+                        minutesPassed = minutesPassed + 60;
+                    }
                     $('#clock').text(minutesPassed + ' mins ago');
                 }, 1000);
             });
