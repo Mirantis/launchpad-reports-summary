@@ -223,7 +223,6 @@ def get_reports_data(report_name, projects, milestone_name=None, user_agent=None
                 'name': "%s for %s team" % (report['name'], team),
                 'display_name': team,
                 'parameter': report['parameter'],
-                'display_criterias': report.get('display-trigger-criterias', False),
                 'bugs': get_bugs_by_criteria(criterias=report['criterias'],
                                              projects=projects,
                                              milestone_name=milestone_name,
@@ -240,7 +239,6 @@ def get_reports_data(report_name, projects, milestone_name=None, user_agent=None
             'name': report['name'],
             'display_name': report['text'],
             'parameter': report['parameter'],
-            'display_criterias': report.get('display-trigger-criterias', False),
             'bugs': get_bugs_by_criteria(criterias=report['criterias'],
                                          projects=projects,
                                          milestone_name=milestone_name,
@@ -254,6 +252,7 @@ def get_reports_data(report_name, projects, milestone_name=None, user_agent=None
     result["DATA"] = all_res
     report["options"]["criterias"] = criterias
     result["PROPERTIES"] = report["options"]
+    result['display_criterias'] = report.get('display-trigger-criterias', False)
 
 
     return result
