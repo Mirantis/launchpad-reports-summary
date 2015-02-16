@@ -93,6 +93,17 @@ criterias:
       implementation: criterias.All
 
 
+report-default-values:
+    display-trigger-criterias: false
+    options:
+        status: ["New", "Incomplete", "Opinion", "Invalid", "Won't Fix",
+                 "Confirmed", "Triaged", "In Progress",
+                 "Fix Committed", "Fix Released"]
+
+        importance: ["Critical", "High", "Medium",
+                     "Low", "Wishlist", "Unknown", "Undecided"]
+
+
 reports:
 
     - name: triage_queue
@@ -100,13 +111,7 @@ reports:
       parameter: project
       criterias:
           - name: sla-non-triaged
-      options:
-        status: ["New", "Incomplete", "Confirmed",
-                "Triaged", "In Progress", "Opinion", "Expired"]
-      # do not implement frequent-polling in current scope
-      frequent-polling: true
-      display-trigger-criterias: true
-        
+
     - name: sla_report
       text: SLA Report
       parameter: milestone
@@ -114,17 +119,14 @@ reports:
       display-trigger-criterias: true
       criterias:
             - name: sla-full-lifecycle
-              importance: 1
-              config-override:
-                    6.1_critical_threshold: 5
-                    6.1_high_threshold: 10
+#              config-override:
+#                    6.1_critical_threshold: 3
+#                    6.1_high_threshold: 7
             - name: sla-confirmed-triaged
-              importance: 3
             - name: sla-in-progress
-              importance: 1
       options:
-        status: ["New", "Incomplete", "Confirmed",
-                "Triaged", "In Progress", "Opinion", "Expired"]
+        status: ["New", "Incomplete", "Opinion", "Confirmed",
+                 "Triaged", "In Progress", "Opinion"]
 
     - name: hcf_status
       text: HCF Status
@@ -133,9 +135,9 @@ reports:
       criterias:
           - name: hcf
       options:
-        status: ["New", "Confirmed", "Triaged", "In Progress"]
+        status: ["New", "Incomplete", "Opinion", "Confirmed",
+                 "Triaged", "In Progress"]
         importance: ["High", "Critical"]
-      display-trigger-criterias: true
 
     - name: custom_report
       text: Custom Report
@@ -146,7 +148,6 @@ reports:
 
 
 
-# do not implement menu in current scope
 menu:
     - name: Release
       submenu: [sla_report, hcf_status, custom_report]

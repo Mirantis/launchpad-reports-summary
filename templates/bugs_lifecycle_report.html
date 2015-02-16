@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 
 {% block body %}
+
 <div id="wrapper" class="active">
 
     <!-- Sidebar -->
@@ -57,12 +58,12 @@
                             <div class="panel panel-default">
                                 <div class="panel-heading" id="panel_head">
                                     <select id="status_select" data-placeholder="Choose status..." multiple="multiple" style="width: 10%;" tabindex="-1" title>
-                                        {% for st in all_bugs['PROPERTIES']['status'] %}
+                                        {% for st in report['options']['status'] %}
                                         <option value="{{st}}" {{ print_select(filters, 'status', st) }}>{{st}}</option>
                                         {% endfor %}
                                     </select>
                                     <select id="importance_select" data-placeholder="Choose importance..." multiple="multiple" style="width: 10%; " tabindex="-1" title>
-                                        {% for im in all_bugs['PROPERTIES']['importance'] %}
+                                        {% for im in report['options']['importance'] %}
                                         <option value="{{im}}" {{ print_select(filters, 'importance', im) }}>{{im}}</option>
                                         {% endfor %}
                                     </select>
@@ -75,11 +76,13 @@
                                         </optgroup>
                                        {% endfor %}
                                     </select>
-                                    <select id="criteria_select" data-placeholder="Choose criteria..." multiple style="width: 20%; " tabindex="-1" title>
-                                        {% for cr in all_bugs['PROPERTIES']['criterias'] %}
-                                        <option value="{{cr}}" {{ print_select(filters, 'criteria', cr ) }}>{{cr}}</option>
-                                        {% endfor %}
-                                    </select>
+                                    {% if report['display-trigger-criterias'] %}
+                                        <select id="criteria_select" data-placeholder="Choose criteria..." multiple style="width: 20%; " tabindex="-1" title>
+                                            {% for cr in report['criterias'] %}
+                                            <option value="{{cr['name']}}" {{ print_select(filters, 'criteria', cr['name'] ) }}>{{cr['name']}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
                                     <button type="button" class="btn btn-default" onclick="filters()"><span class="glyphicon glyphicon-ok"></span> Submit</button>
                                 </div>
                             </div>
@@ -99,7 +102,7 @@
                                                 <th>Importance</th>
                                                 <th>Tag</th>
                                                 <th>Assignee</th>
-                                                {% if bug_data['display_criterias'] %} <th>Criteria</th> {% endif %}
+                                                {% if report['display-trigger-criterias'] %} <th>Criteria</th> {% endif %}
                                             </tr>
                                         </thead>
 
@@ -120,7 +123,7 @@
                                                 {% endfor %}
                                             </td>
                                             <td><a href="http://launchpad.net/~{{ b.assignee }}">{{ b.assignee }}</a></td>
-                                            {% if bug_data['display_criterias'] %} <td>{{ b.criteria }}</td>  {% endif %}
+                                            {% if report['display-trigger-criterias'] %} <td>{{ b.criteria }}</td>  {% endif %}
                                           </tr>
                                         {% endfor %}
                                         </tbody>
@@ -156,9 +159,11 @@
             query_str += "&importance=" + $(this).text();
         });
 
-        $( "#criteria_select option:selected" ).each(function() {
-            query_str += "&criteria=" + $(this).text();
-        });
+        {% if report['display-trigger-criterias'] %}
+            $( "#criteria_select option:selected" ).each(function() {
+                query_str += "&criteria=" + $(this).text();
+            });
+        {% endif %}
 
         query_str += assignee_str
 

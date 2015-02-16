@@ -12,16 +12,28 @@ TEAMS = ["Fuel", "Partners", "mos-linux", "mos-openstack", "Unknown"]
 BUG_IMPORTANCE = ["Essential", "Critical", "High", "Medium",
                   "Low", "Wishlist", "Unknown", "Undecided"]
 
-BUG_STATUSES = ["New", "Incomplete", "Invalid", "Won't Fix", "Confirmed",
-                "Triaged", "In Progress", "Opinion", "Expired",
-                "Fix Committed", "Fix Released"]
-
 CUSTOMER_FOUND_TAG = "customer-found"
+
+
+def set_defaults(report, defaults):
+    for key in defaults:
+        if key not in report:
+            report[key] = defaults[key]
+        else:
+            if isinstance(defaults[key], dict):
+                set_defaults(report[key], defaults[key])
 
 
 def read_config_file(config_path='launchpad_reporting/config/sample.yaml'):
     with open(config_path, 'r') as stream:
-        return yaml.load(stream)
+        config = yaml.load(stream)
+
+    defaults = config['report-default-values']
+
+    for report in config['reports']:
+        set_defaults(report, defaults)
+
+    return config
 
 
 def get_team_members(team):
@@ -123,11 +135,6 @@ def get_bugs_by_criteria(criterias, projects, milestone_name, team=None, options
 
     filters = []
 
-    if not options.get("status"):
-        options["status"] = BUG_STATUSES
-    if not options.get("importance"):
-        options["importance"] = BUG_IMPORTANCE
-
     private_bugs = []
     if user_agent is not None:
         for pr in projects:
@@ -211,11 +218,6 @@ def get_reports_data(report_name, projects, milestone_name=None, user_agent=None
 
     all_res = []
 
-    criterias = [cr['name'] for cr in report['criterias']]
-
-    if not 'options' in report.keys():
-        report['options'] = {}
-
     if report.get('group-by') == "team":
         # returns a list of dictionaries
         for team in TEAMS:
@@ -223,7 +225,6 @@ def get_reports_data(report_name, projects, milestone_name=None, user_agent=None
                 'name': "%s for %s team" % (report['name'], team),
                 'display_name': team,
                 'parameter': report['parameter'],
-                'display_criterias': report.get('display-trigger-criterias', False),
                 'bugs': get_bugs_by_criteria(criterias=report['criterias'],
                                              projects=projects,
                                              milestone_name=milestone_name,
@@ -240,7 +241,6 @@ def get_reports_data(report_name, projects, milestone_name=None, user_agent=None
             'name': report['name'],
             'display_name': report['text'],
             'parameter': report['parameter'],
-            'display_criterias': report.get('display-trigger-criterias', False),
             'bugs': get_bugs_by_criteria(criterias=report['criterias'],
                                          projects=projects,
                                          milestone_name=milestone_name,
@@ -250,10 +250,4 @@ def get_reports_data(report_name, projects, milestone_name=None, user_agent=None
         }
         all_res.append(result)
 
-    result = {}
-    result["DATA"] = all_res
-    report["options"]["criterias"] = criterias
-    result["PROPERTIES"] = report["options"]
-
-
-    return result
+    return {"DATA": all_res}
