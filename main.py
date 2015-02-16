@@ -82,7 +82,7 @@ app.jinja_env.globals.update(print_select=print_select,
                              get_report_by_name=get_report_by_name,
                              app_config=app_config,
                              key_milestone=KEY_MILESTONE,
-                             update_time=launchpad.get_update_time())
+                             get_update_time=launchpad.get_update_time)
 
 
 def get_access_token(credentials):

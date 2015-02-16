@@ -29,7 +29,7 @@
             $(function() {
 
                 window.setInterval(function() {
-                    var lastUpdate = {{ update_time }},
+                    var lastUpdate = {{ get_update_time() }},
                     minutesPassed = Math.round((Date.now() / 1000 - lastUpdate)/60);
                     if (minutesPassed > 60){
                         minutesPassed = minutesPassed - 60;
@@ -37,7 +37,7 @@
                     if (minutesPassed < 0){
                         minutesPassed = minutesPassed + 60;
                     }
-                    $('#clock').text(minutesPassed + ' mins ago');
+                    $('#clock').text('Updated ' + minutesPassed + ' mins ago');
                 }, 1000);
             });
             var t = $('#clock')
@@ -116,11 +116,7 @@
                         {% endfor %}
                   </ul>
                   <ul class="nav navbar-nav navbar-right">
-                      <li class="dropdown">
-                          <a class="dropdown-toggle" data-toggle="dropdown" id="toggler" href="/">Last update<b class="caret"></b></a>
-                          <ul class="dropdown-menu">
-                             <li><div id="clock">{{t}}</div></li>
-                          </ul>
+                      <li><a id="clock" href="/"></a>
                       </li>
                       {% if not is_authorized %}
                       <li><a href="/login" data-toggle="tooltip" data-placement="bottom" title="Log in to your LP account to collect 'private' bugs"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
