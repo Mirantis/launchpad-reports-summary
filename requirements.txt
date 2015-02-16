@@ -6,7 +6,7 @@ Werkzeug==0.9.6
 argparse==1.2.1
 httplib2==0.9
 itsdangerous==0.24
-launchpadlib==1.6.0
+https://launchpad.net/launchpadlib/trunk/1.10.2/+download/launchpadlib-1.10.2.tar.gz
 lazr.restfulclient==0.13.1
 lazr.uri==1.0.3
 oauth==1.0.1

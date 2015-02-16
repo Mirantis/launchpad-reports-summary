@@ -78,21 +78,36 @@ criterias:
 
       # implements criteria for current HCF report
       # (bug is either critical or high)
-    - name: hcf-affecting
-      implementation: criterias.HCFAffecting
+    - name: hcf
+      text: Criteria for HCF report
+      short-text: hcf
+      implementation: criterias.HCFReport
+      config:
+          - name: exclude_tags
+            default: ["devops", "docs", "fuel-devops", "experimental", "system-tests"]
+            text: bugs with its tags are not present in report
+
+    - name: all
+      text: Criteria including all the bugs
+      short-text: all
+      implementation: criterias.All
+
 
 reports:
 
-    - name: non-triaged-in-time
-      text: Non-Triaged in Time Bugs
+    - name: triage_queue
+      text: Triage Queue
       parameter: project
       criterias:
-            - name: sla-non-triaged
+          - name: sla-non-triaged
+      options:
+        status: ["New", "Incomplete", "Confirmed",
+                "Triaged", "In Progress", "Opinion", "Expired"]
       # do not implement frequent-polling in current scope
       frequent-polling: true
       display-trigger-criterias: true
         
-    - name: sla-report
+    - name: sla_report
       text: SLA Report
       parameter: milestone
       group-by: team
@@ -107,21 +122,37 @@ reports:
               importance: 3
             - name: sla-in-progress
               importance: 1
+      options:
+        status: ["New", "Incomplete", "Confirmed",
+                "Triaged", "In Progress", "Opinion", "Expired"]
 
-    # - name: hcf-status
-    #   text: HCF Status
-    #   parameter: milestone
-    #   group-by: team
-    #   criterias:
-    #         - name: hcf-affecting
+    - name: hcf_status
+      text: HCF Status
+      parameter: milestone
+      group-by: team
+      criterias:
+          - name: hcf
+      options:
+        status: ["New", "Confirmed", "Triaged", "In Progress"]
+        importance: ["High", "Critical"]
+      display-trigger-criterias: true
+
+    - name: custom_report
+      text: Custom Report
+      parameter: milestone
+      group-by: team
+      criterias:
+          - name: all
+
+
 
 # do not implement menu in current scope
 menu:
-    - name: Triage
-      submenu:
-        - report-name: non-triaged-in-time
-        
     - name: Release
-      submenu:
-        - report-name: sla-report
-          report-name: hcf-status
+      submenu: [sla_report, hcf_status, custom_report]
+
+    - name: Triage
+      submenu: [triage_queue]
+
+        
+

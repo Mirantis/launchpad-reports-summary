@@ -1,58 +1,204 @@
 {% extends "layout.html" %}
 
-
 {% block body %}
-<h2 class="page-header"><br>SLA Report {{ milestone_name }} </h2>
-<div class="col-sm-3 col-md-2 sidebar">
-    <br>
-    <ul class="nav nav-sidebar">
+<div id="wrapper" class="active">
 
-        <li>
-            <a href="/project/fuelplusmos/">Back to FUEL/MOS statistic
-            </a>
-        </li>
-    </ul>
-</div>
-
-<input type="radio" checked name="tabs" id="tab1">
-<div id="tab-content" class="tab-content animated fadeIn">
-
-    {% for bug_data in all_bugs %}
-    {% if loop.index == 1 %}
-    <pre>
-{{ bug_data['report_legend'] }} 
-    </pre>
-    {% endif %}
-    <h3 class="page-header"><br>{{ bug_data['display_name'] }} : {{ bug_data.bugs|length }} bugs </h3>
-        <table class="sortable table">
-            <thead>
-                <tr>
-                    <th>Bug #</th>
-                    <th>Title</th>
-                    <th>Milestone</th>
-                    <th>Status</th>
-                    <th>Importance</th>
-                    <th>Assignee</th>
-                    {% if bug_data['display_criterias'] %} <th>Criteria</th> {% endif %}
-                </tr>
-            </thead>
-
-            <tbody>
-            {% for b in bug_data.bugs %}
-            <tr {% if 'customer-found' in b.tags %}class="customer-found-bug" {% else %}class='bug'{% endif %} id="{{ b.id }}">
-                <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
-                <td><span title="{{ b.criteria_hint_text }}"> {{ b.title }}</span></td>
-                <td>{{ b.milestone }}</td>
-                <td>{{ b.status }}</td>
-                <td>{{ b.importance }}</td>
-                <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
-                {% if bug_data['display_criterias'] %} <td>{{ b.criteria_short_text }}</td>  {% endif %}
-              </tr>
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul id="sidebar_menu" class="sidebar-nav">
+            <li class="sidebar-brand"><a id="menu-toggle" href="#">Milestones<span id="main_icon" class="glyphicon glyphicon-align-justify"></span></a></li>
+        </ul>
+        <ul class="sidebar-nav" id="sidebar">
+            {% for m in milestones|sort %}
+                {% if milestone_name == m %}
+                <li><a href="/{{ report['name'] }}/{{ m }}">
+                    {{ m }}<span class="sub_icon glyphicon glyphicon-link"></span>
+                </a></li>
+                {% else %}
+                <li><a href="/{{ report['name'] }}/{{ m }}">
+                    {{ m }}<span class="sub_icon glyphicon glyphicon-link"></span>
+                </a></li>
+                {% endif %}
             {% endfor %}
-            </tbody>
-        </table>
-        {% endfor %}
+        </ul>
+    </div>
 
-</div>
+    <!-- Page content -->
+    <div id="page-content-wrapper">
+        <!-- Keep all page content within the page-content inset div! -->
+        <div class="page-content inset">
+             <div class="row">
+                  <div class="col-md-12">
+                      <h2 class="page-header"><br>{{ report['text'] }} {% if milestone_name %} Milestone {{ milestone_name }}{% endif %}</h2>
 
+                      <div role="tabpanel">
+                          <ul class="nav nav-pills" role="tablist" id="TeamTabs">
+                              <li role="presentation"><a onclick="onTabClick('All')" aria-controls="all" role="tab" data-toggle="tab">All</a></li>
+                              {% for group in all_bugs["DATA"] %}
+                              <li role="presentation" >
+                                  <a onclick="onTabClick('{{group.display_name}}')" aria-controls="{{group.display_name}}" role="tab" data-toggle="tab">
+                                      {{ group.display_name }}<span class="badge pull-right">{{group.bugs|length}}</span>
+                                  </a></li>
+                              {% endfor %}
+                          </ul>
+
+                          <div class="panel">
+                          {% for bug_data in all_bugs["DATA"] %}
+                              {% if loop.index == 1 %}
+                              <pre>
+{{ bug_data['report_legend'] }}
+                              </pre>
+                              {% endif %}
+                          {% endfor %}
+                          </div>
+
+
+                         <div id="tab-content" class="tab-content animated fadeIn">
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="panel_head">
+                                    <select id="status_select" data-placeholder="Choose status..." multiple="multiple" style="width: 10%;" tabindex="-1" title>
+                                        {% for st in all_bugs['PROPERTIES']['status'] %}
+                                        <option value="{{st}}" {{ print_select(filters, 'status', st) }}>{{st}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select id="importance_select" data-placeholder="Choose importance..." multiple="multiple" style="width: 10%; " tabindex="-1" title>
+                                        {% for im in all_bugs['PROPERTIES']['importance'] %}
+                                        <option value="{{im}}" {{ print_select(filters, 'importance', im) }}>{{im}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select id="assignee_select" data-placeholder="Choose assignee..." multiple="multiple" style="width: 50%" tabindex="-1" title>
+                                        {% for group in teams %}
+                                        <optgroup label="{{group}}">{{group}}
+                                            {% for i in teams[group] %}
+                                                <option value="{{i}}" {{ print_select(filters, 'assignee', i) }}>{{i}}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                       {% endfor %}
+                                    </select>
+                                    <select id="criteria_select" data-placeholder="Choose criteria..." multiple style="width: 20%; " tabindex="-1" title>
+                                        {% for cr in all_bugs['PROPERTIES']['criterias'] %}
+                                        <option value="{{cr}}" {{ print_select(filters, 'criteria', cr ) }}>{{cr}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn btn-default" onclick="filters()"><span class="glyphicon glyphicon-ok"></span> Submit</button>
+                                </div>
+                            </div>
+
+                            {% for bug_data in all_bugs["DATA"] %}
+
+                                <h3 class="page-header"><br>{{ bug_data['display_name'] }} : {{ bug_data.bugs|length }} bugs </h3>
+
+                                <div class="CSSTableGenerator">
+                                    <table class="sortable table">
+                                        <thead>
+                                            <tr>
+                                                <th>Bug #</th>
+                                                <th>Title</th>
+                                                <th>MS</th>
+                                                <th>Status</th>
+                                                <th>Importance</th>
+                                                <th>Tag</th>
+                                                <th>Assignee</th>
+                                                {% if bug_data['display_criterias'] %} <th>Criteria</th> {% endif %}
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        {% for b in bug_data.bugs %}
+                                        <tr >
+                                            <td><a href="{{ b.web_link }}">{{ b.id }}<br>
+                                                {% if 'customer-found' in b.tags %}<span class="label label-info">customer-found</span>{%endif%}
+                                                {% if b.information_type == 'Private' %}<span class="label label-warning">private</span>{%endif%}
+                                            </a></td>
+                                            <td><span title="{{ b.criteria_hint_text }}"> {{ b.title }}</span></td>
+                                            <td>{{ b.milestone }}</td>
+                                            <td>{{ b.status }}</td>
+                                            <td>{{ b.importance }}</td>
+                                            <td>
+                                                {% for tag in b.tags %}
+                                                <span class="label label-primary">{{tag}}</span>
+                                                {% endfor %}
+                                            </td>
+                                            <td><a href="http://launchpad.net/~{{ b.assignee }}">{{ b.assignee }}</a></td>
+                                            {% if bug_data['display_criterias'] %} <td>{{ b.criteria }}</td>  {% endif %}
+                                          </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endfor %}
+                         </div>
+                     </div>
+                  </div> <!--col-md-12-->
+              </div> <!--row-->
+          </div> <!--page-content inset-->
+      </div> <!--page-content-wrapper-->
+
+</div> <!--wrapper-->
+<script>
+    function filters() {
+
+        assignee_str = "";
+        $( "#assignee_select option:selected" ).each(function() {
+             assignee_str += "&assignee=" + $(this).text();
+        });
+
+        go_to_url(get_current_url(), assignee_str, "");
+    }
+
+    function go_to_url(base_url, assignee_str, tab_name) {
+        var query_str = "";
+        $( "#status_select option:selected" ).each(function() {
+            query_str += "&status=" + $(this).text();
+        });
+
+        $( "#importance_select option:selected" ).each(function() {
+            query_str += "&importance=" + $(this).text();
+        });
+
+        $( "#criteria_select option:selected" ).each(function() {
+            query_str += "&criteria=" + $(this).text();
+        });
+
+        query_str += assignee_str
+
+        if (tab_name != "") {
+            query_str += "&tab_name=" + tab_name
+        }
+
+        query_str = query_str.substr(1, query_str.length);
+        window.location.href = base_url + "?" + query_str;
+    }
+
+    function get_current_url() {
+        var current_url = document.URL;
+        if (current_url.indexOf("?")>-1) {
+            current_url = current_url.substr(0, current_url.indexOf("?"));
+        }
+        return current_url
+    }
+
+
+    function onTabClick(team_name) {
+        go_to_url(get_current_url(), "", team_name)
+    }
+
+    function go_to_csv() {
+        assignee_str = "";
+        $( "#assignee_select option:selected" ).each(function() {
+             assignee_str += "&assignee=" + $(this).text();
+        });
+
+        url = get_current_url().replace("code_freeze_report", "code_freeze_report_csv")
+
+        go_to_url(url, assignee_str, "");
+    }
+
+</script>
+<script type="text/javascript">
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("active");
+});
+</script>
 {% endblock %}

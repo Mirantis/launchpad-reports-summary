@@ -1,35 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="col-sm-3 col-md-2 sidebar">
-    <ul class="nav nav-sidebar">
-        <li {% if selected_bug_table and bug_type == 'New' %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='New', milestone_name='None') }}">New bugs
-            </a>
-        </li>
-    </ul>
 
-    {% for m in project.active_milestones|sort %}
-    <ul class="nav nav-sidebar">
-        <li {% if milestone_name == m and not selected_bug_trends and not selected_bug_table%}class="active"{% endif %}>
-            <a href="{{ url_for('statistic_for_project_by_milestone', project_name=project.name, milestone_name=m) }}">{{ m }}: Milestone Common Statistic</a>
-        </li>
-        <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends
-            </a>
-        </li>
-        <li {% if selected_bug_table and bug_type == 'Open' and milestone_name == m %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">{{ m }}: Open Bugs
-            </a>
-        </li>
-        <li {% if selected_bug_table and bug_type == 'Closed' and milestone_name == m %}class="active"{% endif %}>
-            <a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">{{ m }}: Closed Bugs
-            </a>
-        </li>
-    </ul>
-
-    {% endfor %}
-
-</div>
 <script>
 var customer_found = false;
 var pathname = window.location.pathname;
