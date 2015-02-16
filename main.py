@@ -81,7 +81,8 @@ user_agents = {}
 app.jinja_env.globals.update(print_select=print_select,
                              get_report_by_name=get_report_by_name,
                              app_config=app_config,
-                             key_milestone=KEY_MILESTONE)
+                             key_milestone=KEY_MILESTONE,
+                             update_time=launchpad.get_update_time())
 
 
 def get_access_token(credentials):
@@ -196,8 +197,7 @@ def bug_list(project_name, bug_type, milestone_name, is_authorized=False):
                            bug_type=bug_type,
                            milestone_name=milestone_name,
                            selected_bug_table=True,
-                           prs=list(db.prs),
-                           update_time=launchpad.get_update_time())
+                           prs=list(db.prs))
 
 
 
@@ -247,7 +247,6 @@ def bug_list_for_sbpr(project_name, bug_type, milestone_name, sbpr, is_authorize
                            sbpr=sbpr,
                            milestone_name=milestone_name,
                            milestones=MILESTONES,
-                           update_time=launchpad.get_update_time(),
                            bugs_type_to_print=bugs_type_to_print)
 
 
@@ -287,8 +286,7 @@ def bug_table_for_status(project_name, bug_type, milestone_name, is_authorized=F
                            is_authorized=is_authorized,
                            project=project,
                            prs=list(db.prs),
-                           milestone_name=milestone_name,
-                           update_time=launchpad.get_update_time())
+                           milestone_name=milestone_name)
 
 
 @app.route('/project/<project_name>/bug_trends/<milestone_name>/')
@@ -301,8 +299,7 @@ def bug_trends(project_name, milestone_name, is_authorized=False):
                            project=project,
                            milestone_name=milestone_name,
                            selected_bug_trends=True,
-                           prs=list(db.prs),
-                           update_time=launchpad.get_update_time())
+                           prs=list(db.prs))
 
 
 def milestone_based_report(report):
@@ -395,8 +392,7 @@ def statistic_for_project_by_milestone_by_tag(project_name, milestone_name,
                            page_statistic=page_statistic,
                            milestone=milestone,
                            flag=True,
-                           tag=tag,
-                           update_time=launchpad.get_update_time())
+                           tag=tag)
 
 
 @app.route('/project/<project_name>/<milestone_name>/project_statistic/')
@@ -428,8 +424,7 @@ def statistic_for_project_by_milestone(project_name, milestone_name, is_authoriz
                            subprs=list(db.subprs),
                            page_statistic=page_statistic,
                            milestone=milestone,
-                           flag=True,
-                           update_time=launchpad.get_update_time())
+                           flag=True)
 
 
 @app.route('/project/fuelplusmos/<milestone_name>/')
@@ -566,8 +561,7 @@ def fuel_plus_mos_overview(milestone_name, is_authorized=False):
                            summary_statistic=summary_statistic,
                            fuel_plus_mos=fuel_plus_mos,
                            all_tags="+".join(db.subprs),
-                           incomplete=incomplete,
-                           update_time=launchpad.get_update_time())
+                           incomplete=incomplete)
 
 
 @app.route('/project/<project_name>/')
@@ -596,8 +590,7 @@ def project_overview(project_name, is_authorized=False):
                            prs=list(db.prs),
                            subprs=list(db.subprs),
                            page_statistic=page_statistic,
-                           milestone=[],
-                           update_time=launchpad.get_update_time())
+                           milestone=[])
 
 
 @app.route('/project/<global_project_name>/<tag>/')
@@ -621,8 +614,7 @@ def mos_project_overview(global_project_name, tag, is_authorized=False):
                            display_subprojects=True,
                            prs=list(db.prs),
                            subprs=list(db.subprs),
-                           milestone=[],
-                           update_time=launchpad.get_update_time())
+                           milestone=[])
 
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -664,8 +656,7 @@ def main_page(is_authorized=False):
                            key_milestone=KEY_MILESTONE,
                            is_authorized=is_authorized,
                            statistic=global_statistic,
-                           prs=list(db.prs),
-                           update_time=launchpad.get_update_time())
+                           prs=list(db.prs))
 
 
 if __name__ == "__main__":
