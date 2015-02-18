@@ -59,7 +59,8 @@ def filter(request, bugs):
         'status': request.args.getlist('status'),
         'importance': request.args.getlist('importance'),
         'assignee': request.args.getlist('assignee'),
-        'criteria': request.args.getlist('criteria')
+        'criteria': request.args.getlist('criteria'),
+        'tags': request.args.getlist('tags'),
     }
 
     teams_data['Unknown'] = {'unknown': []}
@@ -678,7 +679,7 @@ if __name__ == "__main__":
 
     params, args = parser.parse_known_args()
     app.run(
-        debug=False,
+        debug=True,
         host=params.host,
         port=int(params.port),
         use_reloader=True,
