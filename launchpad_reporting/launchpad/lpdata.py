@@ -185,7 +185,7 @@ class LaunchpadAnonymousData(object):
     def get_all_bugs(self, project, milestone=None):
 
         def timestamp_to_utc_date(timestamp):
-            return (datetime.datetime.fromtimestamp(timestamp).
+            return (datetime.datetime.utcfromtimestamp(timestamp).
                     strftime('%Y-%m-%d'))
 
         update_time = None
@@ -345,6 +345,15 @@ class LaunchpadAnonymousData(object):
 
             if filters['criteria']:
                 team["bugs"] = _filter(team["bugs"], 'criteria')
+
+            if filters['tags']:
+                filtered_bugs = []
+                for b in team["bugs"]:
+                    print(getattr(b, 'tags'), filters['tags'])
+                    if set(getattr(b, 'tags')) & set(filters['tags']):
+                        filtered_bugs.append(b)
+                        print(True)
+                team["bugs"] = filtered_bugs
 
             if filters['assignee']:
                 new_teams_data = {}

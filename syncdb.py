@@ -42,6 +42,8 @@ SUBPROJECTS_LIST = [
 ]
 
 if __name__ == "__main__":
+    sync_start_time = time.time()
+
     launchpad = LaunchpadAnonymousClient()
 
     milestones = db.bugs.milestones
@@ -119,4 +121,4 @@ if __name__ == "__main__":
 
     db.bugs.drop_collection("update_date")
     db.bugs.create_collection("update_date")
-    db.bugs.update_date.insert({"Update_date": time.time()})
+    db.bugs.update_date.insert({"Update_date": sync_start_time})

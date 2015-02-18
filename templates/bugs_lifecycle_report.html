@@ -53,7 +53,6 @@
                           {% endfor %}
                           </div>
 
-
                          <div id="tab-content" class="tab-content animated fadeIn">
                             <div class="panel panel-default">
                                 <div class="panel-heading" id="panel_head">
@@ -67,7 +66,7 @@
                                         <option value="{{im}}" {{ print_select(filters, 'importance', im) }}>{{im}}</option>
                                         {% endfor %}
                                     </select>
-                                    <select id="assignee_select" data-placeholder="Choose assignee..." multiple="multiple" style="width: 50%" tabindex="-1" title>
+                                    <select id="assignee_select" data-placeholder="Choose assignee..." multiple="multiple" style="width: 35%" tabindex="-1" title>
                                         {% for group in teams %}
                                         <optgroup label="{{group}}">{{group}}
                                             {% for i in teams[group] %}
@@ -76,14 +75,16 @@
                                         </optgroup>
                                        {% endfor %}
                                     </select>
+                                    <input id="tags_select" placeholder="Input tags..." style="width: 10%" value="{{' '.join(filters['tags'])}}"></input>
                                     {% if report['display-trigger-criterias'] %}
                                         <select id="criteria_select" data-placeholder="Choose criteria..." multiple style="width: 20%; " tabindex="-1" title>
                                             {% for cr in report['criterias'] %}
                                             <option value="{{cr['name']}}" {{ print_select(filters, 'criteria', cr['name'] ) }}>{{cr['name']}}</option>
                                             {% endfor %}
                                         </select>
-                                    {% endif %}
-                                    <button type="button" class="btn btn-default" onclick="filters()"><span class="glyphicon glyphicon-ok"></span> Submit</button>
+                                    {% endif %}                                   
+                                    <button type="button" class="btn btn-default" onclick="filters()" ><span class="glyphicon glyphicon-ok"></span> Submit</button>
+                                    <button type="button" class="btn btn-default" onclick="reset()" ><span class="glyphicon glyphicon-remove"></span> Reset</button>
                                 </div>
                             </div>
 
@@ -165,6 +166,12 @@
             });
         {% endif %}
 
+        if ($("#tags_select").val() != "") {
+            var tags = $("#tags_select").val().split(" ");
+            tags = tags.map( function(item) { return "&tags="+item; } ).join("");
+            query_str += tags
+        }
+
         query_str += assignee_str
 
         if (tab_name != "") {
@@ -199,6 +206,14 @@
         go_to_url(url, assignee_str, "");
     }
 
+    function reset() {
+        $('#status_select').val("");
+        $('#importance_select').val("");
+        $('#assignee_select').val("");
+        $('#criteria_select').val("");
+        $('#tags_select').val("");
+        go_to_url(get_current_url(), "", "");
+    }
 </script>
 <script type="text/javascript">
     $("#menu-toggle").click(function(e) {
@@ -206,4 +221,6 @@
         $("#wrapper").toggleClass("active");
 });
 </script>
+
+
 {% endblock %}
