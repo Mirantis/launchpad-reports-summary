@@ -108,6 +108,9 @@ reports:
 
     - name: triage_queue
       text: Triage Queue
+      description: >
+        This report lists bugs which were not triaged in 1 day and which are in one of the following states:
+        New, Incomplete, Opinion, Confirmed, Triaged, In Progress.
       parameter: project
       criterias:
           - name: sla-non-triaged
@@ -117,6 +120,13 @@ reports:
 
     - name: sla_report
       text: SLA Report
+      description: >
+        This report lists bugs which violate our Service Level Agreement
+        (SLA), e.g. were not fixed in time. Hold mouse pointer over bug description to see hint with detailed
+        list of SLA criterias which were violated. You can see details of current SLA parameters in criterias
+        section below.
+        Note that the report displays only bugs which are in one of the following states:
+        New, Incomplete, Opinion, Confirmed, Triaged, In Progress.
       parameter: milestone
       group-by: team
       display-trigger-criterias: true
@@ -133,6 +143,12 @@ reports:
 
     - name: hcf_status
       text: HCF Status
+      description: >
+        This report lists bugs which affect Hard Code Freeze (HCF). It contains
+        bugs of Critical and High importance on one of the following states:
+        New, Incomplete, Opinion, Confirmed, Triaged, In Progress. Note that bugs having
+        one of the following tags are not displayed as they are considered to be non important
+        for HCF: devops, docs, fuel-devops, experimental, system-tests.
       parameter: milestone
       group-by: team
       criterias:
@@ -142,13 +158,15 @@ reports:
                  "Triaged", "In Progress"]
         importance: ["High", "Critical"]
 
+
     - name: custom_report
       text: Custom Report
+      description: >
+        This report lists all the bugs for the given milestone.
       parameter: milestone
       group-by: team
       criterias:
           - name: all
-
 
 
 menu:

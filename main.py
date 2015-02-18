@@ -636,9 +636,9 @@ def login(is_authorized=False):
     return redirect(url_for('main_page'))
 
 
-@app.route('/', methods=["GET", "POST"])
+@app.route('/common_statistic', methods=["GET", "POST"])
 @handle_launchpad_auth
-def main_page(is_authorized=False):
+def common_statistic_page(is_authorized=False):
     global_statistic = dict.fromkeys(db.prs)
     for pr in global_statistic.keys()[:]:
         types = dict.fromkeys(["total", "critical", "unresolved"])
@@ -653,11 +653,18 @@ def main_page(is_authorized=False):
             statuses=launchpad.BUG_STATUSES["NotDone"]))
         global_statistic['{0}'.format(pr)] = types
 
-    return render_template("main.html",
+    return render_template("common_statistic.html",
                            key_milestone=KEY_MILESTONE,
                            is_authorized=is_authorized,
                            statistic=global_statistic,
                            prs=list(db.prs))
+
+
+@app.route('/', methods=["GET", "POST"])
+@handle_launchpad_auth
+def main(is_authorized=False):
+    return render_template("main.html",
+                           is_authorized=is_authorized)
 
 
 if __name__ == "__main__":

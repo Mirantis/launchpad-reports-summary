@@ -43,14 +43,23 @@
                               {% endfor %}
                           </ul>
 
-                          <div class="panel">
-                          {% for bug_data in all_bugs["DATA"] %}
-                              {% if loop.index == 1 %}
+	                      <div class="panel panel-default" style="width: 1000px">
+                              <div class="panel-body" >
+                                  <font face="Courier New, Courier, monospace">{{ report["description"] }}</font>
+                              </div>
+                              <div {% if not report['display-trigger-criterias'] %}style="display:none"  {% endif %}>
+                                  <button id="details" href="#collapse1" class="nav-toggle btn btn-default">Show Details</button>
+                              </div>
+                              <div id="collapse1" style="display:none">
+                                  {% for bug_data in all_bugs["DATA"] %}
+                                  {% if loop.index == 1 %}
                               <pre>
 {{ bug_data['report_legend'] }}
                               </pre>
                               {% endif %}
-                          {% endfor %}
+                                  {% endfor %}
+
+                              </div>
                           </div>
 
                          <div id="tab-content" class="tab-content animated fadeIn">
@@ -221,6 +230,26 @@
         $("#wrapper").toggleClass("active");
 });
 </script>
+<script>
+		$(document).ready(function() {
+		  $('.nav-toggle').click(function(){
+			var collapse_content_selector = $(this).attr('href');
+			var toggle_switch = $(this);
+			$(collapse_content_selector).toggle(function(){
+			  if($(this).css('display')=='none'){
+				toggle_switch.html('Show Details');
+			  }else{
+				toggle_switch.html('Hide Details');
+			  }
+			});
+		  });
+		});
+		</script>
+		<style>
+        #details {
+            margin: 10px;
+        }
+		</style>
 
 
 {% endblock %}
