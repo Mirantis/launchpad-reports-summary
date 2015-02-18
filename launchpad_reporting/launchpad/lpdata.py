@@ -185,7 +185,7 @@ class LaunchpadAnonymousData(object):
     def get_all_bugs(self, project, milestone=None):
 
         def timestamp_to_utc_date(timestamp):
-            return (datetime.datetime.fromtimestamp(timestamp).
+            return (datetime.datetime.utcfromtimestamp(timestamp).
                     strftime('%Y-%m-%d'))
 
         update_time = None
