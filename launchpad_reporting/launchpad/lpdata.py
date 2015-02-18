@@ -346,6 +346,15 @@ class LaunchpadAnonymousData(object):
             if filters['criteria']:
                 team["bugs"] = _filter(team["bugs"], 'criteria')
 
+            if filters['tags']:
+                filtered_bugs = []
+                for b in team["bugs"]:
+                    print(getattr(b, 'tags'), filters['tags'])
+                    if set(getattr(b, 'tags')) & set(filters['tags']):
+                        filtered_bugs.append(b)
+                        print(True)
+                team["bugs"] = filtered_bugs
+
             if filters['assignee']:
                 new_teams_data = {}
 
