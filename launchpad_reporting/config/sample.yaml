@@ -111,6 +111,9 @@ reports:
       parameter: project
       criterias:
           - name: sla-non-triaged
+      options:
+        status: ["New", "Incomplete", "Opinion", "Confirmed",
+                 "Triaged", "In Progress"]
 
     - name: sla_report
       text: SLA Report
@@ -126,7 +129,7 @@ reports:
             - name: sla-in-progress
       options:
         status: ["New", "Incomplete", "Opinion", "Confirmed",
-                 "Triaged", "In Progress", "Opinion"]
+                 "Triaged", "In Progress"]
 
     - name: hcf_status
       text: HCF Status
