@@ -6,22 +6,36 @@
         <h1 class="page-header"><br>Welcome to the LP Reports application!</h1>
 
         <div class="main_info">
-            <p>Here you can find various dashboards for bugs on Launchpad.<p>
+            <p>Here you can find various dashboards for bugs on Launchpad mostly for product (Fuel + MOS) development.<p>
 
-            <p>You can find the most actual reports in the 'Release' and 'Triage' menus above.<br>
-               The reports located in 'Project reports' are not worked on for some time, but they still should work.
-            </p>
+            <h3>Highlights</h3>
+            <p>When showing a report, the application searches simultaneously through 'Fuel' and 'MOS' Launchpad projects,
+               making that distinction transparent.</p>
+            <p>You can find the most actual reports in the 'Release' and 'Triage' menus above. The reports located in
+               'Project reports' are not worked on for some time, but they still should work.</p>
+            <p>Some reports provide filtering capability allowing you to further narrow down list of bugs you need.
+               The most interesting filter is the one helping you to see bugs assigned to the specific team.
+               The teams are defined in this <a href="https://github.com/Mirantis/launchpad-reports-summary/blob/master/fuel_teams.json">file in our repo</a>.
+               Note that the entities which are inside 'teams' list are actually references to launchpad teams with the corresponding names.
+               E.g. <i>mos-ceilometer</i> is a reference to <a href="https://launchpad.net/~mos-ceilometer">mos-ceilometer</a> team on Launchpad.<p>
 
+            <h3>Accessing Private Bugs</h3>
             <p>You need to log in if you want to see Private or Private Security bugs. If you push 'Login' button, you will be redirected to Launchpad<br>
             where you can select duration of the token you provide to the application to search private bugs for you. Note a few things:</p>
             <ul style="list-style-type:circle">
-               <li>Once you issue a token on the launchpad page you will have to manually return back to the application by accessing http://lp-reports.vm.mirantis.net/</li>
-               <li>Once you log in, report generation will become considerably slower: while application stores public bugs in local DB, it will have to query launchpad using your token to generate each report to get private bugs. It takes up to several minutes for some reports.</li>
+               <li>Once you issue a token on the launchpad page you will have to manually return back to the application by accessing
+                   <a href="http://lp-reports.vm.mirantis.net/">http://lp-reports.vm.mirantis.net/</a>.</li>
+               <li>Once you log in, report generation will become considerably slower: while application stores public bugs in local DB,
+                   it will have to query launchpad using your token to generate each report to get private bugs. It takes up to several minutes for some reports.</li>
                <li>Right now the feature works only for reports in 'Release' and 'Triage' menu.</li>
-               <li>If you ever get stuck with authentication, access this page to return things to normal: http://lp-reports-staging.vm.mirantis.net/logout</li>
+               <li>If you ever get stuck with authentication, access this page to return things to normal:
+                   <a href="http://lp-reports.vm.mirantis.net/logout">http://lp-reports.vm.mirantis.net/logout</a>.</li>
             </ul>
 
-            <p>If you have questions or suggestions or need help, feel free to reach us via <b>lp-reports@mirantis.com</b> mailing list.</p>
+            <h3>Get in Touch</h3>
+            <p>We track our work in <a href="https://launchpad.net/summary-reports">summary-reports</a> project on Launchpad.
+               Here you can find actual list of bugs and blueprints we work on.</p>
+            <p>Also if you have questions or suggestions or need help, feel free to reach us via <b>lp-reports@mirantis.com</b> mailing list.</p>
 
         </div>
 
