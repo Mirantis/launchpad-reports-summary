@@ -662,7 +662,7 @@ def common_statistic_page(is_authorized=False):
 
 @app.route('/', methods=["GET", "POST"])
 @handle_launchpad_auth
-def main(is_authorized=False):
+def main_page(is_authorized=False):
     return render_template("main.html",
                            is_authorized=is_authorized)
 
