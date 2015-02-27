@@ -1,6 +1,7 @@
     #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 import json
 import time
 
@@ -42,15 +43,24 @@ SUBPROJECTS_LIST = [
 ]
 
 if __name__ == "__main__":
+
     sync_start_time = time.time()
 
-    launchpad = LaunchpadAnonymousClient()
+    parser = argparse.ArgumentParser(description="Synchronize DB.")
+    parser.add_argument("--db-name", default="bugs",
+                        help='A DB name to synchronize')
+    args = parser.parse_args()
 
-    milestones = db.bugs.milestones
-    db.bugs.drop_collection(milestones)
 
-    projects = db.bugs.projects
-    subprojects = db.bugs.subprojects
+    bugs_db = db.connection[args.db_name]
+
+    launchpad = LaunchpadAnonymousClient(bugs_db)
+
+    milestones = bugs_db.milestones
+    bugs_db.drop_collection(milestones)
+
+    projects = bugs_db.projects
+    subprojects = bugs_db.subprojects
 
     mos = launchpad.get_project("mos")
     fuel = launchpad.get_project("fuel")
@@ -64,7 +74,7 @@ if __name__ == "__main__":
     milestones.insert({"Milestone": milestones_list})
 
     print("Creating projects...")
-    collection_names = db.bugs.collection_names()
+    collection_names = bugs_db.collection_names()
     projects.update(
         {
             "Project": projects.find_one()["Project"]
@@ -88,7 +98,7 @@ if __name__ == "__main__":
 
     print("Creating collections...")
     map(
-        lambda pr: db.bugs.create_collection(pr),
+        lambda pr: bugs_db.create_collection(pr),
         ifilter(
             lambda pr: pr not in collection_names,
             project_names
@@ -100,13 +110,13 @@ if __name__ == "__main__":
     loaders = [
         Process(
             target=load_project_bugs,
-            args=(pname, db, PROJECTS_LIST, queue, stop_events[i])
+            args=(pname, bugs_db, PROJECTS_LIST, queue, stop_events[i])
         ) for i, pname in enumerate(project_names)
     ]
     processors = map(
         lambda num: Process(
             target=process_bugs,
-            args=(queue, db, stop_events)
+            args=(queue, bugs_db, stop_events)
         ),
         xrange(NUM_PROCESSES)
     )
@@ -119,6 +129,6 @@ if __name__ == "__main__":
     map(lambda p: p.join(), loaders)
     map(lambda p: p.join(), processors)
 
-    db.bugs.drop_collection("update_date")
-    db.bugs.create_collection("update_date")
-    db.bugs.update_date.insert({"Update_date": sync_start_time})
+    bugs_db.drop_collection("update_date")
+    bugs_db.create_collection("update_date")
+    bugs_db.update_date.insert({"Update_date": sync_start_time})

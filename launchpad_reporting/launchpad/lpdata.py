@@ -137,6 +137,7 @@ class LaunchpadAnonymousData(object):
                     "All":        ["New", "Incomplete", "Invalid",
                                    "Won't Fix", "Confirmed", "Triaged",
                                    "In Progress", "Fix Committed",
+                                   "Fix Released",
                                    "Opinion", "Expired"],
                     "NotDone":    ["New", "Confirmed", "Triaged", "In Progress"],
                     "Fixed": ["Fix Committed", "Fix Released"]}

@@ -109,7 +109,7 @@ def serialize_bug(bug, task=None):
     }
 
 
-def load_project_bugs(project_name, db, project_list, queue, stop_event):
+def load_project_bugs(project_name, bugs_db, project_list, queue, stop_event):
     from launchpad_reporting.launchpad import LaunchpadAnonymousClient
     launchpad = LaunchpadAnonymousClient()
     project = launchpad._get_project(project_name)
@@ -123,7 +123,7 @@ def load_project_bugs(project_name, db, project_list, queue, stop_event):
     counter = 0
     for bug in launchpad.get_all_bugs(project):
         bug_id = bug.bug.id
-        db.bugs[
+        bugs_db[
             str(bug.bug_target_name).split('/')[0]
         ].remove({'id': bug_id})
 
@@ -134,7 +134,7 @@ def load_project_bugs(project_name, db, project_list, queue, stop_event):
 
         for project in project_list:
             if project not in target_projects:
-                db.bugs[project].remove({'id': bug_id})
+                bugs_db[project].remove({'id': bug_id})
 
         bug_milestone = str(bug.milestone) if bug.milestone else None
         related_tasks = bug.related_tasks.entries
@@ -160,11 +160,11 @@ def load_project_bugs(project_name, db, project_list, queue, stop_event):
     stop_event.set()
 
 
-def process_bugs(queue, db, stop_events):
+def process_bugs(queue, bugs_db, stop_events):
     while True:
         try:
             bug = queue.get_nowait()
-            db.bugs[
+            bugs_db[
                 str(bug['target_name']).split('/')[0]
             ].update({"$and": [
                 {'id': bug['id']},
