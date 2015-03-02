@@ -61,6 +61,14 @@ def filter(request, bugs):
         'assignee': request.args.getlist('assignee'),
         'criteria': request.args.getlist('criteria'),
         'tags': request.args.getlist('tags'),
+        'created_from': request.args.get('created_from'),
+        'created_to': request.args.get('created_to'),
+        'triaged_from': request.args.get('triaged_from'),
+        'triaged_to': request.args.get('triaged_to'),
+        'fix_committed_from': request.args.get('fix_committed_from'),
+        'fix_committed_to': request.args.get('fix_committed_to'),
+        'fix_released_from': request.args.get('fix_released_from'),
+        'fix_released_to': request.args.get('fix_released_to'),
     }
 
     teams_data['Unknown'] = {'unknown': []}

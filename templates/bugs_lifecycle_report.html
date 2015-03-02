@@ -94,6 +94,16 @@
                                     {% endif %}                                   
                                     <button type="button" class="btn btn-default" onclick="filters()" ><span class="glyphicon glyphicon-ok"></span> Submit</button>
                                     <button type="button" class="btn btn-default" onclick="reset()" ><span class="glyphicon glyphicon-remove"></span> Reset</button>
+                                    <div>
+                                    <button id="show_dates" href="#collapse_date" class="nav-toggle btn btn-default">Show More</button>
+                                    </div>
+                                    <div id="collapse_date" style="display:none">
+                                        <p>Creation date: from <input id="date_created_from" type="date"></input> to <input id="date_created_to" type="date"></input></p>
+                                        <p>Triage date: from <input id="date_triaged_from" type="date"></input> to <input id="date_triaged_to" type="date"></input></p>
+                                        <p>Fix Committed date: from <input id="date_fix_committed_from" type="date"></input> to <input id="date_fix_committed_to" type="date"></input></p>
+                                        <p>Fix Released date: from <input id="date_fix_released_from" type="date"></input> to <input id="date_fix_released_to" type="date"></input></p>
+                                    </div>
+
                                 </div>
                             </div>
 
@@ -181,6 +191,18 @@
             query_str += tags
         }
 
+        var status = ["created", "triaged", "fix_committed", "fix_released"]
+        var border = ["_from", "_to"]
+        var dates_filter = ""
+        for (i = 0; i < status.length; i++) {
+            for (j = 0; j < border.length; j++) {
+                if ($("#date_"+status[i]+border[j]).val() != ""){
+                    dates_filter += "&"+status[i]+border[j]+"="+($("#date_"+status[i]+border[j])).val()
+                }
+            }
+        }
+
+        query_str += dates_filter
         query_str += assignee_str
 
         if (tab_name != "") {
@@ -237,9 +259,9 @@
 			var toggle_switch = $(this);
 			$(collapse_content_selector).toggle(function(){
 			  if($(this).css('display')=='none'){
-				toggle_switch.html('Show Details');
+				toggle_switch.html('Show More');
 			  }else{
-				toggle_switch.html('Hide Details');
+				toggle_switch.html('Hide More');
 			  }
 			});
 		  });
