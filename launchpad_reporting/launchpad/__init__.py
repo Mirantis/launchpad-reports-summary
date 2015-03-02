@@ -16,7 +16,7 @@ class LaunchpadAnonymousClient(object):
 
     def __init__(self, bugs_db=None):
         if not bugs_db:
-            bugs_db = db
+            bugs_db = db.bugs
 
         self.lpdata = LaunchpadAnonymousData(bugs_db=bugs_db)
 
