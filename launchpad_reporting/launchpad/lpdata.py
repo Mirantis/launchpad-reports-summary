@@ -337,6 +337,10 @@ class LaunchpadAnonymousData(object):
 
             return filtered_bugs
 
+        def transform_date(str):
+            if str is not None:
+                return datetime.datetime.strptime(str, "%Y-%m-%d")
+
         for team in bugs["DATA"]:
             if filters['status']:
                 team["bugs"] = _filter(team["bugs"], 'status')
@@ -380,6 +384,32 @@ class LaunchpadAnonymousData(object):
                                     newbugs.append(b)
 
                 team["bugs"] = newbugs
+
+            date_state = ["created", "triaged", "fix_committed", "fix_released"]
+
+            filtered_bugs = []
+            for bug in team["bugs"]:
+                satisfies = True
+
+                for state in date_state:
+                    bug_date = getattr(bug, 'date_{0}'.format(state))
+
+                    if bug_date is not None:
+                        if (filters[state+"_from"] is not None and
+                                bug_date < transform_date(filters[state+"_from"])):
+
+                            satisfies = False
+
+                        if (filters[state+"_to"] is not None and
+                                bug_date > transform_date(filters[state+"_to"])):
+                            satisfies = False
+                    else:
+                        satisfies = False
+
+                if satisfies:
+                    filtered_bugs.append(bug)
+
+            team["bugs"] = filtered_bugs
 
         return bugs
 
