@@ -111,7 +111,7 @@ def serialize_bug(bug, task=None):
 
 def load_project_bugs(project_name, bugs_db, project_list, queue, stop_event):
     from launchpad_reporting.launchpad import LaunchpadAnonymousClient
-    launchpad = LaunchpadAnonymousClient()
+    launchpad = LaunchpadAnonymousClient(bugs_db=bugs_db)
     project = launchpad._get_project(project_name)
 
     milestone_series = {}

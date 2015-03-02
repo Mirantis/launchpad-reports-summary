@@ -147,10 +147,10 @@ class LaunchpadAnonymousData(object):
 
     def __init__(
         self,
-        db,
+        bugs_db,
         cachedir="~/.launchpadlib/cache/",
     ):
-        self.db = db
+        self.bugs_db = bugs_db
         self.launchpad = launchpadlib.launchpad.Launchpad.login_anonymously(
             'launchpad-reporting-www', service_root=LPNET_SERVICE_ROOT,
             launchpadlib_dir=cachedir)
@@ -164,7 +164,7 @@ class LaunchpadAnonymousData(object):
 
     def get_bugs(self, project_name, statuses, milestone_name=None,
                  tags=[], importance=[], **kwargs):
-        project = self.db.bugs[project_name]
+        project = self.bugs_db[project_name]
 
         search = [{"status": {"$in": statuses}}]
 
@@ -191,7 +191,7 @@ class LaunchpadAnonymousData(object):
 
         update_time = None
         try:
-            update_time = self.db.bugs.update_date.find_one()["Update_date"]
+            update_time = self.bugs_db.update_date.find_one()["Update_date"]
             update_time = timestamp_to_utc_date(update_time)
         except:
             pass
@@ -266,11 +266,11 @@ class LaunchpadAnonymousData(object):
                 return internal
             return dict_
 
-        page_statistic["total"] = self.db.bugs['{0}'.format(project_name)].find(
+        page_statistic["total"] = self.bugs_db['{0}'.format(project_name)].find(
             criterion(
                 {"$and": [{"milestone": {"$in": milestone_name}}]},
                 tag)).count()
-        page_statistic["critical"] = self.db.bugs[
+        page_statistic["critical"] = self.bugs_db[
             '{0}'.format(project_name)
         ].find(
             criterion(
@@ -278,7 +278,7 @@ class LaunchpadAnonymousData(object):
                           {"importance": "Critical"},
                           {"milestone": {"$in": milestone_name}}]},
                 tag)).count()
-        page_statistic["unresolved"] = self.db.bugs[
+        page_statistic["unresolved"] = self.bugs_db[
             '{0}'.format(project_name)
         ].find(
             criterion(
@@ -286,28 +286,28 @@ class LaunchpadAnonymousData(object):
                           {"milestone": {"$in": milestone_name}}]},
                 tag)).count()
 
-        page_statistic["new_for_week"] = self.db.bugs[
+        page_statistic["new_for_week"] = self.bugs_db[
             '{0}'.format(project_name)
         ].find(
             criterion({"$and": [
                       {"status": {"$in": self.BUG_STATUSES["New"]}},
                       {"created less than week": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
-        page_statistic["fixed_for_week"] = self.db.bugs[
+        page_statistic["fixed_for_week"] = self.bugs_db[
             '{0}'.format(project_name)
         ].find(
             criterion({"$and": [
                       {"status": {"$in": self.BUG_STATUSES["Fixed"]}},
                       {"fixed less than week": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
-        page_statistic["new_for_month"] = self.db.bugs[
+        page_statistic["new_for_month"] = self.bugs_db[
             '{0}'.format(project_name)
         ].find(
             criterion({"$and": [
                       {"status": {"$in": self.BUG_STATUSES["New"]}},
                       {"created less than month": {"$ne": False}},
                       {"milestone": {"$in": milestone_name}}]}, tag)).count()
-        page_statistic["fixed_for_month"] = self.db.bugs[
+        page_statistic["fixed_for_month"] = self.bugs_db[
             '{0}'.format(project_name)
         ].find(
             criterion({"$and": [{"status": {"$in": self.BUG_STATUSES["Fixed"]}},
@@ -321,7 +321,7 @@ class LaunchpadAnonymousData(object):
 
         update_time = time.time()
         try:
-            update_time = self.db.bugs.update_date.find_one()["Update_date"]
+            update_time = self.bugs_db.update_date.find_one()["Update_date"]
         except:
             pass
 

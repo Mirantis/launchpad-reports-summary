@@ -14,11 +14,11 @@ LOG = logging.getLogger(__name__)
 
 class LaunchpadAnonymousClient(object):
 
-    def __init__(self, db_ref=None):
-        if not db_ref:
-            db_ref = db
+    def __init__(self, bugs_db=None):
+        if not bugs_db:
+            bugs_db = db
 
-        self.lpdata = LaunchpadAnonymousData(db=db_ref)
+        self.lpdata = LaunchpadAnonymousData(bugs_db=bugs_db)
 
     def __getattr__(self, item):
         return getattr(self.lpdata, item)

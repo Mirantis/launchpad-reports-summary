@@ -9,7 +9,7 @@ from launchpad_reporting.db import db
 
 from launchpad_reporting.launchpad.lpdata import LaunchpadAnonymousData
 
-lpdata = LaunchpadAnonymousData(db=db)
+lpdata = LaunchpadAnonymousData(bugs_db=db)
 connection = MongoClient()
 db = connection["assignees"]
 
