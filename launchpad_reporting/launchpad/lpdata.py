@@ -399,12 +399,17 @@ class LaunchpadAnonymousData(object):
                                 bug_date < transform_date(filters[state+"_from"])):
 
                             satisfies = False
+                            break
 
                         if (filters[state+"_to"] is not None and
                                 bug_date > transform_date(filters[state+"_to"])):
                             satisfies = False
+                            break
                     else:
-                        satisfies = False
+                        if (filters[state+"_from"] is not None
+                                or filters[state+"_to"] is not None):
+                            satisfies = False
+                            break
 
                 if satisfies:
                     filtered_bugs.append(bug)
