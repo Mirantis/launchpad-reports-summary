@@ -40,7 +40,7 @@
                            <tbody>
                             {% for b in bugs %}
                             <tr class="bug_row" id="{{ b.id }}">
-                                <td><a href="https://bugs.launchpad.net/{{ project }}/+bug/{{b.id}}">{{ b.id }}</a></td>
+                                <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
                                 <td>{{ b.importance }}</td>
                                 <td>{{ b.title }}</td>
                                 <td><a href="https://launchpad.net/~{{ b.assignee }}">{{ b.assignee }}</a></td>
