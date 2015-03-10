@@ -6,7 +6,6 @@
 # This wrapper avoids doing any calls to Launchpad by going into internal
 # representation of the object and grabbing the info from JSON.
 
-import lpdata
 
 FIELDS_TO_COPY = [
     "date_assigned",
@@ -35,9 +34,17 @@ FIELDS_TO_COPY = [
     "assignee_link"
 ]
 
+BUG_STATUSES = {
+    "New":          ["New"],
+    "Incomplete":   ["Incomplete"],
+    "Open":         ["Confirmed", "Triaged"],
+    "In Progress":  ["In Progress"],
+    "Resolved":     ["Fix Committed", "Won't Fix", "Invalid", "Opinion"],
+    "Verified":     ["Fix Released"]
+}
+
 
 class Bug(object):
-
     def __init__(self, lpbug):
 
         # straight copy fields from the lpbug object. this do not
@@ -56,7 +63,7 @@ class Bug(object):
         # * Verified    -> date_fix_released
 
         # if the bug is "New", it should not be displayed on the chart
-        if self.status in lpdata.LaunchpadData.BUG_STATUSES["New"]:
+        if self.status in BUG_STATUSES["New"]:
             return []
 
         # list of dates
@@ -69,8 +76,7 @@ class Bug(object):
         result.append({
             "date": date_open,
             "type": "Open",
-            "matches": [s for s in lpdata.LaunchpadData.BUG_STATUSES["Open"]
-                        if s != "In Progress"]
+            "matches": BUG_STATUSES["Open"]
         })
 
         # When the bug went to in progress state
@@ -78,7 +84,7 @@ class Bug(object):
         result.append({
             "date": date_in_progress,
             "type": "In Progress",
-            "matches": ["In Progress"]
+            "matches": BUG_STATUSES["In Progress"]
         })
 
         # When the bug was resolved or closed (e.g. as invalid)
@@ -88,8 +94,7 @@ class Bug(object):
         result.append({
             "date": date_resolved,
             "type": "Resolved",
-            "matches": [s for s in lpdata.LaunchpadData.BUG_STATUSES["Closed"]
-                        if s != "Fix Released"]
+            "matches": BUG_STATUSES["Resolved"]
         })
 
         # When the bug was verified
@@ -97,7 +102,7 @@ class Bug(object):
         result.append({
             "date": date_verified,
             "type": "Verified",
-            "matches": ["Fix Released"]
+            "matches": BUG_STATUSES["Verified"]
         })
 
         # When the bug was set as incomplete
@@ -105,7 +110,7 @@ class Bug(object):
         result.append({
             "date": date_incomplete,
             "type": "Incomplete",
-            "matches": lpdata.LaunchpadData.BUG_STATUSES["Incomplete"]})
+            "matches": BUG_STATUSES["Incomplete"]})
 
         # Remove all entries which have date as "None"
         result = [e for e in result if e["date"] is not None]

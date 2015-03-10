@@ -8,6 +8,7 @@ from bisect import bisect_left
 
 import pytz
 
+from launchpad_reporting.launchpad import bug as b
 from launchpad_reporting.launchpad.lpdata import LaunchpadData
 
 
@@ -15,9 +16,9 @@ class ReleaseChart(object):
 
     def __init__(self, lpdata, project_name, milestone_name):
         self.bugs = []
-        for status in LaunchpadData.BUG_STATUSES:
+        for status in b.BUG_STATUSES.values():
             self.bugs += lpdata.get_bugs(project_name,
-                                         LaunchpadData.BUG_STATUSES[status],
+                                         status,
                                          milestone_name)
 
     def get_trends_data(self):
@@ -36,17 +37,12 @@ class ReleaseChart(object):
 
         # all dates
         all_dates = set()
-        processed_bugs = set()
 
         # process each bug and its events
         for b in self.bugs:
-            if b.id in processed_bugs:
-                continue
-
-            processed_bugs.add(b.id)
-
             events = b.get_status_changes()
             events.append({"date": window_end, "type": "N/A"})
+
             for i in range(0, len(events) - 1):
                 e1 = events[i]
                 e2 = events[i + 1]
