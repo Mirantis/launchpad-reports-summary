@@ -7,13 +7,22 @@
         <ul id="sidebar_menu" class="sidebar-nav">
             <li class="sidebar-brand " ><a id="menu-toggle" href="#" >Milestones<span id="main_icon" class="glyphicon glyphicon-align-justify"></span></a></li>
         </ul>
-        <ul class="sidebar-nav" id="sidebar">
-            {% for m in milestones|sort %}
-                <li>
-                    <a href="/project/fuelplusmos/{{ m }}">FUEL/MOS {{ m }} </a>
-                </li>
-            {% endfor %}
+
+        {% for m in milestones|sort %}
+        <ul class="sidebar-nav">
+            <li class="dropdown">
+                <a class="dropdown-toggle"  data-toggle="dropdown">{{ m }}<i class="fa fa-sort-down pull-right" style="padding-right: 30px; padding-top: 15px;"></i></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{ url_for('fuel_plus_mos_overview', milestone_name=m) }}">Statistic</a>
+                        </li>
+                        <li >
+                            <a href="{{ url_for('fuelplusmos_bug_trends', milestone_name=m) }}">{{ m }}: Bug Trends</a>
+                        </li>
+                    </ul>
+            </li>
         </ul>
+        {% endfor %}
     </div>
 
     <!-- Page content -->

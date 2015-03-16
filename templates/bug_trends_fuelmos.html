@@ -1,0 +1,209 @@
+{% extends "layout.html" %}
+{% block body %}
+
+
+<div id="wrapper" class="active">
+
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <ul id="sidebar_menu" class="sidebar-nav">
+            <li class="sidebar-brand " ><a id="menu-toggle" href="#" >Milestones<span id="main_icon" class="glyphicon glyphicon-align-justify"></span></a></li>
+        </ul>
+        {% for m in milestones|sort %}
+        <ul class="sidebar-nav">
+            <li class="dropdown">
+                <a class="dropdown-toggle"  data-toggle="dropdown">{{ m }}<i class="fa fa-sort-down pull-right" style="padding-right: 30px; padding-top: 15px;"></i></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{ url_for('fuel_plus_mos_overview', milestone_name=m) }}">Statistic</a>
+                        </li>
+                        <li >
+                            <a href="{{ url_for('fuelplusmos_bug_trends', milestone_name=m) }}">{{ m }}: Bug Trends</a>
+                        </li>
+                    </ul>
+            </li>
+        </ul>
+        {% endfor %}
+    </div>
+
+    <!-- Page content -->
+    <div id="page-content-wrapper">
+        <!-- Keep all page content within the page-content inset div! -->
+        <div class="page-content inset">
+             <div class="row">
+                  <div class="col-md-12">
+                      <h2 class="page-header"><br>{{ milestone_name }} Release Bug Trends</h2>
+                      <select id="importance_select" data-placeholder="Importance..." multiple="multiple" style="width: 10%; " tabindex="-1" title>
+                          <option value="Critical">Critical</option>
+                          <option value="High" >High</option>
+                          <option value="Medium" >Medium</option>
+                          <option value="Low" >Low</option>
+                          <option value="Wishlist" >Wishlist</option>
+                          <option value="Undecided" >Undecided</option>
+                      </select>
+
+                      <select id="project_select" data-placeholder="Project..." multiple="multiple" style="width: 10%; " tabindex="-1" title>
+                          <option value="fuel" >Fuel</option>
+                          <option value="mos" >MOS</option>
+                      </select>
+
+                      <select id="assignee_select" data-placeholder="Assignee..." multiple="multiple" style="width: 35%" tabindex="-1" title>
+                          {% for group in teams %}
+                          <optgroup label="{{group}}">{{group}}
+                              {% for i in teams[group] %}
+                                  <option value="{{i}}" {{ print_select(filters, 'assignee', i) }}>{{i}}</option>
+                              {% endfor %}
+                          </optgroup>
+                          {% endfor %}
+                      </select>
+
+
+                      <button type="button" class="btn btn-default" onclick="redraw()" ><span class="glyphicon glyphicon-ok"></span>Submit</button>
+
+                      <div class="row placeholders">
+                          <div id="bug-report-chart">
+                              <img src="{{ url_for('static', filename='loader.gif') }}" />
+                              <svg></svg>
+                          </div>
+                      </div>
+
+                    <h2 class="page-header">{{ milestone_name }} Incoming/Outgoing Bugs (Weekly)</h2>
+                    <div class="row placeholders">
+                      <div id="bug-incoming-outgoing-chart">
+                        <img src="{{ url_for('static', filename='loader.gif') }}" />
+                        <svg></svg>
+                      </div>
+                    </div>
+
+                  </div> <!--col-md-12-->
+             </div> <!--row-->
+        </div> <!--page-content inset-->
+    </div> <!--page-content-wrapper-->
+
+</div> <!--wrapper-->
+
+<script src="{{ url_for('static', filename='d3/d3.v3.js') }}"></script>
+<script src="{{ url_for('static', filename='nvd3/nv.d3.js') }}"></script>
+<script>
+
+  <!-- Release bug trend chart -->
+
+  function make_query_string() {
+      query_str = ""
+      $("#importance_select option:selected").each(function () {
+          query_str += "&importance=" + $(this).text();
+      });
+
+      $("#project_select option:selected").each(function () {
+          query_str += "&project=" + $(this).val();
+      });
+
+      $( "#assignee_select option:selected" ).each(function() {
+          query_str += "&assignee=" + $(this).text();
+      });
+
+      return query_str.substr(1, query_str.length);
+  }
+
+  function redraw() {
+      query_str = make_query_string();
+
+      d3.json('/product/api/release_chart_trends/{{ milestone_name }}/get_data?' + query_str, function (data) {
+          nv.addGraph(function () {
+              var chart = nv.models.stackedAreaChart()
+                      .x(function (d) {
+                          return d[0]
+                      })
+                      .y(function (d) {
+                          return d[1]
+                      })
+                      .color(function (d) {
+                          colors = {
+                              "Open": "#FEA455", // dark orange
+                              "Incomplete": "#E16767", // dark red
+                              "Resolved": "#B6E7AC", // light green
+                              "Verified": "#6ABB6A", // dark green
+                              "In Progress": "#619FC9" // dark blue
+                          };
+                          return colors[d["key"]];
+                      })
+                      .clipEdge(true)
+                      .margin({left: 75})
+                      .useInteractiveGuideline(true)
+
+              chart.xAxis
+                      .showMaxMin(true)
+                      .axisLabel('Date')
+                      .tickFormat(function (d) {
+                          return d3.time.format('%x')(new Date(d))
+                      });
+
+              chart.yAxis
+                      .showMaxMin(true)
+                      .axisLabel('# of bugs')
+                      .tickFormat(d3.format(',.0f'));
+
+              d3.select('#bug-report-chart svg')
+                      .datum(data)
+                      .transition().duration(500).call(chart);
+
+              nv.utils.windowResize(chart.update);
+
+              $('#bug-report-chart img').hide();
+
+              return chart;
+          });
+      });
+
+
+      <!-- Release incoming/outgoing bug chart -->
+      d3.json('/product/api/release_chart_incoming_outgoing/{{ milestone_name }}/get_data?' + query_str, function(data) {
+        nv.addGraph(function() {
+            var chart = nv.models.multiBarChart()
+              .x(function(d) { return d[0] })
+              .y(function(d) { return d[1] })
+              .color(function(d) {
+                colors = {
+                  "Incoming": "#E16767", // dark red
+                  "Outgoing": "#B6E7AC"  // light green
+                };
+                return colors[d["key"]];
+              })
+              .showControls(true)   //Allow user to switch between 'Grouped' and 'Stacked' mode.
+              .groupSpacing(0.1)    //Distance between each group of bars.
+            ;
+
+            chart.xAxis
+              .showMaxMin(true)
+              .axisLabel('Date')
+              .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
+
+            chart.yAxis
+              .showMaxMin(true)
+              .axisLabel('# of bugs')
+              .tickFormat(d3.format(',.0f'));
+
+           d3.select('#bug-incoming-outgoing-chart svg')
+              .datum(data)
+              .transition().duration(500).call(chart);
+
+          nv.utils.windowResize(chart.update);
+
+          $('#bug-incoming-outgoing-chart img').hide();
+
+          return chart;
+        });
+      });
+
+  }
+
+  redraw();
+
+</script>
+<script type="text/javascript">
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("active");
+});
+</script>
+{% endblock %}
