@@ -99,6 +99,11 @@ class ReleaseChart(object):
             # (except for the last point, which has all zeroes)
             values = []
             for idx in range(0, n - 1):
+                # we want chart only for the last 4 month
+                if (datetime.datetime.now() - all_dates_sorted[idx] >
+                        datetime.timedelta(days=120)):
+                    continue
+
                 chart_seconds = (all_dates_sorted[idx].replace(
                     tzinfo=None) - d3_start.replace(
                     tzinfo=None)).total_seconds() * 1000.0
