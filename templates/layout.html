@@ -125,6 +125,14 @@
                                 </ul>
                             </li>
                         {% endfor %}
+                        <li>
+                            <a class="dropdown-toggle" href="#" data-toggle="dropdown"><span class="glyphicon glyphicon-list"></span> Review <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                {% for pr in ['heat', 'horizon', 'sahara', 'fuel', 'neutron', 'mistral', 'murano', 'nova', 'ceilometer', 'oslo', 'keystone', 'glance'] %}
+                                <li><a href="{{ review[pr] }}"> {{ pr|capitalize }} Review Inbox </a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
                   </ul>
                   <ul class="nav navbar-nav navbar-right">
                       <li><a id="clock" href="/"></a>

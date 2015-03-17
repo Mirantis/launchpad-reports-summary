@@ -33,6 +33,8 @@ with open('{0}/data.json'.format(path_to_data)) as data_file:
 with open('{0}/file.json'.format(path_to_data)) as teams_file:
     teams_data = json.load(teams_file, object_pairs_hook=collections.OrderedDict)
 
+with open('{0}/review.json'.format(path_to_data)) as review_file:
+    review = json.load(review_file)
 
 launchpad = LaunchpadAnonymousClient()
 
@@ -53,6 +55,7 @@ def get_report_by_name(name):
             return report
 
     raise RuntimeError('Can not find report %s!' % name)
+
 
 def filter(request, bugs):
 
@@ -92,7 +95,8 @@ app.jinja_env.globals.update(print_select=print_select,
                              get_report_by_name=get_report_by_name,
                              app_config=app_config,
                              key_milestone=KEY_MILESTONE,
-                             get_update_time=launchpad.get_update_time)
+                             get_update_time=launchpad.get_update_time,
+                             review=review)
 
 
 def get_access_token(credentials):
