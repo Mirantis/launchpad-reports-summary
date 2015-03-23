@@ -2,12 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import json
 import time
 
-from Queue import Empty
-
-from datetime import date
 from itertools import ifilter
 from multiprocessing import Process
 from multiprocessing import Queue

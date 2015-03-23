@@ -5,6 +5,7 @@ import argparse
 import collections
 import json
 import os
+import sys
 import time
 from functools import wraps
 
@@ -32,6 +33,8 @@ with open('{0}/data.json'.format(path_to_data)) as data_file:
 with open('{0}/file.json'.format(path_to_data)) as teams_file:
     teams_data = json.load(teams_file, object_pairs_hook=collections.OrderedDict)
 
+with open('{0}/review.json'.format(path_to_data)) as review_file:
+    review = json.load(review_file)
 
 launchpad = LaunchpadAnonymousClient()
 
@@ -52,6 +55,7 @@ def get_report_by_name(name):
             return report
 
     raise RuntimeError('Can not find report %s!' % name)
+
 
 def filter(request, bugs):
 
@@ -91,7 +95,8 @@ app.jinja_env.globals.update(print_select=print_select,
                              get_report_by_name=get_report_by_name,
                              app_config=app_config,
                              key_milestone=KEY_MILESTONE,
-                             get_update_time=launchpad.get_update_time)
+                             get_update_time=launchpad.get_update_time,
+                             review=review)
 
 
 def get_access_token(credentials):
@@ -177,9 +182,13 @@ def handle_launchpad_auth(f):
                 kwargs.update({'is_authorized': False})
                 return f(*args, **kwargs)
             else:
-                raise e
+                exc_info = sys.exc_info()
+                raise exc_info[0], exc_info[1], exc_info[2]
 
     return decorated
+
+
+
 
 
 @app.route('/project/<project_name>/bug_table_for_status/<bug_type>/'
@@ -207,8 +216,6 @@ def bug_list(project_name, bug_type, milestone_name, is_authorized=False):
                            milestone_name=milestone_name,
                            selected_bug_table=True,
                            prs=list(db.prs))
-
-
 
 
 @app.route('/project/<project_name>/bug_list_for_sbpr/<milestone_name>/'
@@ -282,6 +289,45 @@ def bug_report_get_incoming_outgoing_data(project_name, milestone_name, is_autho
     return flask_json.dumps(data)
 
 
+def _make_product_release_chart(milestone_name):
+    criterias = [{'name': 'all', 'implementation': 'criterias.All'}]
+
+    projects = request.args.getlist('project')
+    if not projects:
+        projects = ['fuel', 'mos']
+
+    options = app_config['report-default-values']['options']
+
+    bugs = sla_reports.get_bugs_by_criteria(criterias, projects,
+                                            milestone_name, options=options)
+
+    bugs, filters = filter(request, {'DATA': [{'bugs': bugs}]})
+
+    # fake parameters for constructor: we just need to create the
+    # chart somehow
+    chart = launchpad.release_chart('fuel', milestone_name)
+    chart.bugs = bugs['DATA'][0]['bugs']
+    return chart
+
+
+@app.route('/product/api/release_chart_trends/<milestone_name>/get_data')
+@handle_launchpad_auth
+def fuel_plus_mos_bug_report_trends_data(milestone_name, is_authorized=False):
+    chart = _make_product_release_chart(milestone_name)
+
+    return flask_json.dumps(chart.get_trends_data())
+
+
+@app.route('/product/api/release_chart_incoming_outgoing/'
+           '<milestone_name>/get_data')
+@handle_launchpad_auth
+def fuel_plus_mos_bug_report_get_incoming_outgoing_data(milestone_name,
+                                                        is_authorized=False):
+    chart = _make_product_release_chart(milestone_name)
+
+    return flask_json.dumps(chart.get_incoming_outgoing_data())
+
+
 @app.route('/project/<project_name>/bug_table_for_status/'
            '<bug_type>/<milestone_name>')
 @handle_launchpad_auth
@@ -309,6 +355,20 @@ def bug_trends(project_name, milestone_name, is_authorized=False):
                            milestone_name=milestone_name,
                            selected_bug_trends=True,
                            prs=list(db.prs))
+
+
+@app.route('/product/bug_trends/<milestone_name>/')
+@handle_launchpad_auth
+def fuelplusmos_bug_trends(milestone_name, is_authorized=False):
+    milestones = db.bugs.milestones.find_one()["Milestone"]
+
+    return render_template("bug_trends_fuelmos.html",
+                           is_authorized=is_authorized,
+                           milestones=milestones,
+                           milestone_name=milestone_name,
+                           selected_bug_trends=True,
+                           prs=list(db.prs),
+                           teams=teams_data)
 
 
 def milestone_based_report(report):
