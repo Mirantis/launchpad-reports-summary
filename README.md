@@ -1,3 +1,11 @@
+Project Moved!!!
+================
+
+All development is transferred to
+![review.fuel-infra.org](https://review.fuel-infra.org/#/admin/projects/tools/lp-reports)
+
+No further changes are accepted into this repository.
+
 launchpad-reporting
 ===================
 
