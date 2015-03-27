@@ -457,24 +457,29 @@ class LaunchpadData(LaunchpadAnonymousData):
         return [Bug(self.serialize_private(bug)) for bug in result_bugs]
 
     @ttl_cache(minutes=5)
-    def get_all_bugs(self, project):
-        project_tasks = project.searchTasks(status=self.BUG_STATUSES["All"],
-                                            milestone=[
-                                                i.self_link
-                                                for i in project.active_milestones])
-        private_tasks = [task for task
-                         in project_tasks
-                         if "Private" in task.bug.information_type]
-        return private_tasks
-
-    @ttl_cache(minutes=5)
     def get_all_bugs_by(self, project_name, milestone):
         project = self.launchpad.projects[project_name]
-        try:
-            milestone = [unicode('https://api.launchpad.net/1.0/{0}/+milestone/{1!s}').format(
-                project_name, ms) for ms in milestone]
-            return project.searchTasks(status=self.BUG_STATUSES["All"],
-                                       milestone=milestone,
-                                       information_type=self.PRIVATE_BUG_TYPES)
-        except Exception as e:
-            print e
+        tasks = []
+        if milestone is not None:
+            milestones = [project.getMilestone(name=ms) for ms in milestone]
+            for ms in milestones:
+                for task in ms.searchTasks(
+                        status=self.BUG_STATUSES["All"],
+                        information_type=self.PRIVATE_BUG_TYPES,
+                        omit_targeted=False):
+                    tasks.append(task)
+            return tasks
+
+        for task in project.searchTasks(
+                status=self.BUG_STATUSES["All"],
+                information_type=self.PRIVATE_BUG_TYPES):
+            tasks.append(task)
+
+        active_series = [s for s in project.series if s.active]
+        for s in active_series:
+            for task in s.searchTasks(
+                    status=self.BUG_STATUSES["All"],
+                    information_type=self.PRIVATE_BUG_TYPES,
+                    omit_targeted=False):
+                tasks.append(task)
+        return tasks
